@@ -75,6 +75,9 @@ window.addEventListener('DOMContentLoaded', async () => {
       }, 500);
     }
   }
+  
+  // Restore persisted state from local storage
+  restoreAppState();
 });
 
 // Event Listeners Registration
@@ -113,6 +116,12 @@ function initEventListeners() {
       el.btnLoadPlaylist.setAttribute('disabled', 'disabled');
     }
   });
+
+  // Persist input values as they type
+  el.inputSongList.addEventListener('input', saveAppState);
+  el.playlistName.addEventListener('input', saveAppState);
+  el.playlistDesc.addEventListener('input', saveAppState);
+  el.playlistPublic.addEventListener('change', saveAppState);
 }
 
 // Fetch session configurations dynamically from secure Express backend
@@ -422,6 +431,7 @@ async function executeCatalogSearches() {
   
   renderTracksList();
   updateCreatePlaylistButtonState();
+  saveAppState();
 }
 
 // UI Rendering for track cards
@@ -561,6 +571,7 @@ function bindTrackCardListeners() {
           card.classList.remove('approved');
         }
         updateCreatePlaylistButtonState();
+        saveAppState();
       }
     });
   });
@@ -573,6 +584,7 @@ function bindTrackCardListeners() {
       if (track) {
         track.selectedIndex = parseInt(e.target.value);
         updateSingleTrackCard(track);
+        saveAppState();
       }
     });
   });
@@ -611,6 +623,7 @@ function bindTrackCardListeners() {
         
         updateSingleTrackCard(track);
         updateCreatePlaylistButtonState();
+        saveAppState();
       }
     });
   });
@@ -738,11 +751,13 @@ function updateSingleTrackCard(track) {
       card.classList.remove('approved');
     }
     updateCreatePlaylistButtonState();
+    saveAppState();
   });
 
   select.addEventListener('change', (e) => {
     track.selectedIndex = parseInt(e.target.value);
     updateSingleTrackCard(track);
+    saveAppState();
   });
 
   const playBtn = card.querySelector('.btn-play-preview');
@@ -779,6 +794,7 @@ function handleApproveAll() {
   });
 
   updateCreatePlaylistButtonState();
+  saveAppState();
 }
 
 // Global Playlist Export Operations
@@ -997,6 +1013,52 @@ function updateAllPlayButtonUI() {
   });
 }
 
+// Local Storage Session Persistence Helpers
+function saveAppState() {
+  localStorage.setItem('makemyplaylist_raw_input', el.inputSongList.value);
+  
+  const details = {
+    name: el.playlistName.value,
+    description: el.playlistDesc.value,
+    isPublic: el.playlistPublic.checked,
+  };
+  localStorage.setItem('makemyplaylist_details', JSON.stringify(details));
+  localStorage.setItem('makemyplaylist_tracks', JSON.stringify(state.tracks));
+}
+
+function restoreAppState() {
+  try {
+    const rawInput = localStorage.getItem('makemyplaylist_raw_input');
+    if (rawInput !== null) {
+      el.inputSongList.value = rawInput;
+    }
+
+    const detailsStr = localStorage.getItem('makemyplaylist_details');
+    if (detailsStr) {
+      const details = JSON.parse(detailsStr);
+      el.playlistName.value = details.name || "My Awesome Playlist";
+      el.playlistDesc.value = details.description || "";
+      el.playlistPublic.checked = details.isPublic !== false;
+    }
+
+    const tracksStr = localStorage.getItem('makemyplaylist_tracks');
+    if (tracksStr) {
+      const tracks = JSON.parse(tracksStr);
+      if (tracks && tracks.length > 0) {
+        state.tracks = tracks;
+        el.resultsEmptyState.classList.add('hidden');
+        el.tracksList.classList.remove('hidden');
+        el.btnApproveAll.disabled = false;
+        renderTracksList();
+        updateCreatePlaylistButtonState();
+      }
+    }
+  } catch (e) {
+    console.error("Error restoring app state:", e);
+  }
+}
+
+
 // Fetch user's library playlists via proxy
 async function handleFetchLibraryPlaylists() {
   if (!state.musicKit) {
@@ -1098,6 +1160,7 @@ async function handleLoadSelectedPlaylist() {
     el.playlistDesc.value = playlistDesc || `Imported from library playlist: ${playlistName}`;
 
     showSuccessToast(`Successfully loaded ${tracksLines.length} songs into the editor!`);
+    saveAppState();
   } catch (err) {
     console.error("Error loading playlist tracks:", err);
     alert(`Could not load playlist songs: ${err.message}`);
