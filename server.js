@@ -56,8 +56,11 @@ function generateDeveloperToken(expiresIn = '5m') {
   });
 }
 
+// Create Router for API endpoints
+const router = express.Router();
+
 // API Route: Vend short-lived token to configure frontend MusicKit instances
-app.get('/api/session/config', (req, res) => {
+router.get('/session/config', (req, res) => {
   try {
     const token = generateDeveloperToken('5m'); // 5 minutes validity
     res.json({ developerToken: token });
@@ -68,7 +71,7 @@ app.get('/api/session/config', (req, res) => {
 });
 
 // API Route: Proxy Catalog searches to keep Developer Token invisible
-app.get('/api/search', async (req, res) => {
+router.get('/search', async (req, res) => {
   const { term, storefront = 'us' } = req.query;
   if (!term) {
     return res.status(400).json({ error: "Missing query term parameter" });
@@ -97,7 +100,7 @@ app.get('/api/search', async (req, res) => {
 });
 
 // API Route: Proxy User Library Playlist creation
-app.post('/api/playlists', async (req, res) => {
+router.post('/playlists', async (req, res) => {
   const { name, description, musicUserToken } = req.body;
   if (!musicUserToken) {
     return res.status(400).json({ error: "Missing required Music-User-Token in request body." });
@@ -136,7 +139,7 @@ app.post('/api/playlists', async (req, res) => {
 });
 
 // API Route: Proxy adding track items to library playlist
-app.post('/api/playlists/:id/tracks', async (req, res) => {
+router.post('/playlists/:id/tracks', async (req, res) => {
   const { id } = req.params;
   const { tracks, musicUserToken } = req.body;
   if (!musicUserToken || !tracks) {
@@ -172,7 +175,7 @@ app.post('/api/playlists/:id/tracks', async (req, res) => {
 });
 
 // API Route: Proxy fetching user's library playlists
-app.get('/api/library/playlists', async (req, res) => {
+router.get('/library/playlists', async (req, res) => {
   const { musicUserToken } = req.query;
   if (!musicUserToken) {
     return res.status(400).json({ error: "Missing required Music-User-Token query parameter." });
@@ -202,7 +205,7 @@ app.get('/api/library/playlists', async (req, res) => {
 });
 
 // API Route: Proxy fetching tracks from a library playlist
-app.get('/api/library/playlists/:id/tracks', async (req, res) => {
+router.get('/library/playlists/:id/tracks', async (req, res) => {
   const { id } = req.params;
   const { musicUserToken } = req.query;
   if (!musicUserToken) {
@@ -232,6 +235,10 @@ app.get('/api/library/playlists/:id/tracks', async (req, res) => {
   }
 });
 
+// Mount router on both direct and netlify function paths
+app.use('/api', router);
+app.use('/.netlify/functions/api', router);
+
 // Serve frontend build output when running in production environment
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, 'dist')));
@@ -241,7 +248,11 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Startup
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`MakeMyPlaylist secure backend server running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production' || !process.env.NETLIFY) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`MakeMyPlaylist secure backend server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
