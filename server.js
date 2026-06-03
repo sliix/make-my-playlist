@@ -171,6 +171,67 @@ app.post('/api/playlists/:id/tracks', async (req, res) => {
   }
 });
 
+// API Route: Proxy fetching user's library playlists
+app.get('/api/library/playlists', async (req, res) => {
+  const { musicUserToken } = req.query;
+  if (!musicUserToken) {
+    return res.status(400).json({ error: "Missing required Music-User-Token query parameter." });
+  }
+
+  try {
+    const token = generateDeveloperToken('2m');
+    const url = 'https://api.music.apple.com/v1/me/library/playlists?limit=100';
+    
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Music-User-Token': musicUserToken
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Apple Music API library-playlists returned status ${response.status}`);
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error("Proxy fetch library playlists failed:", error.message);
+    res.status(500).json({ error: "Failed to fetch library playlists via backend proxy." });
+  }
+});
+
+// API Route: Proxy fetching tracks from a library playlist
+app.get('/api/library/playlists/:id/tracks', async (req, res) => {
+  const { id } = req.params;
+  const { musicUserToken } = req.query;
+  if (!musicUserToken) {
+    return res.status(400).json({ error: "Missing required Music-User-Token query parameter." });
+  }
+
+  try {
+    const token = generateDeveloperToken('2m');
+    const url = `https://api.music.apple.com/v1/me/library/playlists/${id}/tracks?limit=100`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Music-User-Token': musicUserToken
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Apple Music API library-playlist-tracks returned status ${response.status}`);
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error(`Proxy fetch tracks failed for playlist "${id}":`, error.message);
+    res.status(500).json({ error: "Failed to fetch playlist tracks via backend proxy." });
+  }
+});
+
 // Serve frontend build output when running in production environment
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, 'dist')));

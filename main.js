@@ -4,6 +4,8 @@ const state = {
   musicKit: null,
   isSearching: false,
   manualDeveloperToken: '', // fallback token entered via settings UI
+  playingTrackId: null,      // track ID currently playing preview
+  playingAudio: null,        // Audio object currently playing
 };
 
 // UI Elements Cache
@@ -37,6 +39,16 @@ const el = {
   btnCreatePlaylist: document.getElementById('btn-create-playlist'),
   btnCreateText: document.getElementById('btn-create-text'),
   spinnerCreate: document.getElementById('spinner-create'),
+  
+  // Library Playlist Import Elements
+  btnFetchPlaylists: document.getElementById('btn-fetch-playlists'),
+  btnLoadPlaylist: document.getElementById('btn-load-playlist'),
+  selectLibraryPlaylists: document.getElementById('select-library-playlists'),
+  playlistSelectGroup: document.getElementById('playlist-select-group'),
+  spinnerFetch: document.getElementById('spinner-fetch'),
+  spinnerLoad: document.getElementById('spinner-load'),
+  btnFetchText: document.getElementById('btn-fetch-text'),
+  btnLoadText: document.getElementById('btn-load-text'),
 };
 
 // Initialize Application
@@ -90,6 +102,17 @@ function initEventListeners() {
   el.btnApproveAll.addEventListener('click', handleApproveAll);
   el.btnConnectApple.addEventListener('click', handleConnectAppleMusic);
   el.btnCreatePlaylist.addEventListener('click', handleCreatePlaylist);
+  
+  // Library Playlist Import listeners
+  el.btnFetchPlaylists.addEventListener('click', handleFetchLibraryPlaylists);
+  el.btnLoadPlaylist.addEventListener('click', handleLoadSelectedPlaylist);
+  el.selectLibraryPlaylists.addEventListener('change', () => {
+    if (el.selectLibraryPlaylists.value) {
+      el.btnLoadPlaylist.removeAttribute('disabled');
+    } else {
+      el.btnLoadPlaylist.setAttribute('disabled', 'disabled');
+    }
+  });
 }
 
 // Fetch session configurations dynamically from secure Express backend
@@ -234,6 +257,13 @@ function handleAnalyzeSongList() {
   if (!state.musicKit) {
     el.settingsModal.showModal();
     return;
+  }
+
+  // Stop active playing audio before re-analyzing
+  if (state.playingAudio) {
+    state.playingAudio.pause();
+    state.playingAudio = null;
+    state.playingTrackId = null;
   }
 
   const rawText = el.inputSongList.value;
@@ -413,6 +443,7 @@ function renderTracksList() {
       </svg>
     </div>`;
     
+    let previewUrl = '';
     if (track.status === 'matched' && track.results.length > 0) {
       activeSong = track.results[track.selectedIndex];
       if (activeSong && activeSong.attributes && activeSong.attributes.artwork) {
@@ -420,6 +451,9 @@ function renderTracksList() {
           .replace('{w}', '120')
           .replace('{h}', '120');
         artworkHtml = `<img class="track-artwork" src="${artUrl}" alt="${activeSong.attributes.name} Artwork">`;
+      }
+      if (activeSong && activeSong.attributes && activeSong.attributes.previews && activeSong.attributes.previews[0]) {
+        previewUrl = activeSong.attributes.previews[0].url;
       }
     }
     
@@ -444,8 +478,19 @@ function renderTracksList() {
         
         <div class="track-query-indicator">#${track.id}</div>
         
-        <div class="track-artwork-container">
+        <div class="track-artwork-container ${previewUrl ? 'has-preview' : ''}" id="artwork-container-${track.id}">
           ${artworkHtml}
+          ${previewUrl ? `
+          <button class="btn-play-preview" data-id="${track.id}" data-url="${previewUrl}" aria-label="Play Preview">
+            <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21"></polygon>
+            </svg>
+            <svg class="pause-icon hidden" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+          </button>
+          ` : ''}
         </div>
         
         <div class="track-meta">
@@ -569,6 +614,17 @@ function bindTrackCardListeners() {
       }
     });
   });
+  
+  // 4. Play Preview Button Handler
+  el.tracksList.querySelectorAll('.btn-play-preview').forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const btn = e.target.closest('.btn-play-preview');
+      const trackId = parseInt(btn.dataset.id);
+      const url = btn.dataset.url;
+      playPreview(trackId, url);
+    });
+  });
 }
 
 // Local card rerender logic for seamless transitions
@@ -587,6 +643,7 @@ function updateSingleTrackCard(track) {
     </svg>
   </div>`;
   
+  let previewUrl = '';
   if (track.status === 'matched' && track.results.length > 0) {
     activeSong = track.results[track.selectedIndex];
     if (activeSong && activeSong.attributes && activeSong.attributes.artwork) {
@@ -594,6 +651,9 @@ function updateSingleTrackCard(track) {
         .replace('{w}', '120')
         .replace('{h}', '120');
       artworkHtml = `<img class="track-artwork" src="${artUrl}" alt="${activeSong.attributes.name} Artwork">`;
+    }
+    if (activeSong && activeSong.attributes && activeSong.attributes.previews && activeSong.attributes.previews[0]) {
+      previewUrl = activeSong.attributes.previews[0].url;
     }
   }
   
@@ -616,8 +676,19 @@ function updateSingleTrackCard(track) {
     
     <div class="track-query-indicator">#${track.id}</div>
     
-    <div class="track-artwork-container">
+    <div class="track-artwork-container ${previewUrl ? 'has-preview' : ''}" id="artwork-container-${track.id}">
       ${artworkHtml}
+      ${previewUrl ? `
+      <button class="btn-play-preview" data-id="${track.id}" data-url="${previewUrl}" aria-label="Play Preview">
+        <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="5 3 19 12 5 21"></polygon>
+        </svg>
+        <svg class="pause-icon hidden" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="6" y="4" width="4" height="16"></rect>
+          <rect x="14" y="4" width="4" height="16"></rect>
+        </svg>
+      </button>
+      ` : ''}
     </div>
     
     <div class="track-meta">
@@ -673,6 +744,20 @@ function updateSingleTrackCard(track) {
     track.selectedIndex = parseInt(e.target.value);
     updateSingleTrackCard(track);
   });
+
+  const playBtn = card.querySelector('.btn-play-preview');
+  if (playBtn) {
+    playBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const btn = e.target.closest('.btn-play-preview');
+      const trackId = parseInt(btn.dataset.id);
+      const url = btn.dataset.url;
+      playPreview(trackId, url);
+    });
+  }
+  
+  // Update play button state for this card
+  updateAllPlayButtonUI();
 }
 
 function handleApproveAll() {
@@ -855,3 +940,171 @@ function showToast(message, type = 'success') {
     }, 300);
   }, 4000);
 }
+
+// Global Audio Preview Controllers
+function playPreview(trackId, previewUrl) {
+  if (state.playingAudio && state.playingTrackId === trackId) {
+    state.playingAudio.pause();
+    state.playingAudio = null;
+    state.playingTrackId = null;
+    updateAllPlayButtonUI();
+    return;
+  }
+
+  if (state.playingAudio) {
+    state.playingAudio.pause();
+  }
+
+  const audio = new Audio(previewUrl);
+  state.playingAudio = audio;
+  state.playingTrackId = trackId;
+
+  audio.addEventListener('ended', () => {
+    state.playingAudio = null;
+    state.playingTrackId = null;
+    updateAllPlayButtonUI();
+  });
+
+  audio.play().catch(err => {
+    console.error("Audio playback error:", err);
+    state.playingAudio = null;
+    state.playingTrackId = null;
+    updateAllPlayButtonUI();
+  });
+
+  updateAllPlayButtonUI();
+}
+
+function updateAllPlayButtonUI() {
+  const containers = el.tracksList.querySelectorAll('.track-artwork-container');
+  containers.forEach(container => {
+    const playBtn = container.querySelector('.btn-play-preview');
+    if (!playBtn) return;
+
+    const trackId = parseInt(playBtn.dataset.id);
+    const playIcon = playBtn.querySelector('.play-icon');
+    const pauseIcon = playBtn.querySelector('.pause-icon');
+
+    if (state.playingTrackId === trackId) {
+      container.classList.add('playing');
+      playIcon.classList.add('hidden');
+      pauseIcon.classList.remove('hidden');
+    } else {
+      container.classList.remove('playing');
+      playIcon.classList.remove('hidden');
+      pauseIcon.classList.add('hidden');
+    }
+  });
+}
+
+// Fetch user's library playlists via proxy
+async function handleFetchLibraryPlaylists() {
+  if (!state.musicKit) {
+    el.settingsModal.showModal();
+    return;
+  }
+
+  // Refresh config and authenticate if needed
+  await refreshMusicKitConfiguration();
+  if (!state.musicKit.isAuthorized) {
+    try {
+      await state.musicKit.authorize();
+    } catch (err) {
+      showErrorToast("Apple Music authorization failed.");
+      return;
+    }
+  }
+
+  // UI loading state
+  el.btnFetchPlaylists.disabled = true;
+  el.spinnerFetch.classList.remove('hidden');
+  el.btnFetchText.textContent = "Fetching Playlists...";
+
+  try {
+    const userToken = state.musicKit.musicUserToken;
+    const response = await fetch(`/api/library/playlists?musicUserToken=${encodeURIComponent(userToken)}`);
+    if (!response.ok) {
+      throw new Error(`Proxy playlists endpoint returned ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data.data || data.data.length === 0) {
+      alert("No playlists found in your Apple Music library.");
+      return;
+    }
+
+    // Populate Select options
+    el.selectLibraryPlaylists.innerHTML = '<option value="" disabled selected>Choose a playlist...</option>';
+    data.data.forEach(playlist => {
+      const option = document.createElement('option');
+      option.value = playlist.id;
+      option.textContent = playlist.attributes.name;
+      option.dataset.name = playlist.attributes.name;
+      option.dataset.description = playlist.attributes.description?.standard || "";
+      el.selectLibraryPlaylists.appendChild(option);
+    });
+
+    // Show selection group
+    el.playlistSelectGroup.classList.remove('hidden');
+    showSuccessToast("Playlists loaded successfully!");
+  } catch (err) {
+    console.error("Error fetching library playlists:", err);
+    alert(`Could not load playlists: ${err.message}`);
+  } finally {
+    el.btnFetchPlaylists.disabled = false;
+    el.spinnerFetch.classList.add('hidden');
+    el.btnFetchText.textContent = "Fetch My Playlists";
+  }
+}
+
+// Load track items of the selected library playlist
+async function handleLoadSelectedPlaylist() {
+  const select = el.selectLibraryPlaylists;
+  const playlistId = select.value;
+  if (!playlistId) return;
+
+  const selectedOption = select.options[select.selectedIndex];
+  const playlistName = selectedOption.dataset.name;
+  const playlistDesc = selectedOption.dataset.description;
+
+  // UI Loading state
+  el.btnLoadPlaylist.disabled = true;
+  el.spinnerLoad.classList.remove('hidden');
+  el.btnLoadText.textContent = "Loading tracks...";
+
+  try {
+    const userToken = state.musicKit.musicUserToken;
+    const response = await fetch(`/api/library/playlists/${playlistId}/tracks?musicUserToken=${encodeURIComponent(userToken)}`);
+    if (!response.ok) {
+      throw new Error(`Proxy tracks endpoint returned ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data.data || data.data.length === 0) {
+      alert("This playlist has no songs.");
+      return;
+    }
+
+    // Parse and map tracks to formatted text list
+    const tracksLines = data.data.map(track => {
+      const name = track.attributes.name || "";
+      const artist = track.attributes.artistName || "";
+      return `${artist} - ${name}`;
+    });
+
+    // Populate inputs
+    el.inputSongList.value = tracksLines.join('\n');
+    el.playlistName.value = `${playlistName} (Imported)`;
+    el.playlistDesc.value = playlistDesc || `Imported from library playlist: ${playlistName}`;
+
+    showSuccessToast(`Successfully loaded ${tracksLines.length} songs into the editor!`);
+  } catch (err) {
+    console.error("Error loading playlist tracks:", err);
+    alert(`Could not load playlist songs: ${err.message}`);
+  } finally {
+    el.btnLoadPlaylist.disabled = false;
+    el.spinnerLoad.classList.add('hidden');
+    el.btnLoadText.textContent = "Load Playlist Songs";
+  }
+}
+
