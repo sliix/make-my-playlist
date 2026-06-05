@@ -288,8 +288,8 @@ function handleAnalyzeSongList() {
     const cleanedQuery = parseSongLine(line);
     if (cleanedQuery) {
       // Find an existing track that matches this line (by originalQuery or searchQuery)
-      const existingIndex = currentTracks.findIndex(t => 
-        t.originalQuery.toLowerCase() === line.trim().toLowerCase() || 
+      const existingIndex = currentTracks.findIndex(t =>
+        t.originalQuery.toLowerCase() === line.trim().toLowerCase() ||
         t.searchQuery.toLowerCase() === cleanedQuery.toLowerCase()
       );
 
@@ -989,10 +989,10 @@ async function handleCreatePlaylist() {
   if (state.loadedPlaylistId) {
     const name = el.playlistName.value.trim() || "My Imported Playlist";
     const desc = el.playlistDesc.value.trim() || "Created with MakeMyPlaylist";
-    
+
     // Check if name or description has changed
     const hasMetadataChanges = (name !== state.loadedPlaylistName || desc !== state.loadedPlaylistDesc);
-    
+
     if (hasMetadataChanges) {
       // If user changed name or description, create a new playlist directly without asking
       await executeCreatePlaylist();
@@ -1648,7 +1648,9 @@ function initDragAndDrop() {
     }
     lastY = e.clientY;
 
-    const afterElement = getDragAfterElement(list, e.clientY, dragDirection);
+    // Use consistent center coordinate of the dragged card
+    const dragCardCenterY = e.clientY - touchOffsetY + (draggedCardHeight / 2);
+    const afterElement = getDragAfterElement(list, dragCardCenterY, dragDirection);
 
     // Only trigger insertion if position actually changes in the DOM
     const currentNext = draggedCard.nextElementSibling;
@@ -1687,6 +1689,11 @@ function bindDragAndDropListeners(card) {
     card.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', card.id);
+    
+    // Capture grab offset and height for consistent center calculation on desktop
+    const rect = card.getBoundingClientRect();
+    touchOffsetY = e.clientY - rect.top;
+    draggedCardHeight = rect.height;
   });
 
   card.addEventListener('dragend', () => {
@@ -1728,7 +1735,7 @@ function bindDragAndDropListeners(card) {
       touchOffsetY = startY - rect.top;
       draggedCardHeight = rect.height;
       lastSwapTime = 0; // reset swap throttle time
-      
+
       // Haptic feedback if available
       if (navigator.vibrate) {
         navigator.vibrate(30);
@@ -1738,7 +1745,7 @@ function bindDragAndDropListeners(card) {
 
   card.addEventListener('touchmove', (e) => {
     const touch = e.touches[0];
-    
+
     if (!isDraggingStarted) {
       // If we haven't started dragging yet, check if the finger has moved enough to scroll
       const deltaX = Math.abs(touch.clientX - startX);
@@ -1816,7 +1823,7 @@ function getDragAfterElement(container, y, direction) {
   const containerBox = container.getBoundingClientRect();
   const scrollTop = container.scrollTop;
 
-  const thresholdRatio = direction === 'down' ? -1 : 0;
+  const thresholdRatio = 0.5;
 
   return draggableElements.reduce((closest, child) => {
     // Calculate layout top relative to the viewport, ignoring active transforms
