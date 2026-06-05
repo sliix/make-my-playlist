@@ -1655,26 +1655,61 @@ function bindDragAndDropListeners(card) {
     reorderStateFromDOM();
   });
 
-  // Mobile touch drag-and-drop support: press and drag anywhere in the cell
+  // Mobile touch drag-and-drop support: press-and-hold anywhere in the cell
+  let touchTimeout = null;
+  let isDraggingStarted = false;
+  let startX = 0;
+  let startY = 0;
+
   card.addEventListener('touchstart', (e) => {
     // Exclude interactive elements to let checkbox, play preview, and select alternatives work
     if (e.target.closest('button, select, input, label, .btn-play-preview')) {
       return;
     }
 
-    // Prevent default scrolling and text selection behavior during dragging
-    e.preventDefault();
-    draggedCard = card;
-    dragDirection = 'down';
-    lastY = e.touches[0].clientY;
-    card.classList.add('dragging');
-  }, { passive: false });
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    isDraggingStarted = false;
+
+    if (touchTimeout) clearTimeout(touchTimeout);
+
+    // Start a timer for short press (e.g. 250ms) to dim the cell and start drag
+    touchTimeout = setTimeout(() => {
+      isDraggingStarted = true;
+      card.classList.add('dragging');
+      draggedCard = card;
+      dragDirection = 'down';
+      lastY = startY;
+      
+      // Haptic feedback if available
+      if (navigator.vibrate) {
+        navigator.vibrate(30);
+      }
+    }, 250);
+  }, { passive: true });
 
   card.addEventListener('touchmove', (e) => {
-    if (draggedCard !== card) return;
-    e.preventDefault();
-
     const touch = e.touches[0];
+    
+    if (!isDraggingStarted) {
+      // If we haven't started dragging yet, check if the finger has moved enough to scroll
+      const deltaX = Math.abs(touch.clientX - startX);
+      const deltaY = Math.abs(touch.clientY - startY);
+      if (deltaX > 10 || deltaY > 10) {
+        // User is scrolling, cancel the drag-start timer
+        if (touchTimeout) {
+          clearTimeout(touchTimeout);
+          touchTimeout = null;
+        }
+      }
+      return;
+    }
+
+    // If drag is active, prevent default scrolling
+    e.preventDefault();
+    if (draggedCard !== card) return;
+
     const clientY = touch.clientY;
 
     if (clientY > lastY) {
@@ -1699,12 +1734,23 @@ function bindDragAndDropListeners(card) {
     }
   }, { passive: false });
 
-  card.addEventListener('touchend', (e) => {
-    if (draggedCard !== card) return;
-    card.classList.remove('dragging');
-    draggedCard = null;
-    reorderStateFromDOM();
-  });
+  const touchEndCancelHandler = (e) => {
+    if (touchTimeout) {
+      clearTimeout(touchTimeout);
+      touchTimeout = null;
+    }
+    if (isDraggingStarted) {
+      card.classList.remove('dragging');
+      if (draggedCard === card) {
+        draggedCard = null;
+        reorderStateFromDOM();
+      }
+    }
+    isDraggingStarted = false;
+  };
+
+  card.addEventListener('touchend', touchEndCancelHandler);
+  card.addEventListener('touchcancel', touchEndCancelHandler);
 }
 
 // Find closest dropsite card below drag pointer

@@ -1269,7 +1269,6 @@ dialog[open] {
     gap: 12px;
     user-select: none;
     -webkit-user-select: none;
-    touch-action: none;
   }
 
   .track-drag-handle {
