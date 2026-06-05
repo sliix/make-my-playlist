@@ -222,6 +222,52 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
 
 
 
+  <!-- Export Options Glass Modal Dialog -->
+  <dialog id="modal-export-options" class="glass-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Export Options</h3>
+        <button id="btn-close-modal" class="btn-close" aria-label="Close Modal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 20px;">This playlist was loaded from your library. How would you like to export your changes?</p>
+        <div class="modal-options">
+          <button id="btn-modal-update" class="option-card primary" aria-label="Update Existing Playlist">
+            <div class="option-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6"></path>
+                <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+              </svg>
+            </div>
+            <div class="option-card-content">
+              <span class="option-card-title">Update Existing Playlist</span>
+              <span class="option-card-desc">Appends any newly approved tracks to the existing library playlist.</span>
+              <span class="option-card-warning">Note: Apple Music API does not support deleting or reordering existing tracks.</span>
+            </div>
+          </button>
+          
+          <button id="btn-modal-create-new" class="option-card secondary" aria-label="Create New Playlist">
+            <div class="option-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+            <div class="option-card-content">
+              <span class="option-card-title">Create New Playlist</span>
+              <span class="option-card-desc">Creates a brand new library playlist with all approved tracks in their current order.</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
   <!-- Application Entry Point -->
   <script type="module" src="main.js"></script>
 </body>

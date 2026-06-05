@@ -169,6 +169,45 @@ router.post('/playlists/:id/tracks', async (req, res) => {
   }
 });
 
+// API Route: Proxy library playlist details update (PATCH)
+router.patch('/playlists/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, description, musicUserToken } = req.body;
+  if (!musicUserToken) {
+    return res.status(400).json({ error: "Missing required Music-User-Token in request body." });
+  }
+
+  try {
+    const token = generateDeveloperToken('2m');
+    const url = `https://api.music.apple.com/v1/me/library/playlists/${id}`;
+    
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Music-User-Token': musicUserToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        attributes: {
+          name: name,
+          description: description
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Apple Music API Playlist Update returned HTTP ${response.status}: ${errText}`);
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Proxy playlist update failed:", error.message);
+    res.status(500).json({ error: "Failed to update playlist via backend proxy." });
+  }
+});
+
 // API Route: Proxy fetching user's library playlists
 router.get('/library/playlists', async (req, res) => {
   const { musicUserToken } = req.query;
@@ -209,7 +248,7 @@ router.get('/library/playlists/:id/tracks', async (req, res) => {
 
   try {
     const token = generateDeveloperToken('2m');
-    const url = `https://api.music.apple.com/v1/me/library/playlists/${id}/tracks?limit=100`;
+    const url = `https://api.music.apple.com/v1/me/library/playlists/${id}/tracks?limit=100&include=catalog`;
     
     const response = await fetch(url, {
       headers: {

@@ -6,6 +6,11 @@ const state = {
 
   playingTrackId: null,      // track ID currently playing preview
   playingAudio: null,        // Audio object currently playing
+
+  loadedPlaylistId: null,             // ID of loaded library playlist if any
+  loadedPlaylistName: null,           // Name of loaded library playlist if any
+  loadedPlaylistDesc: null,           // Description of loaded library playlist if any
+  loadedPlaylistOriginalTrackIds: [], // array of track IDs currently in the loaded playlist
 };
 
 // UI Elements Cache
@@ -46,6 +51,12 @@ const el = {
   spinnerLoad: document.getElementById('spinner-load'),
   btnFetchText: document.getElementById('btn-fetch-text'),
   btnLoadText: document.getElementById('btn-load-text'),
+
+  // Export options modal elements
+  modalExportOptions: document.getElementById('modal-export-options'),
+  btnCloseModal: document.getElementById('btn-close-modal'),
+  btnModalUpdate: document.getElementById('btn-modal-update'),
+  btnModalCreateNew: document.getElementById('btn-modal-create-new'),
 };
 
 // Helper to fetch session configuration with up to 3 retries (1 second apart)
@@ -126,6 +137,30 @@ function initEventListeners() {
   el.playlistName.addEventListener('input', saveAppState);
   el.playlistDesc.addEventListener('input', saveAppState);
   el.playlistPublic.addEventListener('change', saveAppState);
+
+  // Export Options Modal listeners
+  if (el.btnCloseModal) {
+    el.btnCloseModal.addEventListener('click', () => el.modalExportOptions.close());
+  }
+  if (el.modalExportOptions) {
+    el.modalExportOptions.addEventListener('click', (e) => {
+      if (e.target === el.modalExportOptions) {
+        el.modalExportOptions.close();
+      }
+    });
+  }
+  if (el.btnModalCreateNew) {
+    el.btnModalCreateNew.addEventListener('click', () => {
+      el.modalExportOptions.close();
+      executeCreatePlaylist();
+    });
+  }
+  if (el.btnModalUpdate) {
+    el.btnModalUpdate.addEventListener('click', () => {
+      el.modalExportOptions.close();
+      handleUpdatePlaylist();
+    });
+  }
 
   // Initialize Drag & Drop events
   initDragAndDrop();
@@ -245,33 +280,59 @@ function handleAnalyzeSongList() {
 
   // Parse lines
   const lines = rawText.split('\n');
-  const parsedTracks = [];
-  let trackId = 1;
+  const newTracks = [];
+  const currentTracks = [...state.tracks];
+  let nextId = Math.max(0, ...state.tracks.map(t => t.id)) + 1;
 
   for (const line of lines) {
     const cleanedQuery = parseSongLine(line);
     if (cleanedQuery) {
-      parsedTracks.push({
-        id: trackId++,
-        originalQuery: line.trim(),
-        searchQuery: cleanedQuery,
-        status: 'pending',
-        results: [],
-        selectedIndex: 0,
-        approved: true,
-        errorMessage: ''
-      });
+      // Find an existing track that matches this line (by originalQuery or searchQuery)
+      const existingIndex = currentTracks.findIndex(t => 
+        t.originalQuery.toLowerCase() === line.trim().toLowerCase() || 
+        t.searchQuery.toLowerCase() === cleanedQuery.toLowerCase()
+      );
+
+      if (existingIndex !== -1) {
+        // Reuse this track (preserves selections, custom matches, and checkbox approved status)
+        const reusedTrack = currentTracks.splice(existingIndex, 1)[0];
+        newTracks.push(reusedTrack);
+      } else {
+        // Create a new pending track
+        newTracks.push({
+          id: nextId++,
+          originalQuery: line.trim(),
+          searchQuery: cleanedQuery,
+          status: 'pending',
+          results: [],
+          selectedIndex: 0,
+          approved: true,
+          errorMessage: ''
+        });
+      }
     }
   }
 
-  if (parsedTracks.length === 0) {
+  if (newTracks.length === 0) {
     alert("No valid songs found in the input list.");
     return;
   }
 
-  state.tracks = parsedTracks;
+  state.tracks = newTracks;
 
-  // Update UI Elements
+  // Find tracks that actually need searching
+  const pendingTracks = state.tracks.filter(t => t.status === 'pending');
+
+  if (pendingTracks.length === 0) {
+    // No new tracks to search! Just re-render the list and save
+    renderTracksList();
+    updateCreatePlaylistButtonState();
+    saveAppState();
+    showSuccessToast("Track list updated (no new searches needed).");
+    return;
+  }
+
+  // Update UI Elements to show searching status
   el.resultsEmptyState.classList.add('hidden');
   el.tracksList.classList.add('hidden');
   el.searchProgressCard.classList.remove('hidden');
@@ -282,8 +343,8 @@ function handleAnalyzeSongList() {
   el.spinnerAnalyze.classList.remove('hidden');
   el.btnAnalyzeText.textContent = "Searching Catalog...";
 
-  // Start parallel query execution with throttling
-  executeCatalogSearches();
+  // Start parallel query execution with throttling for pending tracks only
+  executeCatalogSearches(pendingTracks);
 }
 
 function parseSongLine(line) {
@@ -305,8 +366,6 @@ async function searchCatalogProxy(query) {
   const storefront = (state.musicKit && state.musicKit.storefrontId) || 'us';
   const url = `/api/search?term=${encodeURIComponent(query)}&storefront=${storefront}`;
 
-
-
   // Fetch via backend proxy
   const response = await fetch(url);
   if (!response.ok) {
@@ -320,9 +379,9 @@ async function searchCatalogProxy(query) {
 }
 
 // Execute searches using a simple concurrent worker queue
-async function executeCatalogSearches() {
+async function executeCatalogSearches(pendingTracks) {
   const maxConcurrency = 5;
-  const total = state.tracks.length;
+  const total = pendingTracks.length;
   let completed = 0;
 
   // Function to update progress bar status
@@ -339,7 +398,7 @@ async function executeCatalogSearches() {
   const pool = Array.from({ length: Math.min(maxConcurrency, total) }, async (_, i) => {
     let index = i;
     while (index < total) {
-      const track = state.tracks[index];
+      const track = pendingTracks[index];
       track.status = 'searching';
 
       try {
@@ -849,6 +908,9 @@ function updateCreatePlaylistButtonState() {
   } else {
     el.btnCreatePlaylist.setAttribute('disabled', 'disabled');
   }
+  if (el.btnCreateText) {
+    el.btnCreateText.textContent = state.loadedPlaylistId ? "Export Playlist" : "Create Playlist";
+  }
 }
 
 async function handleCreatePlaylist() {
@@ -872,17 +934,41 @@ async function handleCreatePlaylist() {
 
   const approvedTracks = state.tracks.filter(t => t.approved && t.status === 'matched');
   if (approvedTracks.length === 0) {
-    alert("Please approve at least one matched song to create a playlist.");
+    alert("Please approve at least one matched song to create/export a playlist.");
     return;
   }
 
+  // If we loaded an existing playlist
+  if (state.loadedPlaylistId) {
+    const name = el.playlistName.value.trim() || "My Imported Playlist";
+    const desc = el.playlistDesc.value.trim() || "Created with MakeMyPlaylist";
+    
+    // Check if name or description has changed
+    const hasMetadataChanges = (name !== state.loadedPlaylistName || desc !== state.loadedPlaylistDesc);
+    
+    if (hasMetadataChanges) {
+      // If user changed name or description, create a new playlist directly without asking
+      await executeCreatePlaylist();
+    } else if (el.modalExportOptions) {
+      // If metadata is unchanged, show the options dialog
+      el.modalExportOptions.showModal();
+    } else {
+      await executeCreatePlaylist();
+    }
+  } else {
+    await executeCreatePlaylist();
+  }
+}
+
+async function executeCreatePlaylist() {
+  const approvedTracks = state.tracks.filter(t => t.approved && t.status === 'matched');
   const name = el.playlistName.value.trim() || "My Imported Playlist";
   const desc = el.playlistDesc.value.trim() || "Created with MakeMyPlaylist";
 
   // Set create button to active loading state
   el.btnCreatePlaylist.disabled = true;
   el.spinnerCreate.classList.remove('hidden');
-  el.btnCreateText.textContent = "Creating Playlist...";
+  el.btnCreateText.textContent = "Creating...";
 
   try {
     const userToken = state.musicKit.musicUserToken;
@@ -937,6 +1023,13 @@ async function handleCreatePlaylist() {
       throw new Error(`Failed to add tracks: ${errData}`);
     }
 
+    // Update loaded playlist state to point to the newly created playlist
+    state.loadedPlaylistId = playlistId;
+    state.loadedPlaylistName = name;
+    state.loadedPlaylistDesc = desc;
+    state.loadedPlaylistOriginalTrackIds = trackPayload.map(t => t.id);
+    saveAppState();
+
     showSuccessToast(`Playlist "${name}" created successfully with ${trackPayload.length} songs!`);
   } catch (error) {
     console.error("Playlist export error:", error);
@@ -944,7 +1037,90 @@ async function handleCreatePlaylist() {
   } finally {
     el.btnCreatePlaylist.disabled = false;
     el.spinnerCreate.classList.add('hidden');
-    el.btnCreateText.textContent = "Create Playlist";
+    updateCreatePlaylistButtonState();
+  }
+}
+
+async function handleUpdatePlaylist() {
+  const playlistId = state.loadedPlaylistId;
+  if (!playlistId) return;
+
+  const approvedTracks = state.tracks.filter(t => t.approved && t.status === 'matched');
+  const name = el.playlistName.value.trim() || "My Imported Playlist";
+  const desc = el.playlistDesc.value.trim() || "Created with MakeMyPlaylist";
+
+  // Set button to active loading state
+  el.btnCreatePlaylist.disabled = true;
+  el.spinnerCreate.classList.remove('hidden');
+  el.btnCreateText.textContent = "Updating...";
+
+  try {
+    const userToken = state.musicKit.musicUserToken;
+
+    // Check if the user tried to change name or description
+    const hasMetadataChanges = (name !== state.loadedPlaylistName || desc !== state.loadedPlaylistDesc);
+
+    // Determine which approved tracks are NEW (not in state.loadedPlaylistOriginalTrackIds)
+    const newTracks = approvedTracks.filter(track => {
+      const activeSong = track.results[track.selectedIndex];
+      return !state.loadedPlaylistOriginalTrackIds.includes(activeSong.id);
+    });
+
+    if (newTracks.length > 0) {
+      const trackPayload = newTracks.map(track => {
+        const activeSong = track.results[track.selectedIndex];
+        return {
+          id: activeSong.id,
+          type: 'songs'
+        };
+      });
+
+      // Append new tracks via POST proxy
+      const addResponse = await fetch(`/api/playlists/${playlistId}/tracks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          tracks: trackPayload,
+          musicUserToken: userToken
+        })
+      });
+
+      if (!addResponse.ok) {
+        const errData = await addResponse.text();
+        throw new Error(`Failed to append new tracks: ${errData}`);
+      }
+
+      // Add newly appended IDs to state.loadedPlaylistOriginalTrackIds
+      newTracks.forEach(track => {
+        const activeSong = track.results[track.selectedIndex];
+        state.loadedPlaylistOriginalTrackIds.push(activeSong.id);
+      });
+
+      saveAppState();
+      showSuccessToast(`Successfully appended ${trackPayload.length} new songs to the playlist!`);
+    } else {
+      if (hasMetadataChanges) {
+        showWarningToast("Note: Apple Music API does not support editing playlist name/description via web app.");
+      } else {
+        showSuccessToast("Playlist is up-to-date (no new songs to append).");
+      }
+    }
+
+    if (hasMetadataChanges && newTracks.length > 0) {
+      // Show warning about name/desc not being editable shortly after success toast
+      setTimeout(() => {
+        showWarningToast("Note: Playlist name/description changes cannot be saved due to Apple Music API limits.");
+      }, 1500);
+    }
+  } catch (error) {
+    console.error("Playlist update error:", error);
+    alert(`Could not update playlist: ${error.message}`);
+  } finally {
+    el.btnCreatePlaylist.disabled = false;
+    el.spinnerCreate.classList.add('hidden');
+    updateCreatePlaylistButtonState();
   }
 }
 
@@ -962,6 +1138,10 @@ function showSuccessToast(message) {
   showToast(message, 'success');
 }
 
+function showWarningToast(message) {
+  showToast(message, 'warning');
+}
+
 function showErrorToast(message) {
   showToast(message, 'error');
 }
@@ -971,7 +1151,7 @@ function showToast(message, type = 'success') {
   toast.style.position = 'fixed';
   toast.style.bottom = '110px';
   toast.style.right = '40px';
-  toast.style.background = type === 'success' ? '#34c759' : '#ff3b30';
+  toast.style.background = type === 'success' ? '#34c759' : (type === 'warning' ? '#ff9f0a' : '#ff3b30');
   toast.style.color = 'white';
   toast.style.padding = '12px 24px';
   toast.style.borderRadius = '8px';
@@ -1068,6 +1248,10 @@ function saveAppState() {
   };
   localStorage.setItem('makemyplaylist_details', JSON.stringify(details));
   localStorage.setItem('makemyplaylist_tracks', JSON.stringify(state.tracks));
+  localStorage.setItem('makemyplaylist_loaded_playlist_id', state.loadedPlaylistId || '');
+  localStorage.setItem('makemyplaylist_loaded_playlist_name', state.loadedPlaylistName || '');
+  localStorage.setItem('makemyplaylist_loaded_playlist_desc', state.loadedPlaylistDesc || '');
+  localStorage.setItem('makemyplaylist_loaded_playlist_original_track_ids', JSON.stringify(state.loadedPlaylistOriginalTrackIds || []));
 }
 
 function restoreAppState() {
@@ -1083,6 +1267,16 @@ function restoreAppState() {
       el.playlistName.value = details.name || "My Awesome Playlist";
       el.playlistDesc.value = details.description || "";
       el.playlistPublic.checked = details.isPublic === true;
+    }
+
+    state.loadedPlaylistId = localStorage.getItem('makemyplaylist_loaded_playlist_id') || null;
+    state.loadedPlaylistName = localStorage.getItem('makemyplaylist_loaded_playlist_name') || null;
+    state.loadedPlaylistDesc = localStorage.getItem('makemyplaylist_loaded_playlist_desc') || null;
+    const originalTrackIdsStr = localStorage.getItem('makemyplaylist_loaded_playlist_original_track_ids');
+    if (originalTrackIdsStr) {
+      state.loadedPlaylistOriginalTrackIds = JSON.parse(originalTrackIdsStr);
+    } else {
+      state.loadedPlaylistOriginalTrackIds = [];
     }
 
     const tracksStr = localStorage.getItem('makemyplaylist_tracks');
@@ -1113,6 +1307,10 @@ function handleResetApp() {
 
     // 2. Clear state variables
     state.tracks = [];
+    state.loadedPlaylistId = null;
+    state.loadedPlaylistName = null;
+    state.loadedPlaylistDesc = null;
+    state.loadedPlaylistOriginalTrackIds = [];
 
     // 3. Reset UI inputs to defaults
     el.inputSongList.value = "";
@@ -1139,6 +1337,10 @@ function handleResetApp() {
     localStorage.removeItem('makemyplaylist_raw_input');
     localStorage.removeItem('makemyplaylist_details');
     localStorage.removeItem('makemyplaylist_tracks');
+    localStorage.removeItem('makemyplaylist_loaded_playlist_id');
+    localStorage.removeItem('makemyplaylist_loaded_playlist_name');
+    localStorage.removeItem('makemyplaylist_loaded_playlist_desc');
+    localStorage.removeItem('makemyplaylist_loaded_playlist_original_track_ids');
 
     showSuccessToast("Editor cleared successfully!");
   }
@@ -1234,19 +1436,65 @@ async function handleLoadSelectedPlaylist() {
     }
 
     // Parse and map tracks to formatted text list
-    const tracksLines = data.data.map(track => {
+    const tracksLines = [];
+    const originalTrackIds = [];
+    let trackId = 1;
+
+    const parsedTracks = data.data.map(track => {
       const name = track.attributes.name || "";
       const artist = track.attributes.artistName || "";
-      return `${artist} - ${name}`;
+      const queryText = `${artist} - ${name}`;
+      tracksLines.push(queryText);
+
+      const catalogSong = track.relationships?.catalog?.data?.[0];
+      if (catalogSong) {
+        originalTrackIds.push(catalogSong.id);
+        return {
+          id: trackId++,
+          originalQuery: queryText,
+          searchQuery: queryText,
+          status: 'matched',
+          results: [catalogSong],
+          selectedIndex: 0,
+          approved: true,
+          errorMessage: ''
+        };
+      } else {
+        return {
+          id: trackId++,
+          originalQuery: queryText,
+          searchQuery: queryText,
+          status: 'no-match',
+          results: [],
+          selectedIndex: 0,
+          approved: false,
+          errorMessage: ''
+        };
+      }
     });
 
-    // Populate inputs
-    el.inputSongList.value = tracksLines.join('\n');
-    el.playlistName.value = `${playlistName} (Imported)`;
-    el.playlistDesc.value = playlistDesc || `Imported from library playlist: ${playlistName}`;
+    // Populate state and inputs
+    const finalDesc = playlistDesc || `Imported from library playlist: ${playlistName}`;
+    state.tracks = parsedTracks;
+    state.loadedPlaylistId = playlistId;
+    state.loadedPlaylistName = playlistName;
+    state.loadedPlaylistDesc = finalDesc;
+    state.loadedPlaylistOriginalTrackIds = originalTrackIds;
 
-    showSuccessToast(`Successfully loaded ${tracksLines.length} songs into the editor!`);
+    el.inputSongList.value = tracksLines.join('\n');
+    el.playlistName.value = playlistName;
+    el.playlistDesc.value = finalDesc;
+
+    // Update UI immediately
+    el.resultsEmptyState.classList.add('hidden');
+    el.tracksList.classList.remove('hidden');
+    el.btnApproveAll.disabled = false;
+
+    renderTracksList();
+    updateCreatePlaylistButtonState();
     saveAppState();
+
+    showSuccessToast(`Successfully loaded ${tracksLines.length} songs and updated track list!`);
   } catch (err) {
     console.error("Error loading playlist tracks:", err);
     alert(`Could not load playlist songs: ${err.message}`);
