@@ -3,7 +3,7 @@ const state = {
   tracks: [], // list of track state objects
   musicKit: null,
   isSearching: false,
-  manualDeveloperToken: '', // fallback token entered via settings UI
+
   playingTrackId: null,      // track ID currently playing preview
   playingAudio: null,        // Audio object currently playing
 };
@@ -11,12 +11,7 @@ const state = {
 // UI Elements Cache
 const el = {
   btnReset: document.getElementById('btn-reset'),
-  btnOpenSettings: document.getElementById('btn-open-settings'),
-  btnCloseSettings: document.getElementById('btn-close-settings'),
-  btnSaveSettings: document.getElementById('btn-save-settings'),
-  settingsModal: document.getElementById('settings-modal'),
   envTokenBadge: document.getElementById('env-token-badge'),
-  inputDevToken: document.getElementById('input-developer-token'),
   
   inputSongList: document.getElementById('input-song-list'),
   playlistName: document.getElementById('playlist-name'),
@@ -52,30 +47,29 @@ const el = {
   btnLoadText: document.getElementById('btn-load-text'),
 };
 
+// Helper to fetch session configuration with up to 3 retries (1 second apart)
+async function loadSessionConfigWithRetries(maxAttempts = 4, delayMs = 1000) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await fetchSessionConfig();
+      return; // Succeeded!
+    } catch (err) {
+      console.warn(`Attempt ${attempt} to fetch developer token failed: ${err.message}`);
+      if (attempt < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+  // All attempts failed
+  alert("The service is not available right now. Please try refreshing the page or try again later.");
+}
+
 // Initialize Application
 window.addEventListener('DOMContentLoaded', async () => {
   initEventListeners();
-  loadManualTokenFromStorage();
   
-  // Try to load dynamic session config from backend
-  try {
-    await fetchSessionConfig();
-  } catch (err) {
-    console.warn("Could not retrieve secure developer token from backend. Falling back to settings UI.");
-    if (state.manualDeveloperToken) {
-      try {
-        await initMusicKit(state.manualDeveloperToken);
-      } catch (err) {
-        showErrorToast("Stored manual credentials failed. Opening settings.");
-        el.settingsModal.showModal();
-      }
-    } else {
-      // Prompt for setup if nothing is configured
-      setTimeout(() => {
-        el.settingsModal.showModal();
-      }, 500);
-    }
-  }
+  // Try to load dynamic session config from backend with retries
+  await loadSessionConfigWithRetries(4, 1000);
   
   // Restore persisted state from local storage
   restoreAppState();
@@ -83,24 +77,8 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 // Event Listeners Registration
 function initEventListeners() {
-  // Modal toggle listeners
+  // Reset handler
   el.btnReset.addEventListener('click', handleResetApp);
-  el.btnOpenSettings.addEventListener('click', () => el.settingsModal.showModal());
-  el.btnCloseSettings.addEventListener('click', () => el.settingsModal.close());
-  el.btnSaveSettings.addEventListener('click', handleSaveManualSettings);
-  
-  // Closing modal by clicking backdrop
-  el.settingsModal.addEventListener('click', (e) => {
-    const dialogDimensions = el.settingsModal.getBoundingClientRect();
-    if (
-      e.clientX < dialogDimensions.left ||
-      e.clientX > dialogDimensions.right ||
-      e.clientY < dialogDimensions.top ||
-      e.clientY > dialogDimensions.bottom
-    ) {
-      el.settingsModal.close();
-    }
-  });
 
   // Action listeners
   el.btnAnalyze.addEventListener('click', handleAnalyzeSongList);
@@ -135,49 +113,13 @@ async function fetchSessionConfig() {
   const data = await response.json();
   if (data.developerToken) {
     await initMusicKit(data.developerToken);
-    el.envTokenBadge.classList.remove('hidden');
-    el.envTokenBadge.textContent = "Secured Backend Session Active";
-    el.envTokenBadge.className = "badge badge-success";
-    el.inputDevToken.value = ""; // Clear manual field since server handles it
+    if (el.envTokenBadge) {
+      el.envTokenBadge.classList.remove('hidden');
+      el.envTokenBadge.textContent = "Secured Backend Session Active";
+      el.envTokenBadge.className = "badge badge-success";
+    }
   } else {
     throw new Error("No developer token in server response");
-  }
-}
-
-// Fallback Manual Token state
-function loadManualTokenFromStorage() {
-  const savedToken = localStorage.getItem('apple_music_developer_token');
-  if (savedToken) {
-    state.manualDeveloperToken = savedToken;
-    el.inputDevToken.value = savedToken;
-  }
-}
-
-async function handleSaveManualSettings() {
-  const token = el.inputDevToken.value.trim();
-  if (!token) {
-    alert("Please enter a valid Developer Token.");
-    return;
-  }
-  
-  try {
-    el.btnSaveSettings.disabled = true;
-    el.btnSaveSettings.textContent = "Validating...";
-    
-    await initMusicKit(token);
-    
-    state.manualDeveloperToken = token;
-    localStorage.setItem('apple_music_developer_token', token);
-    el.envTokenBadge.textContent = "Saved to local storage (Manual)";
-    el.envTokenBadge.className = "badge";
-    el.envTokenBadge.classList.remove('hidden');
-    el.settingsModal.close();
-    showSuccessToast("Apple Music credentials saved successfully!");
-  } catch (err) {
-    alert("Verification failed. Please check your developer token.");
-  } finally {
-    el.btnSaveSettings.disabled = false;
-    el.btnSaveSettings.textContent = "Save & Validate";
   }
 }
 
@@ -221,11 +163,6 @@ function updateConnectionUI() {
 
 // Re-configure/refresh configuration dynamically to prevent JWT expirations
 async function refreshMusicKitConfiguration() {
-  // If we are using manual input, we don't fetch from backend.
-  if (state.manualDeveloperToken) {
-    await initMusicKit(state.manualDeveloperToken);
-    return;
-  }
   
   // Try to load backend session config
   try {
@@ -243,7 +180,7 @@ async function refreshMusicKitConfiguration() {
 
 async function handleConnectAppleMusic() {
   if (!state.musicKit) {
-    el.settingsModal.showModal();
+    alert("Apple Music is not configured or unavailable. Please refresh the page.");
     return;
   }
   
@@ -266,7 +203,7 @@ async function handleConnectAppleMusic() {
 // Parsing & Analyze Actions
 function handleAnalyzeSongList() {
   if (!state.musicKit) {
-    el.settingsModal.showModal();
+    alert("Apple Music is not configured or unavailable. Please refresh the page.");
     return;
   }
 
@@ -345,22 +282,7 @@ async function searchCatalogProxy(query) {
   const storefront = (state.musicKit && state.musicKit.storefrontId) || 'us';
   const url = `/api/search?term=${encodeURIComponent(query)}&storefront=${storefront}`;
   
-  // If the user has manually pasted a token in the front-end, let's bypass proxy to test catalog directly
-  if (state.manualDeveloperToken && !state.envTokenBadge.textContent.includes('Backend')) {
-    try {
-      const response = await state.musicKit.api.music(`v1/catalog/${storefront}/search`, {
-        term: query,
-        types: 'songs',
-        limit: 5
-      });
-      if (response && response.data && response.data.results && response.data.results.songs) {
-        return response.data.results.songs.data;
-      }
-      return [];
-    } catch (err) {
-      console.warn("Direct search catalog failed. Trying proxy fallback anyway.");
-    }
-  }
+
   
   // Fetch via backend proxy
   const response = await fetch(url);
@@ -811,7 +733,7 @@ function updateCreatePlaylistButtonState() {
 
 async function handleCreatePlaylist() {
   if (!state.musicKit) {
-    el.settingsModal.showModal();
+    alert("Apple Music is not configured or unavailable. Please refresh the page.");
     return;
   }
 
@@ -1040,7 +962,7 @@ function restoreAppState() {
       const details = JSON.parse(detailsStr);
       el.playlistName.value = details.name || "My Awesome Playlist";
       el.playlistDesc.value = details.description || "";
-      el.playlistPublic.checked = details.isPublic !== false;
+      el.playlistPublic.checked = details.isPublic === true;
     }
 
     const tracksStr = localStorage.getItem('makemyplaylist_tracks');
@@ -1076,7 +998,7 @@ function handleResetApp() {
     el.inputSongList.value = "";
     el.playlistName.value = "My Awesome Playlist";
     el.playlistDesc.value = "";
-    el.playlistPublic.checked = true;
+    el.playlistPublic.checked = false;
 
     // 4. Reset library playlist importer selector
     el.selectLibraryPlaylists.value = "";
@@ -1106,7 +1028,7 @@ function handleResetApp() {
 // Fetch user's library playlists via proxy
 async function handleFetchLibraryPlaylists() {
   if (!state.musicKit) {
-    el.settingsModal.showModal();
+    alert("Apple Music is not configured or unavailable. Please refresh the page.");
     return;
   }
 

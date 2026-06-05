@@ -32,19 +32,13 @@
       <h1>MakeMyPlaylist</h1>
     </div>
     <div class="header-actions">
+      <span id="env-token-badge" class="badge badge-success hidden">Secured Backend Session Active</span>
       <button id="btn-reset" class="btn btn-secondary" aria-label="Reset Editor">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
           <path d="M3 3v5h5"></path>
         </svg>
         <span>Reset</span>
-      </button>
-      <button id="btn-open-settings" class="btn btn-secondary" aria-label="Open Settings">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-        </svg>
-        <span>Credentials</span>
       </button>
     </div>
   </header>
@@ -138,7 +132,7 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
             <span class="toggle-desc">Make this playlist visible to other Apple Music users.</span>
           </div>
           <label class="switch" for="playlist-public">
-            <input type="checkbox" id="playlist-public" checked>
+            <input type="checkbox" id="playlist-public">
             <span class="slider round"></span>
           </label>
         </div>
@@ -211,28 +205,7 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
     </div>
   </footer>
 
-  <!-- Credentials/Settings Modal -->
-  <dialog id="settings-modal" class="glass-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Apple Music Credentials</h3>
-        <button id="btn-close-settings" class="btn-close" aria-label="Close Modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p>To access the Apple Music Catalog search, the application requires an active Developer Token (signed JWT).</p>
-        <div id="env-token-badge" class="badge badge-success hidden">Loaded from environment (.env)</div>
-        
-        <div class="form-group mt-4">
-          <label for="input-developer-token">Apple Music Developer Token (JWT)</label>
-          <textarea id="input-developer-token" rows="5" placeholder="Paste your JWT Developer Token here..."></textarea>
-          <span class="input-hint">This token remains purely in your browser's memory / local storage and is not transmitted elsewhere.</span>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="btn-save-settings" class="btn btn-primary">Save & Validate</button>
-      </div>
-    </div>
-  </dialog>
+
 
   <!-- Application Entry Point -->
   <script type="module" src="main.js"></script>
