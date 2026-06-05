@@ -1723,6 +1723,13 @@ function bindDragAndDropListeners(card) {
       dragDirection = 'down';
       lastY = startY;
 
+      // Lock container and body scrolling to prevent touchcancel during drag
+      const list = el.tracksList;
+      if (list) {
+        list.style.overflow = 'hidden';
+      }
+      document.body.style.overflow = 'hidden';
+
       // Capture the relative touch Offset Y and height of the card at the moment drag starts
       const rect = card.getBoundingClientRect();
       touchOffsetY = startY - rect.top;
@@ -1796,6 +1803,14 @@ function bindDragAndDropListeners(card) {
       clearTimeout(touchTimeout);
       touchTimeout = null;
     }
+
+    // Unlock container and body scrolling
+    const list = el.tracksList;
+    if (list) {
+      list.style.overflow = '';
+    }
+    document.body.style.overflow = '';
+
     if (isDraggingStarted) {
       card.classList.remove('dragging');
       if (draggedCard === card) {
