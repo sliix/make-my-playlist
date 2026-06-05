@@ -69,6 +69,13 @@ async function loadSessionConfigWithRetries(maxAttempts = 4, delayMs = 1000) {
 window.addEventListener('DOMContentLoaded', async () => {
   initEventListeners();
   
+  // Register Service Worker for PWA installability
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('Service Worker registered successfully:', reg.scope))
+      .catch(err => console.warn('Service Worker registration failed:', err));
+  }
+  
   // Try to load dynamic session config from backend with retries
   await loadSessionConfigWithRetries(4, 1000);
   

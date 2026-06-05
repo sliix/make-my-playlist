@@ -1,0 +1,18 @@
+{
+  "name": "MakeMyPlaylist",
+  "short_name": "MakePlaylist",
+  "description": "Convert your song lists into Apple Music playlists instantly.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0812",
+  "theme_color": "#ff2d55",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
