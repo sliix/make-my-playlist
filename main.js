@@ -1648,9 +1648,7 @@ function initDragAndDrop() {
     }
     lastY = e.clientY;
 
-    // Use consistent center coordinate of the dragged card
-    const dragCardCenterY = e.clientY - touchOffsetY + (draggedCardHeight / 2);
-    const afterElement = getDragAfterElement(list, dragCardCenterY, dragDirection);
+    const afterElement = getDragAfterElement(list, e.clientY, dragDirection);
 
     // Only trigger insertion if position actually changes in the DOM
     const currentNext = draggedCard.nextElementSibling;
@@ -1689,11 +1687,6 @@ function bindDragAndDropListeners(card) {
     card.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', card.id);
-    
-    // Capture grab offset and height for consistent center calculation on desktop
-    const rect = card.getBoundingClientRect();
-    touchOffsetY = e.clientY - rect.top;
-    draggedCardHeight = rect.height;
   });
 
   card.addEventListener('dragend', () => {
@@ -1823,7 +1816,8 @@ function getDragAfterElement(container, y, direction) {
   const containerBox = container.getBoundingClientRect();
   const scrollTop = container.scrollTop;
 
-  const thresholdRatio = 0.5;
+  const isMobile = window.innerWidth <= 640;
+  const thresholdRatio = isMobile ? 0.5 : (direction === 'down' ? -1 : 0);
 
   return draggableElements.reduce((closest, child) => {
     // Calculate layout top relative to the viewport, ignoring active transforms
