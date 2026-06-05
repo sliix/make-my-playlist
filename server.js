@@ -3,15 +3,10 @@ import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
 dotenv.config();
 
 const app = express();
 app.use(express.json());
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Helper to resolve and parse the Apple Private Key (PEM/p8)
 function getPrivateKey() {
@@ -240,10 +235,10 @@ app.use('/api', router);
 app.use('/.netlify/functions/api', router);
 
 // Serve frontend build output when running in production environment
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'dist')));
+if (process.env.NODE_ENV === 'production' && !process.env.NETLIFY) {
+  app.use(express.static(path.resolve('dist')));
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    res.sendFile(path.resolve('dist/index.html'));
   });
 }
 
