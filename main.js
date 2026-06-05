@@ -1329,9 +1329,7 @@ function handleResetApp() {
     el.playlistDesc.value = "";
     el.playlistPublic.checked = false;
 
-    // 4. Reset library playlist importer selector
-    el.selectLibraryPlaylists.value = "";
-    el.btnLoadPlaylist.setAttribute('disabled', 'disabled');
+    // 4. Do not clear the fetched library playlists or importer selector selection
 
     // 5. Hide results and show empty state
     el.tracksList.innerHTML = "";
