@@ -909,7 +909,16 @@ function updateCreatePlaylistButtonState() {
     el.btnCreatePlaylist.setAttribute('disabled', 'disabled');
   }
   if (el.btnCreateText) {
-    el.btnCreateText.textContent = state.loadedPlaylistId ? "Export Playlist" : "Create Playlist";
+    let isCreatingNew = true;
+    if (state.loadedPlaylistId) {
+      const name = el.playlistName ? el.playlistName.value.trim() : "";
+      const desc = el.playlistDesc ? el.playlistDesc.value.trim() : "";
+      const hasMetadataChanges = (name !== state.loadedPlaylistName || desc !== state.loadedPlaylistDesc);
+      if (!hasMetadataChanges) {
+        isCreatingNew = false;
+      }
+    }
+    el.btnCreateText.textContent = isCreatingNew ? "Create Playlist" : "Export Playlist";
   }
 }
 
@@ -1252,6 +1261,8 @@ function saveAppState() {
   localStorage.setItem('makemyplaylist_loaded_playlist_name', state.loadedPlaylistName || '');
   localStorage.setItem('makemyplaylist_loaded_playlist_desc', state.loadedPlaylistDesc || '');
   localStorage.setItem('makemyplaylist_loaded_playlist_original_track_ids', JSON.stringify(state.loadedPlaylistOriginalTrackIds || []));
+
+  updateCreatePlaylistButtonState();
 }
 
 function restoreAppState() {
