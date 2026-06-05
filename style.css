@@ -46,6 +46,12 @@
   padding: 0;
 }
 
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+}
+
 body {
   background-color: var(--bg-primary);
   background-image: 
@@ -756,10 +762,16 @@ input:checked + .slider:before {
 
 .select-wrapper {
   position: relative;
+  width: 100%;
+  max-width: 100%;
 }
 
 .select-wrapper select {
   width: 100%;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-sm);
@@ -1011,6 +1023,7 @@ dialog[open] {
     top: calc(100% + 10px);
     right: 20px;
     width: 260px;
+    max-width: calc(100vw - 40px);
     background: rgba(18, 15, 32, 0.98);
     border: 1px solid var(--border-glass);
     border-radius: var(--radius-md);
