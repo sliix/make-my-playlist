@@ -1589,6 +1589,9 @@ function moveTrack(trackId, direction) {
 let draggedCard = null;
 let dragDirection = 'down';
 let lastY = 0;
+let touchOffsetY = 0;
+let draggedCardHeight = 0;
+let lastSwapTime = 0;
 
 // Initialize dragover on track list container
 function initDragAndDrop() {
@@ -1681,6 +1684,12 @@ function bindDragAndDropListeners(card) {
       draggedCard = card;
       dragDirection = 'down';
       lastY = startY;
+
+      // Capture the relative touch Offset Y and height of the card at the moment drag starts
+      const rect = card.getBoundingClientRect();
+      touchOffsetY = startY - rect.top;
+      draggedCardHeight = rect.height;
+      lastSwapTime = 0; // reset swap throttle time
       
       // Haptic feedback if available
       if (navigator.vibrate) {
@@ -1719,11 +1728,21 @@ function bindDragAndDropListeners(card) {
     }
     lastY = clientY;
 
+    // Apply throttle of 60ms to let transitions complete and avoid stutter
+    const now = Date.now();
+    if (now - lastSwapTime < 60) {
+      return;
+    }
+
+    // Calculate the Y coordinate of the center of the dragged card
+    const dragCardCenterY = clientY - touchOffsetY + (draggedCardHeight / 2);
+
     const list = el.tracksList;
-    const afterElement = getDragAfterElement(list, clientY, dragDirection);
+    const afterElement = getDragAfterElement(list, dragCardCenterY, dragDirection);
 
     const currentNext = draggedCard.nextElementSibling;
     if (afterElement !== draggedCard && afterElement !== currentNext) {
+      lastSwapTime = now;
       flipReorder(() => {
         if (afterElement == null) {
           list.appendChild(draggedCard);
