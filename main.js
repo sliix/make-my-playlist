@@ -11,7 +11,8 @@ const state = {
 // UI Elements Cache
 const el = {
   btnReset: document.getElementById('btn-reset'),
-  envTokenBadge: document.getElementById('env-token-badge'),
+  btnMenuToggle: document.getElementById('btn-menu-toggle'),
+  headerActions: document.getElementById('header-actions'),
   
   inputSongList: document.getElementById('input-song-list'),
   playlistName: document.getElementById('playlist-name'),
@@ -97,6 +98,22 @@ function initEventListeners() {
     }
   });
 
+  // Mobile Hamburger Toggle
+  el.btnMenuToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    el.headerActions.classList.toggle('open');
+  });
+
+  // Close menu when clicking outside
+  document.addEventListener('click', (e) => {
+    if (el.headerActions.classList.contains('open') && 
+        !el.headerActions.contains(e.target) && 
+        e.target !== el.btnMenuToggle && 
+        !el.btnMenuToggle.contains(e.target)) {
+      el.headerActions.classList.remove('open');
+    }
+  });
+
   // Persist input values as they type
   el.inputSongList.addEventListener('input', saveAppState);
   el.playlistName.addEventListener('input', saveAppState);
@@ -113,11 +130,7 @@ async function fetchSessionConfig() {
   const data = await response.json();
   if (data.developerToken) {
     await initMusicKit(data.developerToken);
-    if (el.envTokenBadge) {
-      el.envTokenBadge.classList.remove('hidden');
-      el.envTokenBadge.textContent = "Secured Backend Session Active";
-      el.envTokenBadge.className = "badge badge-success";
-    }
+    // Succeeded, token is dynamic and secure
   } else {
     throw new Error("No developer token in server response");
   }

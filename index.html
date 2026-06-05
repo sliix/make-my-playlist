@@ -31,15 +31,21 @@
       </svg>
       <h1>MakeMyPlaylist</h1>
     </div>
-    <div class="header-actions">
-      <span id="env-token-badge" class="badge badge-success hidden">Secured Backend Session Active</span>
-      <button id="btn-reset" class="btn btn-secondary" aria-label="Reset Editor">
+    <div class="header-right">
+      <div class="header-status-indicator">
+        <div id="connection-indicator" class="status-indicator offline" title="Apple Music Connection Status"></div>
+      </div>
+      <button id="btn-menu-toggle" class="btn-menu-toggle" aria-label="Toggle Menu">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-          <path d="M3 3v5h5"></path>
+          <line x1="4" y1="12" x2="20" y2="12"></line>
+          <line x1="4" y1="6" x2="20" y2="6"></line>
+          <line x1="4" y1="18" x2="20" y2="18"></line>
         </svg>
-        <span>Reset</span>
       </button>
+      <div id="header-actions" class="header-actions">
+        <span id="connection-text" class="connection-text">Apple Music: Not Connected</span>
+        <button id="btn-connect-apple" class="btn btn-secondary btn-sm">Connect Apple Music</button>
+      </div>
     </div>
   </header>
 
@@ -182,12 +188,14 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
   <!-- Bottom Interactive Action Bar -->
   <footer class="action-bar-container">
     <div class="action-bar">
-      <div class="connection-status">
-        <div id="connection-indicator" class="status-indicator offline"></div>
-        <span id="connection-text">Apple Music: Not Connected</span>
-      </div>
       <div class="action-buttons">
-        <button id="btn-connect-apple" class="btn btn-secondary">Connect Apple Music</button>
+        <button id="btn-reset" class="btn btn-secondary" aria-label="Reset Editor">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+          <span>Reset</span>
+        </button>
         <button id="btn-create-playlist" class="btn btn-primary" disabled>
           <svg class="icon animate-spin hidden" id="spinner-create" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="2" x2="12" y2="6"></line>
