@@ -248,6 +248,10 @@ textarea {
   min-height: 240px;
 }
 
+#playlist-desc {
+  min-height: auto;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
