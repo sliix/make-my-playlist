@@ -1283,10 +1283,6 @@ dialog[open] {
     min-width: 20px;
   }
 
-  .track-drag-handle {
-    display: none;
-  }
-
   .track-right-controls {
     flex-direction: row;
     align-items: center;

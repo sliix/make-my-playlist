@@ -1637,6 +1637,52 @@ function bindDragAndDropListeners(card) {
     handle.addEventListener('dragend', () => {
       card.removeAttribute('draggable');
     });
+
+    // Mobile touch drag-and-drop support
+    handle.addEventListener('touchstart', (e) => {
+      // Prevent screen scrolling when dragging the handle
+      e.preventDefault();
+      draggedCard = card;
+      dragDirection = 'down';
+      lastY = e.touches[0].clientY;
+      card.classList.add('dragging');
+    }, { passive: false });
+
+    handle.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (!draggedCard) return;
+
+      const touch = e.touches[0];
+      const clientY = touch.clientY;
+
+      if (clientY > lastY) {
+        dragDirection = 'down';
+      } else if (clientY < lastY) {
+        dragDirection = 'up';
+      }
+      lastY = clientY;
+
+      const list = el.tracksList;
+      const afterElement = getDragAfterElement(list, clientY, dragDirection);
+
+      const currentNext = draggedCard.nextElementSibling;
+      if (afterElement !== draggedCard && afterElement !== currentNext) {
+        flipReorder(() => {
+          if (afterElement == null) {
+            list.appendChild(draggedCard);
+          } else {
+            list.insertBefore(draggedCard, afterElement);
+          }
+        });
+      }
+    }, { passive: false });
+
+    handle.addEventListener('touchend', (e) => {
+      if (!draggedCard) return;
+      draggedCard.classList.remove('dragging');
+      draggedCard = null;
+      reorderStateFromDOM();
+    });
   }
 
   card.addEventListener('dragstart', (e) => {
