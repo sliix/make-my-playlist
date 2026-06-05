@@ -816,6 +816,34 @@ input:checked + .slider:before {
   height: 14px;
 }
 
+.btn-toggle-expand {
+  display: none;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+  margin-left: auto;
+}
+
+.btn-toggle-expand:hover {
+  background: rgba(255, 45, 85, 0.1);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-toggle-expand svg {
+  width: 14px;
+  height: 14px;
+  transition: transform var(--transition-normal);
+}
+
 /* Secondary Controls Row (Alternatives and Refinement) */
 .track-controls {
   display: grid;
@@ -1307,6 +1335,22 @@ dialog[open] {
   .track-details-badge {
     margin-top: 0;
     width: auto;
+  }
+
+  .btn-toggle-expand {
+    display: flex;
+  }
+
+  .track-card .track-controls {
+    display: none !important;
+  }
+
+  .track-card.expanded .track-controls {
+    display: grid !important;
+  }
+
+  .track-card.expanded .btn-toggle-expand svg {
+    transform: rotate(180deg);
   }
   
   .track-controls {

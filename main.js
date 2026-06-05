@@ -446,7 +446,7 @@ function renderTracksList() {
 
   state.tracks.forEach((track, index) => {
     const card = document.createElement('div');
-    card.className = `track-card ${track.approved ? 'approved' : ''} ${track.status === 'no-match' ? 'no-match' : ''}`;
+    card.className = `track-card ${track.approved ? 'approved' : ''} ${track.status === 'no-match' ? 'no-match' : ''} ${track.isExpanded ? 'expanded' : ''}`;
     card.id = `track-card-${track.id}`;
 
     // Artwork calculations
@@ -540,6 +540,11 @@ function renderTracksList() {
             <span>${duration}</span>
           </div>
           ` : ''}
+          <button class="btn-toggle-expand" data-id="${track.id}" aria-label="Toggle Details">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
           <div class="track-reorder-buttons">
             <button class="btn-reorder btn-reorder-up" data-id="${track.id}" title="Move Up" ${isFirst ? 'disabled' : ''}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -693,6 +698,23 @@ function bindTrackCardListeners() {
   el.tracksList.querySelectorAll('.track-card').forEach(card => {
     bindDragAndDropListeners(card);
   });
+
+  // 7. Toggle Details Event Listener
+  el.tracksList.querySelectorAll('.btn-toggle-expand').forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const trackId = parseInt(button.dataset.id);
+      const track = state.tracks.find(t => t.id === trackId);
+      if (track) {
+        track.isExpanded = !track.isExpanded;
+        const card = document.getElementById(`track-card-${trackId}`);
+        if (card) {
+          card.classList.toggle('expanded', track.isExpanded);
+        }
+        saveAppState();
+      }
+    });
+  });
 }
 
 // Local card rerender logic for seamless transitions
@@ -700,7 +722,7 @@ function updateSingleTrackCard(track) {
   const card = document.getElementById(`track-card-${track.id}`);
   if (!card) return;
 
-  card.className = `track-card ${track.approved ? 'approved' : ''} ${track.status === 'no-match' ? 'no-match' : ''}`;
+  card.className = `track-card ${track.approved ? 'approved' : ''} ${track.status === 'no-match' ? 'no-match' : ''} ${track.isExpanded ? 'expanded' : ''}`;
 
   let activeSong = null;
   let artworkHtml = `<div class="track-artwork-fallback">
@@ -791,6 +813,11 @@ function updateSingleTrackCard(track) {
         <span>${duration}</span>
       </div>
       ` : ''}
+      <button class="btn-toggle-expand" data-id="${track.id}" aria-label="Toggle Details">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
       <div class="track-reorder-buttons">
         <button class="btn-reorder btn-reorder-up" data-id="${track.id}" title="Move Up" ${isFirst ? 'disabled' : ''}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -873,6 +900,17 @@ function updateSingleTrackCard(track) {
 
   // Re-bind drag and drop on this card
   bindDragAndDropListeners(card);
+
+  // Re-bind toggle details listener
+  const toggleBtn = card.querySelector('.btn-toggle-expand');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      track.isExpanded = !track.isExpanded;
+      card.classList.toggle('expanded', track.isExpanded);
+      saveAppState();
+    });
+  }
 
   // Update play button state for this card
   updateAllPlayButtonUI();
