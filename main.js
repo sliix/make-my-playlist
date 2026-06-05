@@ -1832,7 +1832,7 @@ function getDragAfterElement(container, y, direction) {
   const scrollTop = container.scrollTop;
 
   const isMobile = window.innerWidth <= 640;
-  const thresholdRatio = isMobile ? 0.5 : (direction === 'down' ? -1 : 0);
+  const thresholdRatio = isMobile ? (direction === 'down' ? 0.25 : 0.75) : (direction === 'down' ? -1 : 1);
 
   return draggableElements.reduce((closest, child) => {
     // Calculate layout top relative to the viewport, ignoring active transforms
