@@ -1267,6 +1267,17 @@ dialog[open] {
   .track-card {
     padding: 12px;
     gap: 12px;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+  }
+
+  .track-drag-handle {
+    display: none !important;
+  }
+
+  .track-reorder-buttons {
+    display: none !important;
   }
 
   .track-main-info {
