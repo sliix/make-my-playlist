@@ -10,6 +10,7 @@ const state = {
 
 // UI Elements Cache
 const el = {
+  btnReset: document.getElementById('btn-reset'),
   btnOpenSettings: document.getElementById('btn-open-settings'),
   btnCloseSettings: document.getElementById('btn-close-settings'),
   btnSaveSettings: document.getElementById('btn-save-settings'),
@@ -83,6 +84,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 // Event Listeners Registration
 function initEventListeners() {
   // Modal toggle listeners
+  el.btnReset.addEventListener('click', handleResetApp);
   el.btnOpenSettings.addEventListener('click', () => el.settingsModal.showModal());
   el.btnCloseSettings.addEventListener('click', () => el.settingsModal.close());
   el.btnSaveSettings.addEventListener('click', handleSaveManualSettings);
@@ -1055,6 +1057,48 @@ function restoreAppState() {
     }
   } catch (e) {
     console.error("Error restoring app state:", e);
+  }
+}
+
+function handleResetApp() {
+  if (confirm("Are you sure you want to clear the editor? This will erase the current song list, playlist settings, and all search results.")) {
+    // 1. Stop any running audio preview
+    if (state.playingAudio) {
+      state.playingAudio.pause();
+      state.playingAudio = null;
+      state.playingTrackId = null;
+    }
+
+    // 2. Clear state variables
+    state.tracks = [];
+
+    // 3. Reset UI inputs to defaults
+    el.inputSongList.value = "";
+    el.playlistName.value = "My Awesome Playlist";
+    el.playlistDesc.value = "";
+    el.playlistPublic.checked = true;
+
+    // 4. Reset library playlist importer selector
+    el.selectLibraryPlaylists.value = "";
+    el.btnLoadPlaylist.setAttribute('disabled', 'disabled');
+
+    // 5. Hide results and show empty state
+    el.tracksList.innerHTML = "";
+    el.tracksList.classList.add('hidden');
+    el.resultsEmptyState.classList.remove('hidden');
+    el.btnApproveAll.setAttribute('disabled', 'disabled');
+    el.searchProgressCard.classList.add('hidden');
+    el.progressBarFill.style.width = "0%";
+
+    // 6. Disable final export actions since there are no songs
+    updateCreatePlaylistButtonState();
+
+    // 7. Clear local storage state
+    localStorage.removeItem('makemyplaylist_raw_input');
+    localStorage.removeItem('makemyplaylist_details');
+    localStorage.removeItem('makemyplaylist_tracks');
+
+    showSuccessToast("Editor cleared successfully!");
   }
 }
 

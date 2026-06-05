@@ -124,6 +124,12 @@ h1, h2, h3, h4 {
   font-weight: 800;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 /* Layout Grid */
 .app-main {
   display: grid;
