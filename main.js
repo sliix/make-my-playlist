@@ -13,7 +13,7 @@ const el = {
   btnReset: document.getElementById('btn-reset'),
   btnMenuToggle: document.getElementById('btn-menu-toggle'),
   headerActions: document.getElementById('header-actions'),
-  
+
   inputSongList: document.getElementById('input-song-list'),
   playlistName: document.getElementById('playlist-name'),
   playlistDesc: document.getElementById('playlist-desc'),
@@ -21,7 +21,7 @@ const el = {
   btnAnalyze: document.getElementById('btn-analyze'),
   btnAnalyzeText: document.getElementById('btn-analyze-text'),
   spinnerAnalyze: document.getElementById('spinner-analyze'),
-  
+
   btnApproveAll: document.getElementById('btn-approve-all'),
   resultsEmptyState: document.getElementById('results-empty-state'),
   searchProgressCard: document.getElementById('search-progress-card'),
@@ -29,14 +29,14 @@ const el = {
   progressPercentage: document.getElementById('progress-percentage'),
   progressBarFill: document.getElementById('progress-bar-fill'),
   tracksList: document.getElementById('tracks-list'),
-  
+
   connectionIndicator: document.getElementById('connection-indicator'),
   connectionText: document.getElementById('connection-text'),
   btnConnectApple: document.getElementById('btn-connect-apple'),
   btnCreatePlaylist: document.getElementById('btn-create-playlist'),
   btnCreateText: document.getElementById('btn-create-text'),
   spinnerCreate: document.getElementById('spinner-create'),
-  
+
   // Library Playlist Import Elements
   btnFetchPlaylists: document.getElementById('btn-fetch-playlists'),
   btnLoadPlaylist: document.getElementById('btn-load-playlist'),
@@ -68,17 +68,17 @@ async function loadSessionConfigWithRetries(maxAttempts = 4, delayMs = 1000) {
 // Initialize Application
 window.addEventListener('DOMContentLoaded', async () => {
   initEventListeners();
-  
+
   // Register Service Worker for PWA installability
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js')
       .then(reg => console.log('Service Worker registered successfully:', reg.scope))
       .catch(err => console.warn('Service Worker registration failed:', err));
   }
-  
+
   // Try to load dynamic session config from backend with retries
   await loadSessionConfigWithRetries(4, 1000);
-  
+
   // Restore persisted state from local storage
   restoreAppState();
 });
@@ -93,7 +93,7 @@ function initEventListeners() {
   el.btnApproveAll.addEventListener('click', handleApproveAll);
   el.btnConnectApple.addEventListener('click', handleConnectAppleMusic);
   el.btnCreatePlaylist.addEventListener('click', handleCreatePlaylist);
-  
+
   // Library Playlist Import listeners
   el.btnFetchPlaylists.addEventListener('click', handleFetchLibraryPlaylists);
   el.btnLoadPlaylist.addEventListener('click', handleLoadSelectedPlaylist);
@@ -113,10 +113,10 @@ function initEventListeners() {
 
   // Close menu when clicking outside
   document.addEventListener('click', (e) => {
-    if (el.headerActions.classList.contains('open') && 
-        !el.headerActions.contains(e.target) && 
-        e.target !== el.btnMenuToggle && 
-        !el.btnMenuToggle.contains(e.target)) {
+    if (el.headerActions.classList.contains('open') &&
+      !el.headerActions.contains(e.target) &&
+      e.target !== el.btnMenuToggle &&
+      !el.btnMenuToggle.contains(e.target)) {
       el.headerActions.classList.remove('open');
     }
   });
@@ -126,6 +126,9 @@ function initEventListeners() {
   el.playlistName.addEventListener('input', saveAppState);
   el.playlistDesc.addEventListener('input', saveAppState);
   el.playlistPublic.addEventListener('change', saveAppState);
+
+  // Initialize Drag & Drop events
+  initDragAndDrop();
 }
 
 // Fetch session configurations dynamically from secure Express backend
@@ -148,7 +151,7 @@ async function initMusicKit(developerToken) {
   if (typeof MusicKit === 'undefined') {
     throw new Error("MusicKit JS is not loaded on this page.");
   }
-  
+
   await MusicKit.configure({
     developerToken: developerToken,
     app: {
@@ -156,9 +159,9 @@ async function initMusicKit(developerToken) {
       build: '1.0.0'
     }
   });
-  
+
   state.musicKit = MusicKit.getInstance();
-  
+
   // Wire up authorization status changes
   updateConnectionUI();
   state.musicKit.addEventListener(MusicKit.Events.authorizationStatusDidChange, () => {
@@ -169,7 +172,7 @@ async function initMusicKit(developerToken) {
 
 function updateConnectionUI() {
   if (!state.musicKit) return;
-  
+
   if (state.musicKit.isAuthorized) {
     el.connectionIndicator.className = 'status-indicator online';
     el.connectionText.textContent = "Apple Music: Connected";
@@ -183,7 +186,7 @@ function updateConnectionUI() {
 
 // Re-configure/refresh configuration dynamically to prevent JWT expirations
 async function refreshMusicKitConfiguration() {
-  
+
   // Try to load backend session config
   try {
     const response = await fetch('/api/session/config');
@@ -203,7 +206,7 @@ async function handleConnectAppleMusic() {
     alert("Apple Music is not configured or unavailable. Please refresh the page.");
     return;
   }
-  
+
   try {
     if (state.musicKit.isAuthorized) {
       await state.musicKit.unauthorize();
@@ -267,18 +270,18 @@ function handleAnalyzeSongList() {
   }
 
   state.tracks = parsedTracks;
-  
+
   // Update UI Elements
   el.resultsEmptyState.classList.add('hidden');
   el.tracksList.classList.add('hidden');
   el.searchProgressCard.classList.remove('hidden');
   el.btnApproveAll.disabled = true;
-  
+
   // Set load button to active loading state
   el.btnAnalyze.disabled = true;
   el.spinnerAnalyze.classList.remove('hidden');
   el.btnAnalyzeText.textContent = "Searching Catalog...";
-  
+
   // Start parallel query execution with throttling
   executeCatalogSearches();
 }
@@ -290,7 +293,7 @@ function parseSongLine(line) {
   // Strips list item markers at the beginning
   cleaned = cleaned.replace(/^(\d+[\.\-\)]\s*|\[\d+\]\s*|[\u2022\*\-]\s*)/, '');
   cleaned = cleaned.trim();
-  
+
   // Replace multiple spaces with a single space
   cleaned = cleaned.replace(/\s+/g, ' ');
 
@@ -301,9 +304,9 @@ function parseSongLine(line) {
 async function searchCatalogProxy(query) {
   const storefront = (state.musicKit && state.musicKit.storefrontId) || 'us';
   const url = `/api/search?term=${encodeURIComponent(query)}&storefront=${storefront}`;
-  
 
-  
+
+
   // Fetch via backend proxy
   const response = await fetch(url);
   if (!response.ok) {
@@ -321,7 +324,7 @@ async function executeCatalogSearches() {
   const maxConcurrency = 5;
   const total = state.tracks.length;
   let completed = 0;
-  
+
   // Function to update progress bar status
   const updateProgress = () => {
     const pct = Math.floor((completed / total) * 100);
@@ -338,7 +341,7 @@ async function executeCatalogSearches() {
     while (index < total) {
       const track = state.tracks[index];
       track.status = 'searching';
-      
+
       try {
         const results = await searchCatalogProxy(track.searchQuery);
         track.results = results;
@@ -355,7 +358,7 @@ async function executeCatalogSearches() {
         track.approved = false;
         track.errorMessage = err.message || 'Search failed';
       }
-      
+
       completed++;
       updateProgress();
       index += maxConcurrency;
@@ -367,12 +370,12 @@ async function executeCatalogSearches() {
   // Complete search and draw UI list
   el.searchProgressCard.classList.add('hidden');
   el.tracksList.classList.remove('hidden');
-  
+
   el.btnAnalyze.disabled = false;
   el.spinnerAnalyze.classList.add('hidden');
   el.btnAnalyzeText.textContent = "Analyze & Search Catalog";
   el.btnApproveAll.disabled = false;
-  
+
   renderTracksList();
   updateCreatePlaylistButtonState();
   saveAppState();
@@ -381,12 +384,12 @@ async function executeCatalogSearches() {
 // UI Rendering for track cards
 function renderTracksList() {
   el.tracksList.innerHTML = '';
-  
-  state.tracks.forEach(track => {
+
+  state.tracks.forEach((track, index) => {
     const card = document.createElement('div');
     card.className = `track-card ${track.approved ? 'approved' : ''} ${track.status === 'no-match' ? 'no-match' : ''}`;
     card.id = `track-card-${track.id}`;
-    
+
     // Artwork calculations
     let activeSong = null;
     let artworkHtml = `<div class="track-artwork-fallback">
@@ -396,7 +399,7 @@ function renderTracksList() {
         <circle cx="18" cy="16" r="3"></circle>
       </svg>
     </div>`;
-    
+
     let previewUrl = '';
     if (track.status === 'matched' && track.results.length > 0) {
       activeSong = track.results[track.selectedIndex];
@@ -410,17 +413,30 @@ function renderTracksList() {
         previewUrl = activeSong.attributes.previews[0].url;
       }
     }
-    
+
     // Core Layout variables
     const title = activeSong ? activeSong.attributes.name : 'No Match Found';
     const artist = activeSong ? activeSong.attributes.artistName : 'Try refining your search';
     const album = activeSong ? activeSong.attributes.albumName : '';
     const duration = activeSong ? formatDuration(activeSong.attributes.durationInMillis) : '';
     const isExplicit = activeSong && activeSong.attributes.contentRating === 'explicit';
-    
+    const isFirst = index === 0;
+    const isLast = index === state.tracks.length - 1;
+
     // HTML Card Body
     card.innerHTML = `
       <div class="track-main-info">
+        <div class="track-drag-handle" title="Drag to reorder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="5" r="1"></circle>
+            <circle cx="15" cy="5" r="1"></circle>
+            <circle cx="9" cy="12" r="1"></circle>
+            <circle cx="15" cy="12" r="1"></circle>
+            <circle cx="9" cy="19" r="1"></circle>
+            <circle cx="15" cy="19" r="1"></circle>
+          </svg>
+        </div>
+
         <label class="track-status-check" aria-label="Approve Song">
           <input type="checkbox" class="track-checkbox" data-id="${track.id}" ${track.approved ? 'checked' : ''} ${track.status === 'no-match' ? 'disabled' : ''}>
           <span class="checkbox-custom">
@@ -430,7 +446,7 @@ function renderTracksList() {
           </span>
         </label>
         
-        <div class="track-query-indicator">#${track.id}</div>
+        <div class="track-query-indicator">#${index + 1}</div>
         
         <div class="track-artwork-container ${previewUrl ? 'has-preview' : ''}" id="artwork-container-${track.id}">
           ${artworkHtml}
@@ -459,11 +475,25 @@ function renderTracksList() {
           </div>
         </div>
         
-        ${duration ? `
-        <div class="track-details-badge">
-          <span>${duration}</span>
+        <div class="track-right-controls">
+          ${duration ? `
+          <div class="track-details-badge">
+            <span>${duration}</span>
+          </div>
+          ` : ''}
+          <div class="track-reorder-buttons">
+            <button class="btn-reorder btn-reorder-up" data-id="${track.id}" title="Move Up" ${isFirst ? 'disabled' : ''}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="18 15 12 9 6 15"></polyline>
+              </svg>
+            </button>
+            <button class="btn-reorder btn-reorder-down" data-id="${track.id}" title="Move Down" ${isLast ? 'disabled' : ''}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
         </div>
-        ` : ''}
       </div>
       
       <!-- Sub controls: dropdown selector & refinement search box -->
@@ -472,13 +502,13 @@ function renderTracksList() {
           <label>Version / Match Options</label>
           <div class="select-wrapper">
             <select class="select-alternatives" data-id="${track.id}" ${track.results.length <= 1 ? 'disabled' : ''}>
-              ${track.results.length > 0 
-                ? track.results.map((song, index) => {
-                    const label = `${song.attributes.name} - ${song.attributes.artistName} (${formatDuration(song.attributes.durationInMillis)})`;
-                    return `<option value="${index}" ${index === track.selectedIndex ? 'selected' : ''}>${label}</option>`;
-                  }).join('')
-                : '<option>No options available</option>'
-              }
+              ${track.results.length > 0
+        ? track.results.map((song, index) => {
+          const label = `${song.attributes.name} - ${song.attributes.artistName} (${formatDuration(song.attributes.durationInMillis)})`;
+          return `<option value="${index}" ${index === track.selectedIndex ? 'selected' : ''}>${label}</option>`;
+        }).join('')
+        : '<option>No options available</option>'
+      }
             </select>
           </div>
         </div>
@@ -492,10 +522,10 @@ function renderTracksList() {
         </div>
       </div>
     `;
-    
+
     el.tracksList.appendChild(card);
   });
-  
+
   // Bind dynamic interactive elements inside cards
   bindTrackCardListeners();
 }
@@ -519,7 +549,7 @@ function bindTrackCardListeners() {
       }
     });
   });
-  
+
   // 2. Selection Alternate Version Change
   el.tracksList.querySelectorAll('.select-alternatives').forEach(select => {
     select.addEventListener('change', (e) => {
@@ -532,22 +562,22 @@ function bindTrackCardListeners() {
       }
     });
   });
-  
+
   // 3. Single Song Search Refinement
   el.tracksList.querySelectorAll('.btn-refine').forEach(button => {
     button.addEventListener('click', async (e) => {
       const trackId = parseInt(e.target.dataset.id);
       const track = state.tracks.find(t => t.id === trackId);
       const input = el.tracksList.querySelector(`.input-refine[data-id="${trackId}"]`);
-      
+
       if (track && input) {
         const newQuery = input.value.trim();
         if (!newQuery) return;
-        
+
         button.disabled = true;
         button.textContent = "...";
         track.searchQuery = newQuery;
-        
+
         try {
           const results = await searchCatalogProxy(newQuery);
           track.results = results;
@@ -564,14 +594,14 @@ function bindTrackCardListeners() {
           track.approved = false;
           track.errorMessage = err.message || 'Query failed';
         }
-        
+
         updateSingleTrackCard(track);
         updateCreatePlaylistButtonState();
         saveAppState();
       }
     });
   });
-  
+
   // 4. Play Preview Button Handler
   el.tracksList.querySelectorAll('.btn-play-preview').forEach(button => {
     button.addEventListener('click', (e) => {
@@ -582,15 +612,37 @@ function bindTrackCardListeners() {
       playPreview(trackId, url);
     });
   });
+
+  // 5. Up/Down Reorder Buttons click
+  el.tracksList.querySelectorAll('.btn-reorder-up').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const trackId = parseInt(btn.dataset.id);
+      moveTrack(trackId, -1);
+    });
+  });
+
+  el.tracksList.querySelectorAll('.btn-reorder-down').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const trackId = parseInt(btn.dataset.id);
+      moveTrack(trackId, 1);
+    });
+  });
+
+  // 6. Drag and Drop event listeners on cards
+  el.tracksList.querySelectorAll('.track-card').forEach(card => {
+    bindDragAndDropListeners(card);
+  });
 }
 
 // Local card rerender logic for seamless transitions
 function updateSingleTrackCard(track) {
   const card = document.getElementById(`track-card-${track.id}`);
   if (!card) return;
-  
+
   card.className = `track-card ${track.approved ? 'approved' : ''} ${track.status === 'no-match' ? 'no-match' : ''}`;
-  
+
   let activeSong = null;
   let artworkHtml = `<div class="track-artwork-fallback">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
@@ -599,7 +651,7 @@ function updateSingleTrackCard(track) {
       <circle cx="18" cy="16" r="3"></circle>
     </svg>
   </div>`;
-  
+
   let previewUrl = '';
   if (track.status === 'matched' && track.results.length > 0) {
     activeSong = track.results[track.selectedIndex];
@@ -613,15 +665,29 @@ function updateSingleTrackCard(track) {
       previewUrl = activeSong.attributes.previews[0].url;
     }
   }
-  
+
   const title = activeSong ? activeSong.attributes.name : 'No Match Found';
   const artist = activeSong ? activeSong.attributes.artistName : 'Try refining your search';
   const album = activeSong ? activeSong.attributes.albumName : '';
   const duration = activeSong ? formatDuration(activeSong.attributes.durationInMillis) : '';
   const isExplicit = activeSong && activeSong.attributes.contentRating === 'explicit';
+  const index = state.tracks.findIndex(t => t.id === track.id);
+  const isFirst = index === 0;
+  const isLast = index === state.tracks.length - 1;
 
   const mainInfo = card.querySelector('.track-main-info');
   mainInfo.innerHTML = `
+    <div class="track-drag-handle" title="Drag to reorder">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="5" r="1"></circle>
+        <circle cx="15" cy="5" r="1"></circle>
+        <circle cx="9" cy="12" r="1"></circle>
+        <circle cx="15" cy="12" r="1"></circle>
+        <circle cx="9" cy="19" r="1"></circle>
+        <circle cx="15" cy="19" r="1"></circle>
+      </svg>
+    </div>
+
     <label class="track-status-check" aria-label="Approve Song">
       <input type="checkbox" class="track-checkbox" data-id="${track.id}" ${track.approved ? 'checked' : ''} ${track.status === 'no-match' ? 'disabled' : ''}>
       <span class="checkbox-custom">
@@ -631,7 +697,7 @@ function updateSingleTrackCard(track) {
       </span>
     </label>
     
-    <div class="track-query-indicator">#${track.id}</div>
+    <div class="track-query-indicator">#${index + 1}</div>
     
     <div class="track-artwork-container ${previewUrl ? 'has-preview' : ''}" id="artwork-container-${track.id}">
       ${artworkHtml}
@@ -660,21 +726,35 @@ function updateSingleTrackCard(track) {
       </div>
     </div>
     
-    ${duration ? `
-    <div class="track-details-badge">
-      <span>${duration}</span>
+    <div class="track-right-controls">
+      ${duration ? `
+      <div class="track-details-badge">
+        <span>${duration}</span>
+      </div>
+      ` : ''}
+      <div class="track-reorder-buttons">
+        <button class="btn-reorder btn-reorder-up" data-id="${track.id}" title="Move Up" ${isFirst ? 'disabled' : ''}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+        </button>
+        <button class="btn-reorder btn-reorder-down" data-id="${track.id}" title="Move Down" ${isLast ? 'disabled' : ''}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+      </div>
     </div>
-    ` : ''}
   `;
 
   const select = card.querySelector('.select-alternatives');
-  select.innerHTML = track.results.length > 0 
+  select.innerHTML = track.results.length > 0
     ? track.results.map((song, index) => {
-        const label = `${song.attributes.name} - ${song.attributes.artistName} (${formatDuration(song.attributes.durationInMillis)})`;
-        return `<option value="${index}" ${index === track.selectedIndex ? 'selected' : ''}>${label}</option>`;
-      }).join('')
+      const label = `${song.attributes.name} - ${song.attributes.artistName} (${formatDuration(song.attributes.durationInMillis)})`;
+      return `<option value="${index}" ${index === track.selectedIndex ? 'selected' : ''}>${label}</option>`;
+    }).join('')
     : '<option>No options available</option>';
-  
+
   if (track.results.length <= 1) {
     select.setAttribute('disabled', 'disabled');
   } else {
@@ -714,7 +794,27 @@ function updateSingleTrackCard(track) {
       playPreview(trackId, url);
     });
   }
-  
+
+  // Re-bind up/down reorder buttons click
+  const upBtn = card.querySelector('.btn-reorder-up');
+  if (upBtn) {
+    upBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      moveTrack(track.id, -1);
+    });
+  }
+
+  const downBtn = card.querySelector('.btn-reorder-down');
+  if (downBtn) {
+    downBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      moveTrack(track.id, 1);
+    });
+  }
+
+  // Re-bind drag and drop on this card
+  bindDragAndDropListeners(card);
+
   // Update play button state for this card
   updateAllPlayButtonUI();
 }
@@ -722,7 +822,7 @@ function updateSingleTrackCard(track) {
 function handleApproveAll() {
   const matchTracks = state.tracks.filter(t => t.status === 'matched');
   const allApproved = matchTracks.every(t => t.approved);
-  
+
   matchTracks.forEach(track => {
     track.approved = !allApproved;
     const card = document.getElementById(`track-card-${track.id}`);
@@ -786,7 +886,7 @@ async function handleCreatePlaylist() {
 
   try {
     const userToken = state.musicKit.musicUserToken;
-    
+
     // Step 1: Create playlist through our backend proxy (developer token never exposed in request logs)
     const createResponse = await fetch('/api/playlists', {
       method: 'POST',
@@ -811,7 +911,7 @@ async function handleCreatePlaylist() {
     }
 
     const playlistId = createData.data[0].id;
-    
+
     // Step 2: Add approved tracks to the new playlist through proxy
     const trackPayload = approvedTracks.map(track => {
       const activeSong = track.results[track.selectedIndex];
@@ -883,15 +983,15 @@ function showToast(message, type = 'success') {
   toast.style.opacity = '0';
   toast.style.transform = 'translateY(10px)';
   toast.style.transition = 'all 0.3s ease';
-  
+
   toast.textContent = message;
   document.body.appendChild(toast);
-  
+
   setTimeout(() => {
     toast.style.opacity = '1';
     toast.style.transform = 'translateY(0)';
   }, 50);
-  
+
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateY(10px)';
@@ -960,7 +1060,7 @@ function updateAllPlayButtonUI() {
 // Local Storage Session Persistence Helpers
 function saveAppState() {
   localStorage.setItem('makemyplaylist_raw_input', el.inputSongList.value);
-  
+
   const details = {
     name: el.playlistName.value,
     description: el.playlistDesc.value,
@@ -1155,5 +1255,189 @@ async function handleLoadSelectedPlaylist() {
     el.spinnerLoad.classList.add('hidden');
     el.btnLoadText.textContent = "Load Playlist Songs";
   }
+}
+
+// FLIP animation helper for smooth reordering transitions
+function flipReorder(actionFn) {
+  const list = el.tracksList;
+  if (!list) {
+    actionFn();
+    return;
+  }
+
+  const cards = [...list.querySelectorAll('.track-card')];
+
+  // First: Capture initial offsetTop positions relative to container parent
+  const startTops = new Map(
+    cards.map(card => [card.id, card.offsetTop])
+  );
+
+  // Perform layout modifications (state re-render or DOM shifts)
+  actionFn();
+
+  // Last: Capture post-layout positions and apply inverted transforms
+  const newCards = [...list.querySelectorAll('.track-card')];
+  newCards.forEach(card => {
+    const startTop = startTops.get(card.id);
+    if (startTop === undefined) return;
+
+    const endTop = card.offsetTop;
+    const deltaY = startTop - endTop;
+
+    if (deltaY !== 0) {
+      // Invert: shift back immediately with no transition
+      card.style.transition = 'none';
+      card.style.transform = `translateY(${deltaY}px)`;
+
+      // Force repaint to make transform register before transition is enabled
+      card.offsetHeight;
+
+      // Play: animate back to final layout position
+      card.style.transition = 'transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)';
+      card.style.transform = '';
+    }
+  });
+
+  // Cleanup inline transition styles after transition finishes
+  if (list.cleanupTimeout) clearTimeout(list.cleanupTimeout);
+  list.cleanupTimeout = setTimeout(() => {
+    newCards.forEach(card => {
+      card.style.transition = '';
+      card.style.transform = '';
+    });
+  }, 150);
+}
+
+// Reorder tracks by index offset
+function moveTrack(trackId, direction) {
+  const index = state.tracks.findIndex(t => t.id === trackId);
+  if (index === -1) return;
+
+  const newIndex = index + direction;
+  if (newIndex < 0 || newIndex >= state.tracks.length) return;
+
+  // Swap tracks in state
+  const temp = state.tracks[index];
+  state.tracks[index] = state.tracks[newIndex];
+  state.tracks[newIndex] = temp;
+
+  // Animate the swap re-render
+  flipReorder(() => {
+    renderTracksList();
+  });
+
+  saveAppState();
+}
+
+let draggedCard = null;
+let dragDirection = 'down';
+let lastY = 0;
+
+// Initialize dragover on track list container
+function initDragAndDrop() {
+  const list = el.tracksList;
+  if (!list) return;
+
+  list.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (!draggedCard) return;
+
+    // Determine drag direction
+    if (e.clientY > lastY) {
+      dragDirection = 'down';
+    } else if (e.clientY < lastY) {
+      dragDirection = 'up';
+    }
+    lastY = e.clientY;
+
+    const afterElement = getDragAfterElement(list, e.clientY, dragDirection);
+
+    // Only trigger insertion if position actually changes in the DOM
+    const currentNext = draggedCard.nextElementSibling;
+    if (afterElement !== draggedCard && afterElement !== currentNext) {
+      flipReorder(() => {
+        if (afterElement == null) {
+          list.appendChild(draggedCard);
+        } else {
+          list.insertBefore(draggedCard, afterElement);
+        }
+      });
+    }
+  });
+}
+
+// Bind drag listeners to each card
+function bindDragAndDropListeners(card) {
+  // Only trigger dragging if user starts drag on the drag handle
+  const handle = card.querySelector('.track-drag-handle');
+  if (handle) {
+    handle.addEventListener('mousedown', () => {
+      card.setAttribute('draggable', 'true');
+    });
+    handle.addEventListener('mouseup', () => {
+      card.removeAttribute('draggable');
+    });
+    handle.addEventListener('dragend', () => {
+      card.removeAttribute('draggable');
+    });
+  }
+
+  card.addEventListener('dragstart', (e) => {
+    draggedCard = card;
+    dragDirection = 'down'; // Reset to default on start
+    lastY = e.clientY;
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', card.id);
+  });
+
+  card.addEventListener('dragend', () => {
+    draggedCard = null;
+    card.classList.remove('dragging');
+    card.removeAttribute('draggable');
+    reorderStateFromDOM();
+  });
+}
+
+// Find closest dropsite card below drag pointer
+function getDragAfterElement(container, y, direction) {
+  const draggableElements = [...container.querySelectorAll('.track-card:not(.dragging)')];
+  const containerBox = container.getBoundingClientRect();
+  const scrollTop = container.scrollTop;
+
+  const thresholdRatio = direction === 'down' ? -1 : 0;
+
+  return draggableElements.reduce((closest, child) => {
+    // Calculate layout top relative to the viewport, ignoring active transforms
+    const layoutTop = containerBox.top + child.offsetTop - scrollTop;
+    const height = child.offsetHeight;
+    const offset = y - layoutTop - height * thresholdRatio;
+
+    if (offset < 0 && offset > closest.offset) {
+      return { offset: offset, element: child };
+    } else {
+      return closest;
+    }
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+// Synchronize state array with current DOM elements order
+function reorderStateFromDOM() {
+  const cards = [...el.tracksList.querySelectorAll('.track-card')];
+  const newTracks = [];
+
+  cards.forEach((card) => {
+    const trackId = parseInt(card.id.replace('track-card-', ''));
+    const track = state.tracks.find(t => t.id === trackId);
+    if (track) {
+      newTracks.push(track);
+    }
+  });
+
+  state.tracks = newTracks;
+  saveAppState();
+
+  // Re-render to refresh indices and button disabled states
+  renderTracksList();
 }
 

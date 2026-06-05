@@ -727,14 +727,89 @@ input:checked + .slider:before {
   text-overflow: ellipsis;
 }
 
+.track-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: var(--text-dim);
+  padding: 4px;
+  transition: color var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.track-drag-handle:hover {
+  color: var(--text-main);
+}
+
+.track-drag-handle:active {
+  cursor: grabbing;
+}
+
+.track-drag-handle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.track-card.dragging {
+  opacity: 0.4;
+  border: 1px dashed var(--color-primary);
+  transform: scale(0.98);
+  box-shadow: 0 0 15px rgba(255, 45, 85, 0.1);
+}
+
+.track-right-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 .track-details-badge {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 12px;
   color: var(--text-muted);
-  margin-left: auto;
   flex-shrink: 0;
+}
+
+.track-reorder-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-reorder {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+}
+
+.btn-reorder:hover:not(:disabled) {
+  background: rgba(255, 45, 85, 0.1);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-reorder:disabled {
+  opacity: 0.15;
+  cursor: not-allowed;
+}
+
+.btn-reorder svg {
+  width: 14px;
+  height: 14px;
 }
 
 /* Secondary Controls Row (Alternatives and Refinement) */
@@ -1073,11 +1148,24 @@ dialog[open] {
     min-width: 20px;
   }
 
-  .track-details-badge {
-    margin-left: 0;
+  .track-drag-handle {
+    display: none;
+  }
+
+  .track-right-controls {
+    flex-direction: row;
+    align-items: center;
     width: 100%;
-    margin-top: 4px;
-    justify-content: flex-start;
+    justify-content: space-between;
+    margin-top: 8px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.04);
+    padding-top: 8px;
+    margin-left: 0;
+  }
+
+  .track-details-badge {
+    margin-top: 0;
+    width: auto;
   }
   
   .track-controls {
