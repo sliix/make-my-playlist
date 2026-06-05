@@ -179,7 +179,7 @@ h1, h2, h3, h4 {
 /* Layout Grid */
 .app-main {
   display: grid;
-  grid-template-columns: 420px 1fr;
+  grid-template-columns: 420px minmax(0, 1fr);
   gap: 30px;
   padding: 30px 40px;
   max-width: 1600px;
@@ -740,7 +740,7 @@ input:checked + .slider:before {
 /* Secondary Controls Row (Alternatives and Refinement) */
 .track-controls {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.04);
   padding-top: 14px;
@@ -991,7 +991,7 @@ dialog[open] {
 /* Responsive Scaling */
 @media (max-width: 1024px) {
   .app-main {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     padding: 20px;
   }
   
