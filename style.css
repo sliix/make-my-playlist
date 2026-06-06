@@ -722,6 +722,14 @@ input:checked + .slider:before {
   line-height: 1;
 }
 
+.track-explicit-badge.desktop-only {
+  display: inline-flex;
+}
+
+.track-explicit-badge.mobile-only {
+  display: none !important;
+}
+
 .track-artist {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.8);
@@ -1378,6 +1386,14 @@ dialog[open] {
 
   .track-reorder-buttons {
     display: none !important;
+  }
+
+  .track-explicit-badge.desktop-only {
+    display: none !important;
+  }
+
+  .track-explicit-badge.mobile-only {
+    display: inline-flex !important;
   }
 
   .track-main-info {

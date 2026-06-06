@@ -525,7 +525,7 @@ function renderTracksList() {
         <div class="track-meta">
           <div class="track-title-row">
             <span class="track-title" title="${title}"><span class="track-title-text">${title}</span></span>
-            ${isExplicit ? '<span class="track-explicit-badge">Explicit</span>' : ''}
+            ${isExplicit ? '<span class="track-explicit-badge desktop-only">Explicit</span>' : ''}
           </div>
           <div class="track-artist" title="${artist}"><span class="track-artist-text">${artist}</span></div>
           ${album ? `<div class="track-album" title="${album}">${album}</div>` : ''}
@@ -535,6 +535,7 @@ function renderTracksList() {
         </div>
         
         <div class="track-right-controls">
+          ${isExplicit ? '<span class="track-explicit-badge mobile-only">Explicit</span>' : ''}
           ${duration ? `
           <div class="track-details-badge">
             <span>${duration}</span>
@@ -810,7 +811,7 @@ function updateSingleTrackCard(track) {
     <div class="track-meta">
       <div class="track-title-row">
         <span class="track-title" title="${title}"><span class="track-title-text">${title}</span></span>
-        ${isExplicit ? '<span class="track-explicit-badge">Explicit</span>' : ''}
+        ${isExplicit ? '<span class="track-explicit-badge desktop-only">Explicit</span>' : ''}
       </div>
       <div class="track-artist" title="${artist}"><span class="track-artist-text">${artist}</span></div>
       ${album ? `<div class="track-album" title="${album}">${album}</div>` : ''}
@@ -820,6 +821,7 @@ function updateSingleTrackCard(track) {
     </div>
     
     <div class="track-right-controls">
+      ${isExplicit ? '<span class="track-explicit-badge mobile-only">Explicit</span>' : ''}
       ${duration ? `
       <div class="track-details-badge">
         <span>${duration}</span>
