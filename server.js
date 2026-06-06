@@ -273,11 +273,13 @@ router.get('/library/playlists/:id/tracks', async (req, res) => {
 router.post('/parse-prompt', async (req, res) => {
   const { prompt } = req.body;
   if (!prompt) {
+    console.warn("[parse-prompt] 400 Bad Request: Missing 'prompt' in request body.", req.body);
     return res.status(400).json({ error: "Missing required prompt parameter in request body." });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
+    console.warn("[parse-prompt] 400 Bad Request: GEMINI_API_KEY environment variable is not defined on the server.");
     return res.status(400).json({ error: "Gemini API key is not configured on the server." });
   }
 
