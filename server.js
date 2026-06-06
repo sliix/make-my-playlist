@@ -269,6 +269,70 @@ router.get('/library/playlists/:id/tracks', async (req, res) => {
   }
 });
 
+// API Route: Parse natural language prompt using Google Gemini LLM API (free tier)
+router.post('/parse-prompt', async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) {
+    return res.status(400).json({ error: "Missing required prompt parameter in request body." });
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return res.status(400).json({ error: "Gemini API key is not configured on the server." });
+  }
+
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `You are a music playlist request parser. Parse this user playlist request (which could be in any language): "${prompt}"
+
+Extract:
+- size: number of tracks requested (default to 20 if not specified).
+- genres: list of music genres mentioned (translated to English if in another language, e.g., 'רוק' -> 'rock').
+- artists: list of musicians/bands mentioned (standard English spelling/names, e.g., 'קאווינסקי' -> 'Kavinsky').
+- songs: list of song titles mentioned (standard English spelling/names).
+
+Respond ONLY with a valid JSON object matching this schema:
+{
+  "size": number,
+  "genres": string[],
+  "artists": string[],
+  "songs": string[]
+}`
+          }]
+        }],
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Gemini API returned status ${response.status}: ${errText}`);
+    }
+
+    const data = await response.json();
+    const jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!jsonText) {
+      throw new Error("Empty response from Gemini API");
+    }
+
+    const parsedData = JSON.parse(jsonText.trim());
+    res.json(parsedData);
+  } catch (error) {
+    console.error("Gemini prompt parsing failed:", error.message);
+    res.status(500).json({ error: `Prompt parsing failed: ${error.message}` });
+  }
+});
+
 // Mount router on both direct and netlify function paths
 app.use('/api', router);
 app.use('/.netlify/functions/api', router);

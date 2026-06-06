@@ -281,8 +281,42 @@ function handleAnalyzeSongList() {
   }
 
   if (el.chkNaturalLanguage.checked) {
-    const parsedPrompt = parseNaturalLanguagePrompt(rawText);
-    executeNaturalLanguageGeneration(parsedPrompt);
+    // Show searching/parsing progress indicator
+    el.resultsEmptyState.classList.add('hidden');
+    el.tracksList.classList.add('hidden');
+    el.searchProgressCard.classList.remove('hidden');
+    el.btnApproveAll.disabled = true;
+
+    el.btnAnalyze.disabled = true;
+    el.spinnerAnalyze.classList.remove('hidden');
+    el.btnAnalyzeText.textContent = "Analyzing prompt...";
+    el.progressStatusText.textContent = "Sending prompt to Gemini LLM parser...";
+    el.progressPercentage.textContent = "0%";
+    el.progressBarFill.style.width = "0%";
+
+    // Send prompt to Gemini API backend route
+    fetch('/api/parse-prompt', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ prompt: rawText })
+    })
+    .then(async response => {
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`LLM endpoint failed: ${errText}`);
+      }
+      return response.json();
+    })
+    .then(parsedPrompt => {
+      executeNaturalLanguageGeneration(parsedPrompt);
+    })
+    .catch(err => {
+      console.warn("Gemini prompt parsing failed, falling back to local regex parser:", err);
+      const parsedPrompt = parseNaturalLanguagePrompt(rawText);
+      executeNaturalLanguageGeneration(parsedPrompt);
+    });
     return;
   }
 
