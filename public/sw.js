@@ -1,4 +1,4 @@
-const CACHE_NAME = 'makemyplaylist-v13';
+const CACHE_NAME = 'makemyplaylist-v14';
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
