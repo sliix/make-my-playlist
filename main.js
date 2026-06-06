@@ -20,6 +20,7 @@ const el = {
   headerActions: document.getElementById('header-actions'),
 
   inputSongList: document.getElementById('input-song-list'),
+  chkNaturalLanguage: document.getElementById('chk-natural-language'),
   playlistName: document.getElementById('playlist-name'),
   playlistDesc: document.getElementById('playlist-desc'),
   playlistPublic: document.getElementById('playlist-public'),
@@ -134,6 +135,7 @@ function initEventListeners() {
 
   // Persist input values as they type
   el.inputSongList.addEventListener('input', saveAppState);
+  el.chkNaturalLanguage.addEventListener('change', saveAppState);
   el.playlistName.addEventListener('input', saveAppState);
   el.playlistDesc.addEventListener('input', saveAppState);
   el.playlistPublic.addEventListener('change', saveAppState);
@@ -274,7 +276,13 @@ function handleAnalyzeSongList() {
 
   const rawText = el.inputSongList.value;
   if (!rawText.trim()) {
-    alert("Please paste or write a list of songs first.");
+    alert(el.chkNaturalLanguage.checked ? "Please enter a prompt describing your playlist." : "Please paste or write a list of songs first.");
+    return;
+  }
+
+  if (el.chkNaturalLanguage.checked) {
+    const parsedPrompt = parseNaturalLanguagePrompt(rawText);
+    executeNaturalLanguageGeneration(parsedPrompt);
     return;
   }
 
@@ -359,6 +367,239 @@ function parseSongLine(line) {
   cleaned = cleaned.replace(/\s+/g, ' ');
 
   return cleaned;
+}
+
+function parseNaturalLanguagePrompt(text) {
+  const lowercaseText = text.toLowerCase();
+  
+  // 1. Extract Playlist Size (look for numbers)
+  let size = 20;
+  const numbers = text.match(/\b\d+\b/g);
+  if (numbers) {
+    for (const numStr of numbers) {
+      const num = parseInt(numStr, 10);
+      if (num >= 5 && num <= 100) {
+        size = num;
+        break;
+      }
+    }
+  }
+
+  // 2. Extract Genres
+  const knownGenres = [
+    'synthwave', 'pop', 'rock', 'jazz', 'hip hop', 'rap', 'r&b', 'soul', 'reggae',
+    'classical', 'metal', 'lofi', 'country', 'electronic', 'house', 'techno', 'edm',
+    'indie', 'folk', 'punk', 'blues', 'disco', 'ambient', 'vaporwave', 'chillwave'
+  ];
+  const genres = [];
+  knownGenres.forEach(genre => {
+    const regex = new RegExp(`\\b${genre}\\b`, 'i');
+    if (regex.test(lowercaseText)) {
+      genres.push(genre);
+    }
+  });
+
+  // 3. Extract Artists (after standard search cues)
+  const artists = [];
+  const artistPatterns = [
+    /artists\s+like\s+([^,\.\n\?]+)/gi,
+    /artist\s+like\s+([^,\.\n\?]+)/gi,
+    /artists\s+such\s+as\s+([^,\.\n\?]+)/gi,
+    /artists?:\s*([^,\.\n\?]+)/gi,
+    /similar\s+to\s+([^,\.\n\?]+)/gi,
+    /featuring\s+([^,\.\n\?]+)/gi,
+    /songs?\s+by\s+([^,\.\n\?]+)/gi
+  ];
+
+  artistPatterns.forEach(pattern => {
+    let match;
+    pattern.lastIndex = 0;
+    while ((match = pattern.exec(text)) !== null) {
+      const artistGroup = match[1];
+      const names = artistGroup.split(/\band\b|\bor\b|,/gi);
+      names.forEach(name => {
+        const cleanedName = name.trim().replace(/^(like|such as|featuring|artists?)\s+/i, '').trim();
+        if (cleanedName && cleanedName.length > 1 && !/^(playlist|songs|tracks|music|genre)$/i.test(cleanedName)) {
+          if (!artists.includes(cleanedName)) {
+            artists.push(cleanedName);
+          }
+        }
+      });
+    }
+  });
+
+  // 4. Extract Seed Songs (after starting cues)
+  const songs = [];
+  const songPatterns = [
+    /songs?\s+like\s+([^,\.\n\?]+)/gi,
+    /starting\s+with\s+([^,\.\n\?]+)/gi,
+    /seed\s+songs?:\s*([^,\.\n\?]+)/gi
+  ];
+  songPatterns.forEach(pattern => {
+    let match;
+    pattern.lastIndex = 0;
+    while ((match = pattern.exec(text)) !== null) {
+      const songGroup = match[1];
+      const names = songGroup.split(/\band\b|\bor\b|,/gi);
+      names.forEach(name => {
+        const cleanedName = name.trim();
+        if (cleanedName && cleanedName.length > 1 && !/^(playlist|songs|tracks|music)$/i.test(cleanedName)) {
+          if (!songs.includes(cleanedName)) {
+            songs.push(cleanedName);
+          }
+        }
+      });
+    }
+  });
+
+  return {
+    size,
+    genres,
+    artists,
+    songs
+  };
+}
+
+async function executeNaturalLanguageGeneration(parsedPrompt) {
+  // Show progress card
+  el.resultsEmptyState.classList.add('hidden');
+  el.tracksList.classList.add('hidden');
+  el.searchProgressCard.classList.remove('hidden');
+  el.btnApproveAll.disabled = true;
+
+  el.btnAnalyze.disabled = true;
+  el.spinnerAnalyze.classList.remove('hidden');
+  el.btnAnalyzeText.textContent = "Analyzing prompt...";
+
+  // 1. Generate search terms
+  const queries = [];
+  
+  // Add artist queries
+  parsedPrompt.artists.forEach(artist => {
+    queries.push({ term: `${artist} essentials` });
+    queries.push({ term: `${artist} best` });
+  });
+
+  // Add genre queries
+  parsedPrompt.genres.forEach(genre => {
+    queries.push({ term: `${genre} essentials` });
+    queries.push({ term: `${genre} best` });
+  });
+
+  // Add seed song queries
+  parsedPrompt.songs.forEach(song => {
+    queries.push({ term: song });
+  });
+
+  // Fallback if no specific keywords are parsed
+  if (queries.length === 0) {
+    const rawText = el.inputSongList.value.trim();
+    const cleanPrompt = rawText.slice(0, 100).replace(/[^a-zA-Z0-9\s]/g, ' ').trim();
+    if (cleanPrompt) {
+      queries.push({ term: `${cleanPrompt} essentials` });
+      queries.push({ term: `${cleanPrompt} best` });
+      queries.push({ term: cleanPrompt });
+    }
+  }
+
+  if (queries.length === 0) {
+    alert("Invalid natural language prompt. Please write something descriptive.");
+    el.searchProgressCard.classList.add('hidden');
+    el.btnAnalyze.disabled = false;
+    el.spinnerAnalyze.classList.add('hidden');
+    el.btnAnalyzeText.textContent = "Analyze & Search Catalog";
+    return;
+  }
+
+  // 2. Execute searches in parallel
+  const totalQueries = queries.length;
+  let completedQueries = 0;
+  
+  const updateProgress = () => {
+    const pct = Math.floor((completedQueries / totalQueries) * 100);
+    el.progressStatusText.textContent = `Searching Apple Music Catalog...`;
+    el.progressPercentage.textContent = `${pct}%`;
+    el.progressBarFill.style.width = `${pct}%`;
+  };
+
+  updateProgress();
+
+  const queryResults = [];
+  const maxConcurrency = 5;
+  const pool = Array.from({ length: Math.min(maxConcurrency, totalQueries) }, async (_, i) => {
+    let index = i;
+    while (index < totalQueries) {
+      const queryItem = queries[index];
+      try {
+        const results = await searchCatalogProxy(queryItem.term);
+        if (results && results.length > 0) {
+          queryResults.push(results);
+        }
+      } catch (err) {
+        console.warn(`Search failed for query "${queryItem.term}":`, err);
+      }
+      completedQueries++;
+      updateProgress();
+      index += maxConcurrency;
+    }
+  });
+
+  await Promise.all(pool);
+
+  // 3. Round-Robin Mix & Deduplicate
+  const mixedSongs = [];
+  const seenIds = new Set();
+  const maxResultsLength = Math.max(0, ...queryResults.map(arr => arr.length));
+  
+  for (let step = 0; step < maxResultsLength; step++) {
+    for (const resultsArray of queryResults) {
+      if (step < resultsArray.length) {
+        const song = resultsArray[step];
+        if (!seenIds.has(song.id)) {
+          seenIds.add(song.id);
+          mixedSongs.push(song);
+        }
+      }
+    }
+  }
+
+  // Take target size
+  const finalSongs = mixedSongs.slice(0, parsedPrompt.size);
+
+  if (finalSongs.length === 0) {
+    alert("No matching songs found on Apple Music for this request. Try different keywords.");
+    el.searchProgressCard.classList.add('hidden');
+    el.resultsEmptyState.classList.remove('hidden');
+    el.btnAnalyze.disabled = false;
+    el.spinnerAnalyze.classList.add('hidden');
+    el.btnAnalyzeText.textContent = "Analyze & Search Catalog";
+    return;
+  }
+
+  // Map into state.tracks format
+  state.tracks = finalSongs.map((song, idx) => ({
+    id: idx + 1,
+    originalQuery: `${song.attributes.artistName} - ${song.attributes.name}`,
+    searchQuery: `${song.attributes.artistName} - ${song.attributes.name}`,
+    status: 'matched',
+    results: [song],
+    selectedIndex: 0,
+    approved: true,
+    errorMessage: ''
+  }));
+
+  // Complete search and draw UI list
+  el.searchProgressCard.classList.add('hidden');
+  el.tracksList.classList.remove('hidden');
+
+  el.btnAnalyze.disabled = false;
+  el.spinnerAnalyze.classList.add('hidden');
+  el.btnAnalyzeText.textContent = "Analyze & Search Catalog";
+  el.btnApproveAll.disabled = false;
+
+  renderTracksList();
+  updateCreatePlaylistButtonState();
+  saveAppState();
 }
 
 // Query the backend Express search proxy (token stays hidden)
@@ -1353,6 +1594,7 @@ function updateAllPlayButtonUI() {
 // Local Storage Session Persistence Helpers
 function saveAppState() {
   localStorage.setItem('makemyplaylist_raw_input', el.inputSongList.value);
+  localStorage.setItem('makemyplaylist_natural_language', el.chkNaturalLanguage.checked ? 'true' : 'false');
 
   const details = {
     name: el.playlistName.value,
@@ -1382,6 +1624,11 @@ function restoreAppState() {
       el.playlistName.value = details.name || "My Awesome Playlist";
       el.playlistDesc.value = details.description || "";
       el.playlistPublic.checked = details.isPublic === true;
+    }
+
+    const naturalLanguage = localStorage.getItem('makemyplaylist_natural_language');
+    if (naturalLanguage !== null) {
+      el.chkNaturalLanguage.checked = naturalLanguage === 'true';
     }
 
     state.loadedPlaylistId = localStorage.getItem('makemyplaylist_loaded_playlist_id') || null;
