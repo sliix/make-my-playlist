@@ -705,16 +705,20 @@ input:checked + .slider:before {
 }
 
 .track-explicit-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(255, 255, 255, 0.12);
   color: var(--text-main);
   border: 1px solid rgba(255, 255, 255, 0.25);
   font-size: 9px;
   font-weight: 700;
-  padding: 1px 4px;
+  padding: 2px 4px;
   border-radius: 3px;
   text-transform: uppercase;
   flex-shrink: 0;
   letter-spacing: 0.05em;
+  line-height: 1;
 }
 
 .track-artist {

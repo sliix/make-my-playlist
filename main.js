@@ -478,7 +478,7 @@ function renderTracksList() {
     const artist = activeSong ? activeSong.attributes.artistName : 'Try refining your search';
     const album = activeSong ? activeSong.attributes.albumName : '';
     const duration = activeSong ? formatDuration(activeSong.attributes.durationInMillis) : '';
-    const isExplicit = activeSong && activeSong.attributes.contentRating === 'explicit';
+    const isExplicit = activeSong && activeSong.attributes.contentRating && activeSong.attributes.contentRating.toLowerCase() === 'explicit';
     const isFirst = index === 0;
     const isLast = index === state.tracks.length - 1;
 
@@ -751,7 +751,7 @@ function updateSingleTrackCard(track) {
   const artist = activeSong ? activeSong.attributes.artistName : 'Try refining your search';
   const album = activeSong ? activeSong.attributes.albumName : '';
   const duration = activeSong ? formatDuration(activeSong.attributes.durationInMillis) : '';
-  const isExplicit = activeSong && activeSong.attributes.contentRating === 'explicit';
+  const isExplicit = activeSong && activeSong.attributes.contentRating && activeSong.attributes.contentRating.toLowerCase() === 'explicit';
   const index = state.tracks.findIndex(t => t.id === track.id);
   const isFirst = index === 0;
   const isLast = index === state.tracks.length - 1;
