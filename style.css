@@ -702,6 +702,7 @@ input:checked + .slider:before {
   text-overflow: ellipsis;
   flex: 1;
   min-width: 0;
+  position: relative;
 }
 
 .track-explicit-badge {
@@ -728,6 +729,43 @@ input:checked + .slider:before {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  position: relative;
+}
+
+/* Bouncing Text Marquee Animation Rules */
+.track-title-text,
+.track-artist-text {
+  display: inline-block;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.track-title.should-scroll,
+.track-artist.should-scroll {
+  text-overflow: clip;
+}
+
+.track-title.should-scroll .track-title-text,
+.track-artist.should-scroll .track-artist-text {
+  animation: marquee-bounce var(--scroll-dur) linear infinite;
+}
+
+@keyframes marquee-bounce {
+  0% {
+    transform: translateX(0);
+  }
+  15% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(var(--scroll-dist));
+  }
+  65% {
+    transform: translateX(var(--scroll-dist));
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 
 .track-album {

@@ -524,10 +524,10 @@ function renderTracksList() {
         
         <div class="track-meta">
           <div class="track-title-row">
-            <span class="track-title" title="${title}">${title}</span>
+            <span class="track-title" title="${title}"><span class="track-title-text">${title}</span></span>
             ${isExplicit ? '<span class="track-explicit-badge">Explicit</span>' : ''}
           </div>
-          <div class="track-artist" title="${artist}">${artist}</div>
+          <div class="track-artist" title="${artist}"><span class="track-artist-text">${artist}</span></div>
           ${album ? `<div class="track-album" title="${album}">${album}</div>` : ''}
           <div class="track-original-query">
             <span>Query: "${track.originalQuery}"</span>
@@ -694,9 +694,20 @@ function bindTrackCardListeners() {
     });
   });
 
-  // 6. Drag and Drop event listeners on cards
+  // 6. Drag and Drop + Hover event listeners on cards
   el.tracksList.querySelectorAll('.track-card').forEach(card => {
     bindDragAndDropListeners(card);
+    
+    // Hover marquee listeners for desktop
+    card.addEventListener('mouseenter', () => {
+      updateTextMarquee(card, true);
+    });
+    card.addEventListener('mouseleave', () => {
+      updateTextMarquee(card, false);
+    });
+
+    // Initial marquee check for mobile expanded items
+    updateTextMarquee(card);
   });
 
   // 7. Toggle Details Event Listener
@@ -710,6 +721,7 @@ function bindTrackCardListeners() {
         const card = document.getElementById(`track-card-${trackId}`);
         if (card) {
           card.classList.toggle('expanded', track.isExpanded);
+          updateTextMarquee(card);
         }
         saveAppState();
       }
@@ -797,10 +809,10 @@ function updateSingleTrackCard(track) {
     
     <div class="track-meta">
       <div class="track-title-row">
-        <span class="track-title" title="${title}">${title}</span>
+        <span class="track-title" title="${title}"><span class="track-title-text">${title}</span></span>
         ${isExplicit ? '<span class="track-explicit-badge">Explicit</span>' : ''}
       </div>
-      <div class="track-artist" title="${artist}">${artist}</div>
+      <div class="track-artist" title="${artist}"><span class="track-artist-text">${artist}</span></div>
       ${album ? `<div class="track-album" title="${album}">${album}</div>` : ''}
       <div class="track-original-query">
         <span>Query: "${track.originalQuery}"</span>
@@ -901,6 +913,14 @@ function updateSingleTrackCard(track) {
   // Re-bind drag and drop on this card
   bindDragAndDropListeners(card);
 
+  // Re-bind hover/marquee listeners on this card
+  card.addEventListener('mouseenter', () => {
+    updateTextMarquee(card, true);
+  });
+  card.addEventListener('mouseleave', () => {
+    updateTextMarquee(card, false);
+  });
+
   // Re-bind toggle details listener
   const toggleBtn = card.querySelector('.btn-toggle-expand');
   if (toggleBtn) {
@@ -908,12 +928,52 @@ function updateSingleTrackCard(track) {
       e.stopPropagation();
       track.isExpanded = !track.isExpanded;
       card.classList.toggle('expanded', track.isExpanded);
+      updateTextMarquee(card);
       saveAppState();
     });
   }
 
+  // Initial marquee check for mobile expanded items
+  updateTextMarquee(card);
+
   // Update play button state for this card
   updateAllPlayButtonUI();
+}
+
+function updateTextMarquee(card, forceActive = false) {
+  const isMobile = window.innerWidth <= 640;
+  const isExpanded = card.classList.contains('expanded');
+  const active = forceActive || (isMobile && isExpanded);
+
+  const scrollSpeed = 30; // pixels per second
+
+  ['.track-title', '.track-artist'].forEach(selector => {
+    const container = card.querySelector(selector);
+    if (!container) return;
+    const inner = container.querySelector(selector + '-text');
+    if (!inner) return;
+
+    if (active) {
+      const containerWidth = container.clientWidth;
+      const textWidth = inner.offsetWidth;
+
+      if (textWidth > containerWidth) {
+        const overflow = textWidth - containerWidth;
+        const duration = Math.max(5, overflow / 10);
+        container.style.setProperty('--scroll-dist', `-${overflow}px`);
+        container.style.setProperty('--scroll-dur', `${duration}s`);
+        container.classList.add('should-scroll');
+      } else {
+        container.classList.remove('should-scroll');
+        container.style.removeProperty('--scroll-dist');
+        container.style.removeProperty('--scroll-dur');
+      }
+    } else {
+      container.classList.remove('should-scroll');
+      container.style.removeProperty('--scroll-dist');
+      container.style.removeProperty('--scroll-dur');
+    }
+  });
 }
 
 function handleApproveAll() {
