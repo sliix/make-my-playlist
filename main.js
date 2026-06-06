@@ -1799,9 +1799,11 @@ function bindDragAndDropListeners(card) {
   }, { passive: false });
 
   const touchEndCancelHandler = (e) => {
+    let wasTap = false;
     if (touchTimeout) {
       clearTimeout(touchTimeout);
       touchTimeout = null;
+      wasTap = true;
     }
 
     // Unlock container and body scrolling
@@ -1816,6 +1818,26 @@ function bindDragAndDropListeners(card) {
       if (draggedCard === card) {
         draggedCard = null;
         reorderStateFromDOM();
+      }
+    } else if (wasTap && e.type === 'touchend') {
+      const isMobile = window.innerWidth <= 640;
+      if (isMobile) {
+        const trackId = parseInt(card.id.replace('track-card-', ''));
+        const track = state.tracks.find(t => t.id === trackId);
+        if (track && track.status !== 'no-match') {
+          track.approved = !track.approved;
+          if (track.approved) {
+            card.classList.add('approved');
+          } else {
+            card.classList.remove('approved');
+          }
+          const checkbox = card.querySelector('.track-checkbox');
+          if (checkbox) {
+            checkbox.checked = track.approved;
+          }
+          updateCreatePlaylistButtonState();
+          saveAppState();
+        }
       }
     }
     isDraggingStarted = false;

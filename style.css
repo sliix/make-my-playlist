@@ -1300,6 +1300,35 @@ dialog[open] {
     -webkit-user-select: none;
   }
 
+  .track-card:not(.expanded) {
+    padding: 8px 12px;
+  }
+
+  .track-card .track-title {
+    font-size: 14px;
+  }
+
+  .track-card .track-artist {
+    font-size: 12px;
+  }
+
+  .track-card .track-album {
+    font-size: 11px;
+  }
+
+  .track-card .track-query-indicator {
+    font-size: 11px;
+    min-width: 18px;
+  }
+
+  .track-card:not(.expanded) .track-original-query {
+    display: none !important;
+  }
+
+  .track-status-check {
+    display: none !important;
+  }
+
   .track-drag-handle {
     display: none !important;
   }
@@ -1310,36 +1339,46 @@ dialog[open] {
 
   .track-main-info {
     gap: 10px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    width: 100%;
+    align-items: center;
   }
 
   .track-artwork-container {
     width: 48px;
     height: 48px;
-  }
-
-  .track-query-indicator {
-    min-width: 20px;
+    flex-shrink: 0;
   }
 
   .track-right-controls {
+    display: flex;
     flex-direction: row;
     align-items: center;
-    width: 100%;
-    justify-content: space-between;
-    margin-top: 8px;
-    border-top: 1px dashed rgba(255, 255, 255, 0.04);
-    padding-top: 8px;
-    margin-left: 0;
+    gap: 8px;
+    margin-left: auto;
+    width: auto;
+    margin-top: 0;
+    border-top: none;
+    padding-top: 0;
+    flex-shrink: 0;
   }
 
   .track-details-badge {
     margin-top: 0;
     width: auto;
+    font-size: 11px;
+    padding: 2px 6px;
   }
 
   .btn-toggle-expand {
     display: flex;
+    width: 24px;
+    height: 24px;
+  }
+
+  .btn-toggle-expand svg {
+    width: 12px;
+    height: 12px;
   }
 
   .track-card .track-controls {
