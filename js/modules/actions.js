@@ -479,6 +479,9 @@ export function handleResetApp() {
     el.playlistDesc.value = "";
     el.playlistPublic.checked = false;
     el.chkAppendMode.checked = false;
+    if (el.cardInputSongs) {
+      el.cardInputSongs.classList.remove('collapsed');
+    }
     updateInputAutoDetection();
     updateTracksCounter();
 

@@ -171,33 +171,42 @@
         </div>
       </div>
 
-      <div class="section-card">
-        <h2>2. Input Songs or Describe Your Playlist</h2>
-        <p class="section-desc">Paste your song list below, with each song on a new line (e.g., "Artist - Title" or "Title by Artist"), or describe your playlist in natural language (e.g., "80s Israeli music"). The system will automatically detect the input style.</p>
-        <div class="textarea-container">
-          <textarea id="input-song-list" placeholder="Examples:
+      <div id="card-input-songs" class="section-card collapsible">
+        <div class="card-header-toggle">
+          <h2>2. Input Songs or Describe Your Playlist</h2>
+          <button class="btn-toggle" type="button" aria-label="Toggle Section">
+            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+        <div class="collapsible-content">
+          <p class="section-desc">Paste your song list below, with each song on a new line (e.g., "Artist - Title" or "Title by Artist"), or describe your playlist in natural language (e.g., "80s Israeli music"). The system will automatically detect the input style.</p>
+          <div class="textarea-container">
+            <textarea id="input-song-list" placeholder="Examples:
 1. Daft Punk - Get Lucky
 Billie Eilish - Bad Guy
 Bohemian Rhapsody by Queen (1975)
 Blinding Lights - The Weeknd
 Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
-        </div>
-        
-        <div id="detection-status-container" class="detection-status hidden">
-          <span id="detection-badge" class="badge"></span>
-          <span id="detection-explanation" class="detection-explanation"></span>
-          <button id="btn-override-mode" class="btn-override-mode" type="button"></button>
-        </div>
-
-        <div class="form-group toggle-group mt-4">
-          <div class="toggle-label-container">
-            <span class="toggle-title">Append results</span>
-            <span class="toggle-desc">Add new matches to your current list instead of overwriting.</span>
           </div>
-          <label class="switch" for="chk-append-mode">
-            <input type="checkbox" id="chk-append-mode">
-            <span class="slider round"></span>
-          </label>
+          
+          <div id="detection-status-container" class="detection-status hidden">
+            <span id="detection-badge" class="badge"></span>
+            <span id="detection-explanation" class="detection-explanation"></span>
+            <button id="btn-override-mode" class="btn-override-mode" type="button"></button>
+          </div>
+
+          <div class="form-group toggle-group mt-4">
+            <div class="toggle-label-container">
+              <span class="toggle-title">Append results</span>
+              <span class="toggle-desc">Add new matches to your current list instead of overwriting.</span>
+            </div>
+            <label class="switch" for="chk-append-mode">
+              <input type="checkbox" id="chk-append-mode">
+              <span class="slider round"></span>
+            </label>
+          </div>
         </div>
       </div>
 

@@ -541,6 +541,10 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
   el.btnAnalyzeText.textContent = "Analyze & Search Catalog";
   el.btnApproveAll.disabled = false;
 
+  if (el.cardInputSongs) {
+    el.cardInputSongs.classList.add('collapsed');
+  }
+
   renderTracksList();
   updateCreatePlaylistButtonState();
   saveAppState();
@@ -603,6 +607,10 @@ export async function executeCatalogSearches(pendingTracks) {
   el.spinnerAnalyze.classList.add('hidden');
   el.btnAnalyzeText.textContent = "Analyze & Search Catalog";
   el.btnApproveAll.disabled = false;
+
+  if (el.cardInputSongs) {
+    el.cardInputSongs.classList.add('collapsed');
+  }
 
   renderTracksList();
   updateCreatePlaylistButtonState();

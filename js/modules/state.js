@@ -31,6 +31,7 @@ export const el = {
   activeServiceIcon: document.getElementById('active-service-icon'),
 
   inputSongList: document.getElementById('input-song-list'),
+  cardInputSongs: document.getElementById('card-input-songs'),
   detectionStatusContainer: document.getElementById('detection-status-container'),
   detectionBadge: document.getElementById('detection-badge'),
   detectionExplanation: document.getElementById('detection-explanation'),
@@ -155,6 +156,9 @@ export function restoreAppState() {
         el.resultsEmptyState.classList.add('hidden');
         el.tracksList.classList.remove('hidden');
         el.btnApproveAll.removeAttribute('disabled');
+        if (el.cardInputSongs) {
+          el.cardInputSongs.classList.add('collapsed');
+        }
         renderTracksList();
         updateCreatePlaylistButtonState();
       }
