@@ -139,7 +139,29 @@
       </div>
 
       <div class="section-card">
-        <h2>1. Input Songs or Describe Your Playlist</h2>
+        <h2>1. Playlist Details</h2>
+        <div class="form-group">
+          <label for="playlist-name">Playlist Name</label>
+          <input type="text" id="playlist-name" placeholder="My Awesome Playlist" value="My Awesome Playlist">
+        </div>
+        <div class="form-group">
+          <label for="playlist-desc">Description</label>
+          <textarea id="playlist-desc" rows="2" placeholder="Created with MakeMyPlaylist"></textarea>
+        </div>
+        <div class="form-group toggle-group">
+          <div class="toggle-label-container">
+            <span class="toggle-title">Public Playlist</span>
+            <span class="toggle-desc">Make this playlist visible to other users.</span>
+          </div>
+          <label class="switch" for="playlist-public">
+            <input type="checkbox" id="playlist-public">
+            <span class="slider round"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h2>2. Input Songs or Describe Your Playlist</h2>
         <p class="section-desc">Paste your song list below, with each song on a new line (e.g., "Artist - Title" or "Title by Artist"), or describe your playlist in natural language (e.g., "80s Israeli music"). The system will automatically detect the input style.</p>
         <div class="textarea-container">
           <textarea id="input-song-list" placeholder="Examples:
@@ -163,28 +185,6 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
           </div>
           <label class="switch" for="chk-append-mode">
             <input type="checkbox" id="chk-append-mode">
-            <span class="slider round"></span>
-          </label>
-        </div>
-      </div>
-
-      <div class="section-card">
-        <h2>2. Playlist Details</h2>
-        <div class="form-group">
-          <label for="playlist-name">Playlist Name</label>
-          <input type="text" id="playlist-name" placeholder="My Awesome Playlist" value="My Awesome Playlist">
-        </div>
-        <div class="form-group">
-          <label for="playlist-desc">Description</label>
-          <textarea id="playlist-desc" rows="2" placeholder="Created with MakeMyPlaylist"></textarea>
-        </div>
-        <div class="form-group toggle-group">
-          <div class="toggle-label-container">
-            <span class="toggle-title">Public Playlist</span>
-            <span class="toggle-desc">Make this playlist visible to other users.</span>
-          </div>
-          <label class="switch" for="playlist-public">
-            <input type="checkbox" id="playlist-public">
             <span class="slider round"></span>
           </label>
         </div>
