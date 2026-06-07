@@ -11,6 +11,7 @@ export const translations = {
     "service.action.setActive": "Set Active",
     "service.action.connect": "Connect",
     "service.action.disconnect": "Disconnect",
+    "service.prefixLabel": "Service: ",
 
     // Import Playlist Card
     "card.import.title": "Import Existing Playlist",
@@ -143,6 +144,7 @@ export const translations = {
     "service.action.setActive": "הגדר כפעיל",
     "service.action.connect": "התחבר",
     "service.action.disconnect": "התנתק",
+    "service.prefixLabel": "שירות: ",
 
     // Import Playlist Card
     "card.import.title": "יבוא פלייליסט קיים",
