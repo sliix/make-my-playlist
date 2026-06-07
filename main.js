@@ -1,4 +1,5 @@
 import { state, el, saveAppState, restoreAppState } from './js/modules/state.js';
+import { applyTranslations, setLocale } from './js/modules/i18n.js';
 import { 
   loadSessionConfigWithRetries, 
   handleSpotifyCallback, 
@@ -44,6 +45,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   // Restore persisted state from local storage
   restoreAppState();
 
+  // Apply initial translations
+  applyTranslations();
+
   // Update connection UI after initialization
   updateConnectionUI();
 });
@@ -57,6 +61,28 @@ function initEventListeners() {
   el.btnAnalyze.addEventListener('click', handleAnalyzeSongList);
   el.btnApproveAll.addEventListener('click', handleApproveAll);
   el.btnCreatePlaylist.addEventListener('click', handleCreatePlaylist);
+
+  // Language Dropdown trigger
+  if (el.btnLangToggle) {
+    el.btnLangToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      el.menuLangDropdown.classList.toggle('hidden');
+      el.btnLangToggle.parentElement.classList.toggle('open');
+    });
+  }
+
+  // Language Dropdown Actions
+  document.querySelectorAll('.lang-menu-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const lang = item.dataset.lang;
+      setLocale(lang);
+      if (el.menuLangDropdown) {
+        el.menuLangDropdown.classList.add('hidden');
+        el.btnLangToggle.parentElement.classList.remove('open');
+      }
+    });
+  });
 
   // Services Dropdown trigger
   el.btnServicesDropdown.addEventListener('click', (e) => {
@@ -126,6 +152,14 @@ function initEventListeners() {
       if (!el.btnServicesDropdown.contains(e.target) && !el.menuServicesDropdown.contains(e.target)) {
         el.menuServicesDropdown.classList.add('hidden');
         el.btnServicesDropdown.parentElement.classList.remove('open');
+      }
+    }
+
+    // Language Dropdown toggle click outside
+    if (el.btnLangToggle && el.menuLangDropdown) {
+      if (!el.btnLangToggle.contains(e.target) && !el.menuLangDropdown.contains(e.target)) {
+        el.menuLangDropdown.classList.add('hidden');
+        el.btnLangToggle.parentElement.classList.remove('open');
       }
     }
   });

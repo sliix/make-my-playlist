@@ -2,6 +2,7 @@ import { state, el, saveAppState } from './state.js';
 import { formatDuration, showSuccessToast, showErrorToast } from './utils.js';
 import { searchCatalogProxy } from './api.js';
 import { moveTrack, bindDragAndDropListeners } from './reorder.js';
+import { t } from './i18n.js';
 
 export function updateTracksCounter() {
   if (!state.tracks || state.tracks.length === 0) {
@@ -10,7 +11,7 @@ export function updateTracksCounter() {
   }
   const total = state.tracks.length;
   const approved = state.tracks.filter(t => t.approved).length;
-  el.tracksCounter.textContent = `${approved}/${total} selected`;
+  el.tracksCounter.textContent = t("track.counter", { approved, total });
   el.tracksCounter.classList.remove('hidden');
 }
 
@@ -31,7 +32,7 @@ export function updateCreatePlaylistButtonState() {
         isCreatingNew = false;
       }
     }
-    el.btnCreateText.textContent = isCreatingNew ? "Create Playlist" : "Export Playlist";
+    el.btnCreateText.textContent = isCreatingNew ? t("action.createPlaylist") : t("action.exportPlaylist");
   }
 }
 
@@ -70,8 +71,8 @@ export function renderTracksList() {
     }
 
     // Core Layout variables
-    const title = activeSong ? activeSong.attributes.name : 'No Match Found';
-    const artist = activeSong ? activeSong.attributes.artistName : 'Try refining your search';
+    const title = activeSong ? activeSong.attributes.name : t('track.noMatch');
+    const artist = activeSong ? activeSong.attributes.artistName : t('track.tryRefining');
     const album = activeSong ? activeSong.attributes.albumName : '';
     const duration = activeSong ? formatDuration(activeSong.attributes.durationInMillis) : '';
     const isExplicit = activeSong && (activeSong.attributes.isExplicit || (activeSong.attributes.contentRating && activeSong.attributes.contentRating.toLowerCase() === 'explicit'));
@@ -121,18 +122,18 @@ export function renderTracksList() {
         <div class="track-meta">
           <div class="track-title-row">
             <span class="track-title" title="${title}"><span class="track-title-text">${title}</span></span>
-            ${isExplicit ? '<span class="track-explicit-badge desktop-only">Explicit</span>' : ''}
+            ${isExplicit ? `<span class="track-explicit-badge desktop-only">${t('track.explicit')}</span>` : ''}
           </div>
           <div class="track-artist" title="${artist}"><span class="track-artist-text">${artist}</span></div>
           ${album ? `<div class="track-album" title="${album}">${album}</div>` : ''}
           <div class="track-original-query">
-            <span>Query: "${track.originalQuery}"</span>
+            <span>${t('track.queryLabel')}: "${track.originalQuery}"</span>
           </div>
         </div>
         
         <div class="track-right-controls">
           <div class="track-duration-stack">
-            ${isExplicit ? '<span class="track-explicit-badge mobile-only">Explicit</span>' : ''}
+            ${isExplicit ? `<span class="track-explicit-badge mobile-only">${t('track.explicit')}</span>` : ''}
             ${duration ? `
             <div class="track-details-badge">
               <span>${duration}</span>
@@ -162,7 +163,7 @@ export function renderTracksList() {
       <!-- Sub controls: dropdown selector & refinement search box -->
       <div class="track-controls">
         <div class="control-group">
-          <label>Version / Match Options</label>
+          <label>${t('track.versionLabel')}</label>
           <div class="select-wrapper">
             <select class="select-alternatives" data-id="${track.id}" ${track.results.length <= 1 ? 'disabled' : ''}>
               ${track.results.length > 0
@@ -170,17 +171,17 @@ export function renderTracksList() {
           const label = `${song.attributes.name} - ${song.attributes.artistName} (${formatDuration(song.attributes.durationInMillis)})`;
           return `<option value="${idx}" ${idx === track.selectedIndex ? 'selected' : ''}>${label}</option>`;
         }).join('')
-        : '<option>No options available</option>'
+        : `<option>${t('track.alternativesDefault')}</option>`
       }
             </select>
           </div>
         </div>
         
         <div class="control-group">
-          <label>Refine Search</label>
+          <label>${t('track.refineLabel')}</label>
           <div class="input-refine-group">
-            <input type="text" class="input-refine" data-id="${track.id}" value="${track.searchQuery}" placeholder="Artist Song Title">
-            <button class="btn btn-secondary btn-refine" data-id="${track.id}">Re-query</button>
+            <input type="text" class="input-refine" data-id="${track.id}" value="${track.searchQuery}" placeholder="${t('track.refinePlaceholder')}">
+            <button class="btn btn-secondary btn-refine" data-id="${track.id}">${t('track.btnRequery')}</button>
           </div>
         </div>
       </div>
@@ -239,7 +240,7 @@ export function bindTrackCardListeners() {
         if (!newQuery) return;
 
         button.disabled = true;
-        button.textContent = "...";
+        button.textContent = t('track.btnRequerying');
         track.searchQuery = newQuery;
 
         try {
@@ -359,8 +360,8 @@ export function updateSingleTrackCard(track) {
     }
   }
 
-  const title = activeSong ? activeSong.attributes.name : 'No Match Found';
-  const artist = activeSong ? activeSong.attributes.artistName : 'Try refining your search';
+  const title = activeSong ? activeSong.attributes.name : t('track.noMatch');
+  const artist = activeSong ? activeSong.attributes.artistName : t('track.tryRefining');
   const album = activeSong ? activeSong.attributes.albumName : '';
   const duration = activeSong ? formatDuration(activeSong.attributes.durationInMillis) : '';
   const isExplicit = activeSong && (activeSong.attributes.isExplicit || (activeSong.attributes.contentRating && activeSong.attributes.contentRating.toLowerCase() === 'explicit'));
@@ -410,18 +411,18 @@ export function updateSingleTrackCard(track) {
     <div class="track-meta">
       <div class="track-title-row">
         <span class="track-title" title="${title}"><span class="track-title-text">${title}</span></span>
-        ${isExplicit ? '<span class="track-explicit-badge desktop-only">Explicit</span>' : ''}
+        ${isExplicit ? `<span class="track-explicit-badge desktop-only">${t('track.explicit')}</span>` : ''}
       </div>
       <div class="track-artist" title="${artist}"><span class="track-artist-text">${artist}</span></div>
       ${album ? `<div class="track-album" title="${album}">${album}</div>` : ''}
       <div class="track-original-query">
-        <span>Query: "${track.originalQuery}"</span>
+        <span>${t('track.queryLabel')}: "${track.originalQuery}"</span>
       </div>
     </div>
     
     <div class="track-right-controls">
       <div class="track-duration-stack">
-        ${isExplicit ? '<span class="track-explicit-badge mobile-only">Explicit</span>' : ''}
+        ${isExplicit ? `<span class="track-explicit-badge mobile-only">${t('track.explicit')}</span>` : ''}
         ${duration ? `
         <div class="track-details-badge">
           <span>${duration}</span>
@@ -454,7 +455,7 @@ export function updateSingleTrackCard(track) {
       const label = `${song.attributes.name} - ${song.attributes.artistName} (${formatDuration(song.attributes.durationInMillis)})`;
       return `<option value="${idx}" ${idx === track.selectedIndex ? 'selected' : ''}>${label}</option>`;
     }).join('')
-    : '<option>No options available</option>';
+    : `<option>${t('track.alternativesDefault')}</option>`;
 
   if (track.results.length <= 1) {
     select.setAttribute('disabled', 'disabled');
@@ -464,7 +465,7 @@ export function updateSingleTrackCard(track) {
 
   const button = card.querySelector('.btn-refine');
   button.disabled = false;
-  button.textContent = "Re-query";
+  button.textContent = t('track.btnRequery');
 
   // Re-bind listeners on this single card
   const checkbox = card.querySelector('.track-checkbox');
@@ -557,11 +558,13 @@ export function updateTextMarquee(card, forceActive = false) {
     if (active) {
       const containerWidth = container.clientWidth;
       const textWidth = inner.offsetWidth;
+      const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
 
       if (textWidth > containerWidth) {
         const overflow = textWidth - containerWidth;
         const duration = Math.max(5, overflow / 10);
-        container.style.setProperty('--scroll-dist', `-${overflow}px`);
+        const scrollDist = isRtl ? `${overflow}px` : `-${overflow}px`;
+        container.style.setProperty('--scroll-dist', scrollDist);
         container.style.setProperty('--scroll-dur', `${duration}s`);
         container.classList.add('should-scroll');
       } else {

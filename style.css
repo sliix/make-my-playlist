@@ -1770,3 +1770,151 @@ dialog[open] {
 .detection-status .btn-override-mode:hover {
   opacity: 0.8;
 }
+
+/* ==========================================
+   Language Selector Drodown
+   ========================================== */
+.language-selector {
+  position: relative;
+  display: inline-block;
+}
+
+.btn-lang-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-lang-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.language-selector.open .icon-chevron {
+  transform: rotate(180deg);
+}
+
+.menu-lang-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 140px;
+  background: rgba(20, 20, 20, 0.85);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-main), 0 10px 30px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1000;
+  animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.menu-lang-dropdown.hidden {
+  display: none !important;
+}
+
+.lang-menu-item {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.lang-menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}
+
+/* ==========================================
+   Hebrew Right-To-Left (RTL) Layout support
+   ========================================== */
+html[dir="rtl"] {
+  text-align: right;
+}
+
+html[dir="rtl"] body {
+  font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* Dropdown alignment corrections */
+html[dir="rtl"] .menu-services-dropdown,
+html[dir="rtl"] .menu-lang-dropdown {
+  right: auto;
+  left: 0;
+}
+
+html[dir="rtl"] .lang-menu-item {
+  text-align: right;
+}
+
+/* Card chevrons rotation mirror */
+html[dir="rtl"] .chevron-icon {
+  transform: scaleX(-1);
+}
+
+html[dir="rtl"] .section-card.collapsible.collapsed .chevron-icon {
+  transform: scaleX(-1) rotate(90deg);
+}
+
+/* Flex flow alignment corrections */
+html[dir="rtl"] .modal-header {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .btn-close {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+html[dir="rtl"] .modal-footer {
+  justify-content: flex-start !important;
+}
+
+html[dir="rtl"] .toggle-label-container {
+  text-align: right;
+}
+
+html[dir="rtl"] .detection-status .btn-override-mode {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+html[dir="rtl"] .track-original-query {
+  text-align: right;
+}
+
+html[dir="rtl"] .track-duration-stack {
+  align-items: flex-start;
+}
+
+html[dir="rtl"] .input-refine-group {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .track-reorder-buttons {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .btn-reorder-up svg,
+html[dir="rtl"] .btn-reorder-down svg {
+  transform: scaleY(-1); /* Keep reorder chevron orientation aligned visually */
+}
+

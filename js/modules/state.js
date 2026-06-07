@@ -90,6 +90,11 @@ export const el = {
   btnSaveNameModal: document.getElementById('btn-save-name-modal'),
   btnCancelNameModal: document.getElementById('btn-cancel-name-modal'),
   btnCloseNameModal: document.getElementById('btn-close-name-modal'),
+
+  // Language switcher elements
+  btnLangToggle: document.getElementById('btn-lang-toggle'),
+  menuLangDropdown: document.getElementById('menu-lang-dropdown'),
+  currentLangName: document.getElementById('current-lang-name'),
 };
 
 // Local Storage Session Persistence Helpers

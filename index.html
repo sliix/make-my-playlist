@@ -36,14 +36,30 @@
         <circle cx="6" cy="18" r="3"></circle>
         <circle cx="18" cy="16" r="3"></circle>
       </svg>
-      <h1>MakeMyPlaylist</h1>
+      <h1 data-i18n="header.title">MakeMyPlaylist</h1>
     </div>
     <div class="header-right">
       <div id="header-actions" class="header-actions">
+        <!-- Language Selector Dropdown -->
+        <div id="language-selector" class="language-selector">
+          <button id="btn-lang-toggle" class="btn btn-secondary btn-lang-toggle" type="button" aria-label="Switch Language">
+            <span class="lang-icon">🌐</span>
+            <span id="current-lang-name">English</span>
+            <svg class="icon icon-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div id="menu-lang-dropdown" class="menu-lang-dropdown hidden">
+            <div class="lang-menu-item" data-lang="en">English</div>
+            <div class="lang-menu-item" data-lang="he">עברית</div>
+          </div>
+        </div>
+
+        <!-- Services Selector Dropdown -->
         <div id="services-dropdown" class="services-dropdown">
           <button id="btn-services-dropdown" class="btn btn-secondary btn-services-dropdown" type="button">
             <span id="active-service-icon" class="active-service-icon">🍏</span>
-            <span id="active-service-name">Apple Music</span>
+            <span id="active-service-name" data-i18n="service.apple">Apple Music</span>
             <svg class="icon icon-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
@@ -54,14 +70,14 @@
               <div class="service-menu-header">
                 <div class="service-info">
                   <span class="service-icon">🍏</span>
-                  <span class="service-title">Apple Music</span>
+                  <span class="service-title" data-i18n="service.apple">Apple Music</span>
                 </div>
-                <span class="service-status-badge offline" id="badge-status-apple">Disconnected</span>
+                <span class="service-status-badge offline" id="badge-status-apple" data-i18n="service.status.disconnected">Disconnected</span>
               </div>
               <div class="service-actions">
-                <button class="btn btn-xs btn-primary btn-service-active hidden" id="btn-activate-apple" type="button">Set Active</button>
-                <button class="btn btn-xs btn-secondary btn-service-connect" id="btn-connect-apple-menu" type="button">Connect</button>
-                <button class="btn btn-xs btn-outline-danger btn-service-disconnect hidden" id="btn-disconnect-apple-action" type="button">Disconnect</button>
+                <button class="btn btn-xs btn-primary btn-service-active hidden" id="btn-activate-apple" type="button" data-i18n="service.action.setActive">Set Active</button>
+                <button class="btn btn-xs btn-secondary btn-service-connect" id="btn-connect-apple-menu" type="button" data-i18n="service.action.connect">Connect</button>
+                <button class="btn btn-xs btn-outline-danger btn-service-disconnect hidden" id="btn-disconnect-apple-action" type="button" data-i18n="service.action.disconnect">Disconnect</button>
               </div>
             </div>
             <!-- Spotify Item -->
@@ -69,14 +85,14 @@
               <div class="service-menu-header">
                 <div class="service-info">
                   <span class="service-icon">🟢</span>
-                  <span class="service-title">Spotify</span>
+                  <span class="service-title" data-i18n="service.spotify">Spotify</span>
                 </div>
-                <span class="service-status-badge offline" id="badge-status-spotify">Disconnected</span>
+                <span class="service-status-badge offline" id="badge-status-spotify" data-i18n="service.status.disconnected">Disconnected</span>
               </div>
               <div class="service-actions">
-                <button class="btn btn-xs btn-primary btn-service-active hidden" id="btn-activate-spotify" type="button">Set Active</button>
-                <button class="btn btn-xs btn-secondary btn-service-connect" id="btn-connect-spotify-menu" type="button">Connect</button>
-                <button class="btn btn-xs btn-outline-danger btn-service-disconnect hidden" id="btn-disconnect-spotify-action" type="button">Disconnect</button>
+                <button class="btn btn-xs btn-primary btn-service-active hidden" id="btn-activate-spotify" type="button" data-i18n="service.action.setActive">Set Active</button>
+                <button class="btn btn-xs btn-secondary btn-service-connect" id="btn-connect-spotify-menu" type="button" data-i18n="service.action.connect">Connect</button>
+                <button class="btn btn-xs btn-outline-danger btn-service-disconnect hidden" id="btn-disconnect-spotify-action" type="button" data-i18n="service.action.disconnect">Disconnect</button>
               </div>
             </div>
           </div>
@@ -91,7 +107,7 @@
     <section class="control-panel panel">
       <div id="card-import-playlist" class="section-card collapsible collapsed">
         <div class="card-header-toggle">
-          <h2>Import Existing Playlist (Optional)</h2>
+          <h2 data-i18n="card.import.title">Import Existing Playlist</h2>
           <button class="btn-toggle" type="button" aria-label="Toggle Section">
             <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="6 9 12 15 18 9"></polyline>
@@ -99,7 +115,7 @@
           </button>
         </div>
         <div class="collapsible-content">
-          <p class="section-desc">Select one of your existing library playlists to load its songs and details.</p>
+          <p class="section-desc" data-i18n="card.import.desc">Select one of your existing library playlists to load its songs and details.</p>
           <div class="import-controls">
             <button id="btn-fetch-playlists" class="btn btn-secondary btn-block">
               <svg class="icon animate-spin hidden" id="spinner-fetch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -112,14 +128,14 @@
                 <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
                 <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
               </svg>
-              <span id="btn-fetch-text">Fetch My Playlists</span>
+              <span id="btn-fetch-text" data-i18n="card.import.btnFetch">Fetch My Playlists</span>
             </button>
             
             <div id="playlist-select-group" class="form-group mt-4 hidden">
-              <label for="select-library-playlists">Select Playlist</label>
+              <label for="select-library-playlists" data-i18n="card.import.selectLabel">Select Playlist</label>
               <div class="select-wrapper">
                 <select id="select-library-playlists">
-                  <option value="" disabled selected>Choose a playlist...</option>
+                  <option value="" disabled selected data-i18n="card.import.selectDefault">Choose a playlist...</option>
                 </select>
               </div>
               <button id="btn-load-playlist" class="btn btn-primary btn-block mt-4" disabled>
@@ -133,7 +149,7 @@
                   <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
                   <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
                 </svg>
-                <span id="btn-load-text">Load Playlist Songs</span>
+                <span id="btn-load-text" data-i18n="card.import.btnLoad">Load Playlist Songs</span>
               </button>
             </div>
           </div>
@@ -142,7 +158,7 @@
 
       <div id="card-playlist-details" class="section-card collapsible collapsed">
         <div class="card-header-toggle">
-          <h2>1. Playlist Details</h2>
+          <h2 data-i18n="card.details.title">1. Playlist Details</h2>
           <button class="btn-toggle" type="button" aria-label="Toggle Section">
             <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="6 9 12 15 18 9"></polyline>
@@ -151,17 +167,17 @@
         </div>
         <div class="collapsible-content">
           <div class="form-group">
-            <label for="playlist-name">Playlist Name</label>
-            <input type="text" id="playlist-name" placeholder="My Awesome Playlist" value="My Awesome Playlist">
+            <label for="playlist-name" data-i18n="card.details.nameLabel">Playlist Name</label>
+            <input type="text" id="playlist-name" data-i18n-placeholder="card.details.namePlaceholder" placeholder="My Awesome Playlist" value="My Awesome Playlist">
           </div>
           <div class="form-group">
-            <label for="playlist-desc">Description</label>
-            <textarea id="playlist-desc" rows="2" placeholder="Created with MakeMyPlaylist"></textarea>
+            <label for="playlist-desc" data-i18n="card.details.descLabel">Description</label>
+            <textarea id="playlist-desc" rows="2" data-i18n-placeholder="card.details.descPlaceholder" placeholder="Created with MakeMyPlaylist"></textarea>
           </div>
           <div class="form-group toggle-group">
             <div class="toggle-label-container">
-              <span class="toggle-title">Public Playlist</span>
-              <span class="toggle-desc">Make this playlist visible to other users.</span>
+              <span class="toggle-title" data-i18n="card.details.publicTitle">Public Playlist</span>
+              <span class="toggle-desc" data-i18n="card.details.publicDesc">Make this playlist visible to other users.</span>
             </div>
             <label class="switch" for="playlist-public">
               <input type="checkbox" id="playlist-public">
@@ -173,7 +189,7 @@
 
       <div id="card-input-songs" class="section-card collapsible">
         <div class="card-header-toggle">
-          <h2>2. Input Songs or Describe Your Playlist</h2>
+          <h2 data-i18n="card.input.title">2. Input Songs or Describe Your Playlist</h2>
           <button class="btn-toggle" type="button" aria-label="Toggle Section">
             <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="6 9 12 15 18 9"></polyline>
@@ -181,9 +197,9 @@
           </button>
         </div>
         <div class="collapsible-content">
-          <p class="section-desc">Paste your song list below, with each song on a new line (e.g., "Artist - Title" or "Title by Artist"), or describe your playlist in natural language (e.g., "80s Israeli music"). The system will automatically detect the input style.</p>
+          <p class="section-desc" data-i18n="card.input.desc">Paste your song list below, with each song on a new line (e.g., "Artist - Title" or "Title by Artist"), or describe your playlist in natural language (e.g., "80s Israeli music"). The system will automatically detect the input style.</p>
           <div class="textarea-container">
-            <textarea id="input-song-list" placeholder="Examples:
+            <textarea id="input-song-list" data-i18n-placeholder="card.input.placeholder" placeholder="Examples:
 1. Daft Punk - Get Lucky
 Billie Eilish - Bad Guy
 Bohemian Rhapsody by Queen (1975)
@@ -199,8 +215,8 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
 
           <div class="form-group toggle-group mt-4">
             <div class="toggle-label-container">
-              <span class="toggle-title">Append results</span>
-              <span class="toggle-desc">Add new matches to your current list instead of overwriting.</span>
+              <span class="toggle-title" data-i18n="card.input.appendTitle">Append results</span>
+              <span class="toggle-desc" data-i18n="card.input.appendDesc">Add new matches to your current list instead of overwriting.</span>
             </div>
             <label class="switch" for="chk-append-mode">
               <input type="checkbox" id="chk-append-mode">
@@ -221,7 +237,7 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
           <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
           <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
         </svg>
-        <span id="btn-analyze-text">Search Catalog</span>
+        <span id="btn-analyze-text" data-i18n="card.input.btnSearch">Search Catalog</span>
       </button>
     </section>
 
@@ -229,11 +245,11 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
     <section class="results-panel panel">
       <div class="results-header">
         <div class="results-title-container">
-          <h2>3. Playlist Items</h2>
+          <h2 data-i18n="card.items.title">3. Playlist Items</h2>
           <span id="tracks-counter" class="tracks-counter hidden"></span>
         </div>
         <div class="results-actions">
-          <button id="btn-approve-all" class="btn btn-secondary btn-sm" disabled>Check/Uncheck All</button>
+          <button id="btn-approve-all" class="btn btn-secondary btn-sm" disabled data-i18n="card.items.btnApproveAll">Check/Uncheck All</button>
         </div>
       </div>
 
@@ -246,14 +262,14 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
             <line x1="12" y1="9" x2="12" y2="16"></line>
           </svg>
         </div>
-        <h3>No Songs Analyzed Yet</h3>
-        <p>Paste a list of songs on the left and click "Search Catalog" to fetch matches from your active music service.</p>
+        <h3 data-i18n="card.items.emptyTitle">No Songs Analyzed Yet</h3>
+        <p data-i18n="card.items.emptyDesc">Paste a list of songs on the left and click "Search Catalog" to fetch matches from your active music service.</p>
       </div>
 
       <!-- Search Progress Card -->
       <div id="search-progress-card" class="progress-card hidden">
         <div class="progress-details">
-          <span id="progress-status-text">Searching Catalog...</span>
+          <span id="progress-status-text" data-i18n="card.input.btnSearchSearching">Searching Catalog...</span>
           <span id="progress-percentage">0/0</span>
         </div>
         <div class="progress-bar-bg">
@@ -277,7 +293,7 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
             <path d="M3 3v5h5"></path>
           </svg>
-          <span>Reset</span>
+          <span data-i18n="action.reset">Reset</span>
         </button>
         <button id="btn-create-playlist" class="btn btn-primary" disabled>
           <svg class="icon animate-spin hidden" id="spinner-create" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -290,19 +306,17 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
             <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
             <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
           </svg>
-          <span id="btn-create-text">Create Playlist</span>
+          <span id="btn-create-text" data-i18n="action.createPlaylist">Create Playlist</span>
         </button>
       </div>
     </div>
   </footer>
 
-
-
   <!-- Export Options Glass Modal Dialog -->
   <dialog id="modal-export-options" class="glass-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Export Options</h3>
+        <h3 data-i18n="modal.export.title">Export Options</h3>
         <button id="btn-close-modal" class="btn-close" aria-label="Close Modal">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -311,7 +325,7 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
         </button>
       </div>
       <div class="modal-body">
-        <p style="margin-bottom: 20px;">This playlist was loaded from your library. How would you like to export your changes?</p>
+        <p style="margin-bottom: 20px;" data-i18n="modal.export.desc">This playlist was loaded from your library. How would you like to export your changes?</p>
         <div class="modal-options">
           <button id="btn-modal-update" class="option-card primary" aria-label="Update Existing Playlist">
             <div class="option-card-icon">
@@ -321,7 +335,7 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
               </svg>
             </div>
             <div class="option-card-content">
-              <span class="option-card-title">Update Existing Playlist</span>
+              <span class="option-card-title" data-i18n="modal.export.btnUpdate">Update Existing Playlist</span>
               <span class="option-card-desc">Appends any newly approved tracks to the existing library playlist.</span>
               <span class="option-card-warning">Note: Currently, only appending new tracks is supported when updating an existing playlist.</span>
             </div>
@@ -335,7 +349,7 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
               </svg>
             </div>
             <div class="option-card-content">
-              <span class="option-card-title">Create New Playlist</span>
+              <span class="option-card-title" data-i18n="modal.export.btnCreate">Create New Playlist</span>
               <span class="option-card-desc">Creates a brand new library playlist with all approved tracks in their current order.</span>
             </div>
           </button>
@@ -348,7 +362,7 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
   <dialog id="modal-playlist-name" class="glass-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Name Your Playlist</h3>
+        <h3 data-i18n="modal.name.title">Name Your Playlist</h3>
         <button id="btn-close-name-modal" class="btn-close" aria-label="Close Modal">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -357,14 +371,14 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
         </button>
       </div>
       <div class="modal-body">
-        <p style="margin-bottom: 20px;">Please give your playlist a custom name before saving.</p>
+        <p style="margin-bottom: 20px;" data-i18n="modal.name.desc">Please give your playlist a custom name before saving.</p>
         <div class="form-group">
-          <label for="modal-input-playlist-name">Playlist Name</label>
-          <input type="text" id="modal-input-playlist-name" placeholder="My Awesome Playlist" value="My Awesome Playlist">
+          <label for="modal-input-playlist-name" data-i18n="card.details.nameLabel">Playlist Name</label>
+          <input type="text" id="modal-input-playlist-name" data-i18n-placeholder="card.details.namePlaceholder" placeholder="My Awesome Playlist" value="My Awesome Playlist">
         </div>
         <div class="modal-footer mt-4" style="display: flex; justify-content: flex-end; gap: 12px;">
-          <button id="btn-cancel-name-modal" class="btn btn-secondary" type="button">Cancel</button>
-          <button id="btn-save-name-modal" class="btn btn-primary" type="button">Save Playlist</button>
+          <button id="btn-cancel-name-modal" class="btn btn-secondary" type="button" data-i18n="modal.name.btnCancel">Cancel</button>
+          <button id="btn-save-name-modal" class="btn btn-primary" type="button" data-i18n="modal.name.btnSave">Save Playlist</button>
         </div>
       </div>
     </div>

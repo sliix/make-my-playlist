@@ -1,6 +1,7 @@
 import { state, el, saveAppState } from './state.js';
 import { searchCatalogProxy, fetchCatalogPlaylistTracks, fetchCatalogAlbumTracks } from './api.js';
 import { renderTracksList, updateCreatePlaylistButtonState } from './renderer.js';
+import { t } from './i18n.js';
 
 export function parseSongLine(line) {
   let cleaned = line.trim();
@@ -76,18 +77,18 @@ export function updateInputAutoDetection() {
 
   if (state.detectedMode === 'list') {
     el.detectionBadge.className = 'badge badge-info';
-    el.detectionBadge.textContent = '📄 List mode';
+    el.detectionBadge.textContent = '📄 ' + t("badge.listMode");
     el.detectionExplanation.textContent = state.isModeOverridden 
-      ? 'Matching specific tracks.' 
-      : 'We detected a list of specific tracks to search and match.';
-    el.btnOverrideMode.textContent = 'Switch to AI mode';
+      ? t("badge.listExplanationManual") 
+      : t("badge.listExplanation");
+    el.btnOverrideMode.textContent = t("badge.switchToAI");
   } else {
     el.detectionBadge.className = 'badge badge-purple';
-    el.detectionBadge.textContent = '✨ AI mode';
+    el.detectionBadge.textContent = '✨ ' + t("badge.naturalMode");
     el.detectionExplanation.textContent = state.isModeOverridden 
-      ? 'AI will build a playlist based on your prompt.' 
-      : 'We detected a request to build a custom playlist with AI.';
-    el.btnOverrideMode.textContent = 'Switch to List mode';
+      ? t("badge.aiExplanationManual") 
+      : t("badge.aiExplanation");
+    el.btnOverrideMode.textContent = t("badge.switchToList");
   }
 
   if (state.isModeOverridden) {
@@ -96,7 +97,7 @@ export function updateInputAutoDetection() {
     resetBtn.className = 'btn-override-mode btn-reset-auto';
     resetBtn.style.marginLeft = '8px';
     resetBtn.style.color = 'var(--text-muted)';
-    resetBtn.textContent = '(Reset to Auto)';
+    resetBtn.textContent = t("badge.resetToAuto");
     resetBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       state.isModeOverridden = false;
@@ -209,10 +210,10 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
 
   el.btnAnalyze.disabled = true;
   el.spinnerAnalyze.classList.remove('hidden');
-  el.btnAnalyzeText.textContent = "Analyzing prompt...";
+  el.btnAnalyzeText.textContent = t("card.input.btnSearchAnalyzing");
   
-  const serviceLabel = state.activeService === 'apple' ? 'Apple Music' : 'Spotify';
-  el.progressStatusText.textContent = `Searching ${serviceLabel} Catalog...`;
+  const serviceLabel = state.activeService === 'apple' ? t("serviceName.apple") : t("serviceName.spotify");
+  el.progressStatusText.textContent = t("card.items.progressLLM");
   el.progressPercentage.textContent = "0%";
   el.progressBarFill.style.width = "0%";
 
@@ -405,7 +406,7 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
   
   const updateProgress = () => {
     const pct = Math.floor((completedQueries / totalQueries) * 100);
-    el.progressStatusText.textContent = `Searching ${serviceLabel} Catalog...`;
+    el.progressStatusText.textContent = t("card.input.btnSearchSearching");
     el.progressPercentage.textContent = `${pct}%`;
     el.progressBarFill.style.width = `${pct}%`;
   };
@@ -504,12 +505,12 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
   const slicedSongs = uniqueSongsPool.slice(0, parsedPrompt.size);
 
   if (slicedSongs.length === 0) {
-    alert(`No new matching songs found on ${serviceLabel} for this request. Try different keywords.`);
+    alert(t("alert.noMatchesFound", { service: serviceLabel }));
     el.searchProgressCard.classList.add('hidden');
     el.resultsEmptyState.classList.remove('hidden');
     el.btnAnalyze.disabled = false;
     el.spinnerAnalyze.classList.add('hidden');
-    el.btnAnalyzeText.textContent = "Search Catalog";
+    el.btnAnalyzeText.textContent = t("card.input.btnSearch");
     return;
   }
 
@@ -538,7 +539,7 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
 
   el.btnAnalyze.disabled = false;
   el.spinnerAnalyze.classList.add('hidden');
-  el.btnAnalyzeText.textContent = "Search Catalog";
+  el.btnAnalyzeText.textContent = t("card.input.btnSearch");
   el.btnApproveAll.disabled = false;
 
   if (el.cardInputSongs) {
@@ -559,8 +560,8 @@ export async function executeCatalogSearches(pendingTracks) {
   // Function to update progress bar status
   const updateProgress = () => {
     const pct = Math.floor((completed / total) * 100);
-    const serviceLabel = state.activeService === 'apple' ? 'Apple Music' : 'Spotify';
-    el.progressStatusText.textContent = `Searching ${serviceLabel} Catalog (${completed}/${total})...`;
+    const serviceLabel = state.activeService === 'apple' ? t("serviceName.apple") : t("serviceName.spotify");
+    el.progressStatusText.textContent = t("card.items.progressLabel", { service: serviceLabel, completed, total });
     el.progressPercentage.textContent = `${pct}%`;
     el.progressBarFill.style.width = `${pct}%`;
   };
@@ -605,7 +606,7 @@ export async function executeCatalogSearches(pendingTracks) {
 
   el.btnAnalyze.disabled = false;
   el.spinnerAnalyze.classList.add('hidden');
-  el.btnAnalyzeText.textContent = "Search Catalog";
+  el.btnAnalyzeText.textContent = t("card.input.btnSearch");
   el.btnApproveAll.disabled = false;
 
   if (el.cardInputSongs) {

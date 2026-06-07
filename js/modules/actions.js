@@ -23,11 +23,12 @@ import {
   showWarningToast, 
   showErrorToast 
 } from './utils.js';
+import { t } from './i18n.js';
 
 // Parsing & Analyze Actions
 export function handleAnalyzeSongList() {
   if (state.activeService === 'apple' && !state.musicKit) {
-    alert("Apple Music is not configured or unavailable. Please refresh the page.");
+    alert(t("alert.musicKitUnavailable"));
     return;
   }
 
@@ -40,7 +41,7 @@ export function handleAnalyzeSongList() {
 
   const rawText = el.inputSongList.value;
   if (!rawText.trim()) {
-    alert(state.detectedMode === 'natural' ? "Please enter a prompt describing your playlist." : "Please paste or write a list of songs first.");
+    alert(state.detectedMode === 'natural' ? t("alert.emptyPrompt") : t("alert.emptyInput"));
     return;
   }
 
@@ -133,7 +134,7 @@ export function handleAnalyzeSongList() {
   }
 
   if (newTracks.length === 0) {
-    alert("No new or unique songs found to add to the list.");
+    alert(t("alert.noNewSongs"));
     return;
   }
 
@@ -154,7 +155,7 @@ export function handleAnalyzeSongList() {
       el.cardInputSongs.classList.add('collapsed');
     }
     saveAppState();
-    showSuccessToast("Track list updated (no new searches needed).");
+    showSuccessToast(t("alert.toastUpdated"));
     return;
   }
 
@@ -200,7 +201,7 @@ export function handleApproveAll() {
 export async function handleCreatePlaylist() {
   if (state.activeService === 'apple') {
     if (!state.musicKit) {
-      alert("Apple Music is not configured or unavailable. Please refresh the page.");
+      alert(t("alert.musicKitUnavailable"));
       return;
     }
 
@@ -212,7 +213,7 @@ export async function handleCreatePlaylist() {
       try {
         await state.musicKit.authorize();
       } catch (err) {
-        showErrorToast("Apple Music authentication cancelled or failed.");
+        showErrorToast(t("alert.authFailed"));
         return;
       }
     }
@@ -227,7 +228,7 @@ export async function handleCreatePlaylist() {
 
   const approvedTracks = state.tracks.filter(t => t.approved && t.status === 'matched');
   if (approvedTracks.length === 0) {
-    alert("Please approve at least one matched song to create/export a playlist.");
+    alert(t("alert.approveAtLeastOne"));
     return;
   }
 
@@ -343,10 +344,10 @@ export async function executeCreatePlaylist() {
     state.loadedPlaylistOriginalTrackIds = trackPayload.map(t => t.id);
     saveAppState();
 
-    showSuccessToast(`Playlist "${name}" created successfully with ${trackPayload.length} songs!`);
+    showSuccessToast(t("alert.successPlaylistCreatedExtended", { name, count: trackPayload.length }));
   } catch (error) {
     console.error("Playlist export error:", error);
-    alert(`Could not create playlist: ${error.message}`);
+    alert(t("alert.createFailed", { error: error.message }));
   } finally {
     el.btnCreatePlaylist.disabled = false;
     el.spinnerCreate.classList.add('hidden');
@@ -365,7 +366,7 @@ export async function handleUpdatePlaylist() {
   // Set button to active loading state
   el.btnCreatePlaylist.disabled = true;
   el.spinnerCreate.classList.remove('hidden');
-  el.btnCreateText.textContent = "Updating...";
+  el.btnCreateText.textContent = t("card.items.updatingText");
 
   try {
     // Check if the user tried to change name or description
@@ -392,7 +393,7 @@ export async function handleUpdatePlaylist() {
 
       state.loadedPlaylistName = name;
       state.loadedPlaylistDesc = desc;
-      showSuccessToast("Playlist details updated successfully!");
+      showSuccessToast(t("alert.successPlaylistUpdated"));
     }
 
     // Determine which approved tracks are NEW (not in state.loadedPlaylistOriginalTrackIds)
@@ -434,23 +435,23 @@ export async function handleUpdatePlaylist() {
       });
 
       saveAppState();
-      showSuccessToast(`Successfully appended ${trackPayload.length} new songs to the playlist!`);
+      showSuccessToast(t("alert.successAppended", { count: trackPayload.length }));
     } else {
       if (state.activeService === 'apple' && hasMetadataChanges) {
-        showWarningToast("Note: Apple Music API does not support editing playlist name/description via web app.");
+        showWarningToast(t("alert.appleMusicEditLimitWarning"));
       } else if (!hasMetadataChanges) {
-        showSuccessToast("Playlist is up-to-date (no new songs to append).");
+        showSuccessToast(t("alert.playlistUpToDate"));
       }
     }
 
     if (state.activeService === 'apple' && hasMetadataChanges && newTracks.length > 0) {
       setTimeout(() => {
-        showWarningToast("Note: Playlist name/description changes cannot be saved due to Apple Music API limits.");
+        showWarningToast(t("alert.appleMusicLimitWarning"));
       }, 1500);
     }
   } catch (error) {
     console.error("Playlist update error:", error);
-    alert(`Could not update playlist: ${error.message}`);
+    alert(t("alert.updateFailed", { error: error.message }));
   } finally {
     el.btnCreatePlaylist.disabled = false;
     el.spinnerCreate.classList.add('hidden');
@@ -459,7 +460,7 @@ export async function handleUpdatePlaylist() {
 }
 
 export function handleResetApp() {
-  if (confirm("Are you sure you want to clear the editor? This will erase the current song list, playlist settings, and all search results.")) {
+  if (confirm(t("alert.resetConfirm"))) {
     // 1. Stop any running audio preview
     if (state.playingAudio) {
       state.playingAudio.pause();
@@ -513,7 +514,7 @@ export function handleResetApp() {
     localStorage.removeItem('makemyplaylist_loaded_playlist_desc');
     localStorage.removeItem('makemyplaylist_loaded_playlist_original_track_ids');
 
-    showSuccessToast("Editor cleared successfully!");
+    showSuccessToast(t("alert.resetSuccess"));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
@@ -522,7 +523,7 @@ export function handleResetApp() {
 export async function handleFetchLibraryPlaylists() {
   if (state.activeService === 'apple') {
     if (!state.musicKit) {
-      alert("Apple Music is not configured or unavailable. Please refresh the page.");
+      alert(t("alert.musicKitUnavailable"));
       return;
     }
 
@@ -532,7 +533,7 @@ export async function handleFetchLibraryPlaylists() {
       try {
         await state.musicKit.authorize();
       } catch (err) {
-        showErrorToast("Apple Music authorization failed.");
+        showErrorToast(t("alert.authFailed"));
         return;
       }
     }
@@ -548,7 +549,7 @@ export async function handleFetchLibraryPlaylists() {
   // UI loading state
   el.btnFetchPlaylists.disabled = true;
   el.spinnerFetch.classList.remove('hidden');
-  el.btnFetchText.textContent = "Fetching Playlists...";
+  el.btnFetchText.textContent = t("card.import.btnFetchLoading");
 
   try {
     const response = await fetch('/api/library/playlists', {
@@ -561,12 +562,12 @@ export async function handleFetchLibraryPlaylists() {
 
     const data = await response.json();
     if (!data.data || data.data.length === 0) {
-      alert(`No playlists found in your ${state.activeService === 'apple' ? 'Apple Music' : 'Spotify'} library.`);
+      alert(t("alert.noPlaylistsFound", { service: state.activeService === 'apple' ? t("serviceName.apple") : t("serviceName.spotify") }));
       return;
     }
 
     // Populate Select options
-    el.selectLibraryPlaylists.innerHTML = '<option value="" disabled selected>Choose a playlist...</option>';
+    el.selectLibraryPlaylists.innerHTML = `<option value="" disabled selected>${t("card.import.selectDefault")}</option>`;
     data.data.forEach(playlist => {
       const option = document.createElement('option');
       option.value = playlist.id;
@@ -578,14 +579,14 @@ export async function handleFetchLibraryPlaylists() {
 
     // Show selection group
     el.playlistSelectGroup.classList.remove('hidden');
-    showSuccessToast("Playlists loaded successfully!");
+    showSuccessToast(t("alert.playlistsLoaded"));
   } catch (err) {
     console.error("Error fetching library playlists:", err);
-    alert(`Could not load playlists: ${err.message}`);
+    alert(t("alert.loadPlaylistsFailed", { error: err.message }));
   } finally {
     el.btnFetchPlaylists.disabled = false;
     el.spinnerFetch.classList.add('hidden');
-    el.btnFetchText.textContent = "Fetch My Playlists";
+    el.btnFetchText.textContent = t("card.import.btnFetch");
   }
 }
 
@@ -602,7 +603,7 @@ export async function handleLoadSelectedPlaylist() {
   // UI Loading state
   el.btnLoadPlaylist.disabled = true;
   el.spinnerLoad.classList.remove('hidden');
-  el.btnLoadText.textContent = "Loading tracks...";
+  el.btnLoadText.textContent = t("card.import.btnLoadLoading");
 
   try {
     if (state.activeService === 'spotify') {
@@ -618,7 +619,7 @@ export async function handleLoadSelectedPlaylist() {
 
     const data = await response.json();
     if (!data.data || data.data.length === 0) {
-      alert("This playlist has no songs.");
+      alert(t("alert.noSongsInPlaylist"));
       return;
     }
 
@@ -661,7 +662,7 @@ export async function handleLoadSelectedPlaylist() {
     });
 
     // Populate state and inputs
-    const finalDesc = playlistDesc || `Imported from library playlist: ${playlistName}`;
+    const finalDesc = playlistDesc || t("alert.importedFrom", { name: playlistName });
     state.tracks = parsedTracks;
     state.loadedPlaylistId = playlistId;
     state.loadedPlaylistName = playlistName;
@@ -684,13 +685,13 @@ export async function handleLoadSelectedPlaylist() {
     }
     saveAppState();
 
-    showSuccessToast(`Successfully loaded ${tracksLines.length} songs and updated track list!`);
+    showSuccessToast(t("alert.loadSuccess", { count: tracksLines.length }));
   } catch (err) {
     console.error("Error loading playlist tracks:", err);
-    alert(`Could not load playlist songs: ${err.message}`);
+    alert(t("alert.loadFailed", { error: err.message }));
   } finally {
     el.btnLoadPlaylist.disabled = false;
     el.spinnerLoad.classList.add('hidden');
-    el.btnLoadText.textContent = "Load Playlist Songs";
+    el.btnLoadText.textContent = t("card.import.btnLoad");
   }
 }
