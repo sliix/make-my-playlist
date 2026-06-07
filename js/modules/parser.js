@@ -393,7 +393,7 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
     el.searchProgressCard.classList.add('hidden');
     el.btnAnalyze.disabled = false;
     el.spinnerAnalyze.classList.add('hidden');
-    el.btnAnalyzeText.textContent = "Analyze & Search Catalog";
+    el.btnAnalyzeText.textContent = "Search Catalog";
     return;
   }
 
@@ -509,7 +509,7 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
     el.resultsEmptyState.classList.remove('hidden');
     el.btnAnalyze.disabled = false;
     el.spinnerAnalyze.classList.add('hidden');
-    el.btnAnalyzeText.textContent = "Analyze & Search Catalog";
+    el.btnAnalyzeText.textContent = "Search Catalog";
     return;
   }
 
@@ -538,7 +538,7 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
 
   el.btnAnalyze.disabled = false;
   el.spinnerAnalyze.classList.add('hidden');
-  el.btnAnalyzeText.textContent = "Analyze & Search Catalog";
+  el.btnAnalyzeText.textContent = "Search Catalog";
   el.btnApproveAll.disabled = false;
 
   if (el.cardInputSongs) {
@@ -605,7 +605,7 @@ export async function executeCatalogSearches(pendingTracks) {
 
   el.btnAnalyze.disabled = false;
   el.spinnerAnalyze.classList.add('hidden');
-  el.btnAnalyzeText.textContent = "Analyze & Search Catalog";
+  el.btnAnalyzeText.textContent = "Search Catalog";
   el.btnApproveAll.disabled = false;
 
   if (el.cardInputSongs) {
