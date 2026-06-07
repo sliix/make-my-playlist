@@ -1871,7 +1871,7 @@ html[dir="rtl"] .chevron-icon {
 }
 
 html[dir="rtl"] .section-card.collapsible.collapsed .chevron-icon {
-  transform: scaleX(-1) rotate(90deg);
+  transform: scaleX(-1) rotate(-90deg);
 }
 
 /* Flex flow alignment corrections */
