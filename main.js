@@ -26,6 +26,7 @@ const el = {
   detectionBadge: document.getElementById('detection-badge'),
   detectionExplanation: document.getElementById('detection-explanation'),
   btnOverrideMode: document.getElementById('btn-override-mode'),
+  chkAppendMode: document.getElementById('chk-append-mode'),
   playlistName: document.getElementById('playlist-name'),
   playlistDesc: document.getElementById('playlist-desc'),
   playlistPublic: document.getElementById('playlist-public'),
@@ -154,6 +155,7 @@ function initEventListeners() {
   el.playlistName.addEventListener('input', saveAppState);
   el.playlistDesc.addEventListener('input', saveAppState);
   el.playlistPublic.addEventListener('change', saveAppState);
+  el.chkAppendMode.addEventListener('change', saveAppState);
 
   // Export Options Modal listeners
   if (el.btnCloseModal) {
@@ -338,7 +340,7 @@ function handleAnalyzeSongList() {
   // Parse lines
   const lines = rawText.split('\n');
   const newTracks = [];
-  const currentTracks = [...state.tracks];
+  const currentTracks = el.chkAppendMode.checked ? [] : [...state.tracks];
   let nextId = Math.max(0, ...state.tracks.map(t => t.id)) + 1;
 
   for (const line of lines) {
@@ -375,7 +377,11 @@ function handleAnalyzeSongList() {
     return;
   }
 
-  state.tracks = newTracks;
+  if (el.chkAppendMode.checked) {
+    state.tracks = [...state.tracks, ...newTracks];
+  } else {
+    state.tracks = newTracks;
+  }
 
   // Find tracks that actually need searching
   const pendingTracks = state.tracks.filter(t => t.status === 'pending');
@@ -892,8 +898,9 @@ async function executeNaturalLanguageGeneration(parsedPrompt) {
   }
 
   // Map into state.tracks format
-  state.tracks = slicedSongs.map((song, idx) => ({
-    id: idx + 1,
+  let nextId = el.chkAppendMode.checked ? Math.max(0, ...state.tracks.map(t => t.id)) + 1 : 1;
+  const mappedTracks = slicedSongs.map((song, idx) => ({
+    id: nextId + idx,
     originalQuery: `${song.attributes.artistName} - ${song.attributes.name}`,
     searchQuery: `${song.attributes.artistName} - ${song.attributes.name}`,
     status: 'matched',
@@ -902,6 +909,12 @@ async function executeNaturalLanguageGeneration(parsedPrompt) {
     approved: true,
     errorMessage: ''
   }));
+
+  if (el.chkAppendMode.checked) {
+    state.tracks = [...state.tracks, ...mappedTracks];
+  } else {
+    state.tracks = mappedTracks;
+  }
 
   // Complete search and draw UI list
   el.searchProgressCard.classList.add('hidden');
@@ -1942,6 +1955,7 @@ function saveAppState() {
   localStorage.setItem('makemyplaylist_raw_input', el.inputSongList.value);
   localStorage.setItem('makemyplaylist_detected_mode', state.detectedMode || 'list');
   localStorage.setItem('makemyplaylist_is_mode_overridden', state.isModeOverridden ? 'true' : 'false');
+  localStorage.setItem('makemyplaylist_append_mode', el.chkAppendMode.checked ? 'true' : 'false');
 
   const details = {
     name: el.playlistName.value,
@@ -1976,6 +1990,11 @@ function restoreAppState() {
     state.detectedMode = localStorage.getItem('makemyplaylist_detected_mode') || 'list';
     state.isModeOverridden = localStorage.getItem('makemyplaylist_is_mode_overridden') === 'true';
     updateInputAutoDetection();
+
+    const appendMode = localStorage.getItem('makemyplaylist_append_mode');
+    if (appendMode !== null) {
+      el.chkAppendMode.checked = appendMode === 'true';
+    }
 
     state.loadedPlaylistId = localStorage.getItem('makemyplaylist_loaded_playlist_id') || null;
     state.loadedPlaylistName = localStorage.getItem('makemyplaylist_loaded_playlist_name') || null;
@@ -2027,6 +2046,7 @@ function handleResetApp() {
     el.playlistName.value = "My Awesome Playlist";
     el.playlistDesc.value = "";
     el.playlistPublic.checked = false;
+    el.chkAppendMode.checked = false;
     updateInputAutoDetection();
     updateTracksCounter();
 
@@ -2047,6 +2067,7 @@ function handleResetApp() {
     localStorage.removeItem('makemyplaylist_raw_input');
     localStorage.removeItem('makemyplaylist_detected_mode');
     localStorage.removeItem('makemyplaylist_is_mode_overridden');
+    localStorage.removeItem('makemyplaylist_append_mode');
     localStorage.removeItem('makemyplaylist_details');
     localStorage.removeItem('makemyplaylist_tracks');
     localStorage.removeItem('makemyplaylist_loaded_playlist_id');
