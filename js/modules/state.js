@@ -95,7 +95,6 @@ export const el = {
   modalConnectService: document.getElementById('modal-connect-service'),
   btnConnectAppleModal: document.getElementById('btn-connect-apple-modal'),
   btnConnectSpotifyModal: document.getElementById('btn-connect-spotify-modal'),
-  btnCancelConnectModal: document.getElementById('btn-cancel-connect-modal'),
   btnCloseConnectModal: document.getElementById('btn-close-connect-modal'),
 
   // Language switcher elements

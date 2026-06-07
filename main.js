@@ -247,9 +247,6 @@ function initEventListeners() {
   if (el.btnCloseConnectModal) {
     el.btnCloseConnectModal.addEventListener('click', () => el.modalConnectService.close());
   }
-  if (el.btnCancelConnectModal) {
-    el.btnCancelConnectModal.addEventListener('click', () => el.modalConnectService.close());
-  }
   if (el.modalConnectService) {
     el.modalConnectService.addEventListener('click', (e) => {
       if (e.target === el.modalConnectService) {
