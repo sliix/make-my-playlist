@@ -13,6 +13,11 @@ const state = {
   loadedPlaylistOriginalTrackIds: [], // array of track IDs currently in the loaded playlist
   detectedMode: 'list',               // auto-detected mode ('list' or 'natural')
   isModeOverridden: false,            // whether the user manually locked the mode
+
+  activeService: localStorage.getItem('activeService') || 'apple',
+  spotifyAccessToken: localStorage.getItem('spotifyAccessToken') || null,
+  spotifyRefreshToken: localStorage.getItem('spotifyRefreshToken') || null,
+  spotifyExpiresAt: localStorage.getItem('spotifyExpiresAt') || null,
 };
 
 // UI Elements Cache
@@ -43,12 +48,23 @@ const el = {
   tracksList: document.getElementById('tracks-list'),
   tracksCounter: document.getElementById('tracks-counter'),
 
-  connectionIndicator: document.getElementById('connection-indicator'),
-  connectionText: document.getElementById('connection-text'),
-  btnConnectApple: document.getElementById('btn-connect-apple'),
   btnCreatePlaylist: document.getElementById('btn-create-playlist'),
   btnCreateText: document.getElementById('btn-create-text'),
   spinnerCreate: document.getElementById('spinner-create'),
+
+  // Services Dropdown UI
+  btnServicesDropdown: document.getElementById('btn-services-dropdown'),
+  menuServicesDropdown: document.getElementById('menu-services-dropdown'),
+  activeServiceDot: document.getElementById('active-service-dot'),
+  activeServiceName: document.getElementById('active-service-name'),
+  badgeStatusApple: document.getElementById('badge-status-apple'),
+  badgeStatusSpotify: document.getElementById('badge-status-spotify'),
+  btnActivateApple: document.getElementById('btn-activate-apple'),
+  btnActivateSpotify: document.getElementById('btn-activate-spotify'),
+  btnConnectAppleMenu: document.getElementById('btn-connect-apple-menu'),
+  btnConnectSpotifyMenu: document.getElementById('btn-connect-spotify-menu'),
+  btnDisconnectAppleAction: document.getElementById('btn-disconnect-apple-action'),
+  btnDisconnectSpotifyAction: document.getElementById('btn-disconnect-spotify-action'),
 
   // Library Playlist Import Elements
   btnFetchPlaylists: document.getElementById('btn-fetch-playlists'),
@@ -86,6 +102,7 @@ async function loadSessionConfigWithRetries(maxAttempts = 4, delayMs = 1000) {
 
 // Initialize Application
 window.addEventListener('DOMContentLoaded', async () => {
+  handleSpotifyCallback();
   initEventListeners();
 
   // Register Service Worker for PWA installability
@@ -100,6 +117,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Restore persisted state from local storage
   restoreAppState();
+
+  // Update connection UI after initialization
+  updateConnectionUI();
 });
 
 // Event Listeners Registration
@@ -110,8 +130,41 @@ function initEventListeners() {
   // Action listeners
   el.btnAnalyze.addEventListener('click', handleAnalyzeSongList);
   el.btnApproveAll.addEventListener('click', handleApproveAll);
-  el.btnConnectApple.addEventListener('click', handleConnectAppleMusic);
   el.btnCreatePlaylist.addEventListener('click', handleCreatePlaylist);
+
+  // Services Dropdown trigger
+  el.btnServicesDropdown.addEventListener('click', (e) => {
+    e.stopPropagation();
+    el.menuServicesDropdown.classList.toggle('hidden');
+    el.btnServicesDropdown.parentElement.classList.toggle('open');
+  });
+
+  // Services Dropdown Actions
+  el.btnConnectAppleMenu.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleConnectAppleMusic();
+  });
+  el.btnDisconnectAppleAction.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleDisconnectAppleMusic();
+  });
+  el.btnActivateApple.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleSelectActive('apple');
+  });
+
+  el.btnConnectSpotifyMenu.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleConnectSpotify();
+  });
+  el.btnDisconnectSpotifyAction.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleDisconnectSpotify();
+  });
+  el.btnActivateSpotify.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleSelectActive('spotify');
+  });
 
   // Library Playlist Import listeners
   el.btnFetchPlaylists.addEventListener('click', handleFetchLibraryPlaylists);
@@ -130,13 +183,20 @@ function initEventListeners() {
     el.headerActions.classList.toggle('open');
   });
 
-  // Close menu when clicking outside
+  // Close menus when clicking outside
   document.addEventListener('click', (e) => {
+    // Mobile menu toggle click outside
     if (el.headerActions.classList.contains('open') &&
       !el.headerActions.contains(e.target) &&
       e.target !== el.btnMenuToggle &&
       !el.btnMenuToggle.contains(e.target)) {
       el.headerActions.classList.remove('open');
+    }
+
+    // Dropdown toggle click outside
+    if (!el.btnServicesDropdown.contains(e.target) && !el.menuServicesDropdown.contains(e.target)) {
+      el.menuServicesDropdown.classList.add('hidden');
+      el.btnServicesDropdown.parentElement.classList.remove('open');
     }
   });
 
@@ -224,23 +284,229 @@ async function initMusicKit(developerToken) {
   });
 }
 
-function updateConnectionUI() {
-  if (!state.musicKit) return;
-
-  if (state.musicKit.isAuthorized) {
-    el.connectionIndicator.className = 'status-indicator online';
-    el.connectionText.textContent = "Apple Music: Connected";
-    el.btnConnectApple.textContent = "Disconnect Apple Music";
-  } else {
-    el.connectionIndicator.className = 'status-indicator offline';
-    el.connectionText.textContent = "Apple Music: Not Connected";
-    el.btnConnectApple.textContent = "Connect Apple Music";
+function getAuthHeaders() {
+  const headers = {
+    'X-Service-Id': state.activeService
+  };
+  
+  if (state.activeService === 'apple') {
+    if (state.musicKit) {
+      headers['X-User-Token'] = state.musicKit.musicUserToken || '';
+    }
+  } else if (state.activeService === 'spotify') {
+    headers['X-User-Token'] = state.spotifyAccessToken || '';
   }
+  
+  return headers;
+}
+
+async function checkAndRefreshSpotifyToken() {
+  if (!state.spotifyAccessToken || !state.spotifyRefreshToken) return false;
+  
+  const expiresAt = parseInt(state.spotifyExpiresAt, 10);
+  if (isNaN(expiresAt) || expiresAt - Date.now() < 5 * 60 * 1000) {
+    try {
+      console.log("Spotify access token expiring soon, refreshing...");
+      const response = await fetch(`/api/spotify/refresh?refresh_token=${state.spotifyRefreshToken}`);
+      if (!response.ok) {
+        throw new Error(`Refresh request failed with status ${response.status}`);
+      }
+      const data = await response.json();
+      state.spotifyAccessToken = data.access_token;
+      state.spotifyExpiresAt = Date.now() + (data.expires_in * 1000);
+      if (data.refresh_token) {
+        state.spotifyRefreshToken = data.refresh_token;
+      }
+      localStorage.setItem('spotifyAccessToken', state.spotifyAccessToken);
+      localStorage.setItem('spotifyRefreshToken', state.spotifyRefreshToken);
+      localStorage.setItem('spotifyExpiresAt', state.spotifyExpiresAt);
+      console.log("Spotify token refreshed successfully.");
+      updateConnectionUI();
+      return true;
+    } catch (err) {
+      console.error("Failed to refresh Spotify token:", err);
+      handleDisconnectSpotify();
+      return false;
+    }
+  }
+  return true;
+}
+
+function handleSpotifyCallback() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const accessToken = urlParams.get('spotify_access_token');
+  const refreshToken = urlParams.get('spotify_refresh_token');
+  const expiresIn = urlParams.get('spotify_expires_in');
+
+  if (accessToken && refreshToken) {
+    state.spotifyAccessToken = accessToken;
+    state.spotifyRefreshToken = refreshToken;
+    state.spotifyExpiresAt = Date.now() + (parseInt(expiresIn || '3600', 10) * 1000);
+
+    localStorage.setItem('spotifyAccessToken', state.spotifyAccessToken);
+    localStorage.setItem('spotifyRefreshToken', state.spotifyRefreshToken);
+    localStorage.setItem('spotifyExpiresAt', state.spotifyExpiresAt);
+
+    // Set Spotify as active service
+    state.activeService = 'spotify';
+    localStorage.setItem('activeService', 'spotify');
+
+    // Clean URL
+    const cleanUrl = window.location.pathname + window.location.hash;
+    window.history.replaceState({}, document.title, cleanUrl);
+
+    showSuccessToast("Connected to Spotify successfully!");
+  }
+}
+
+function updateConnectionUI() {
+  // 1. Apple Music Status
+  const isAppleAuthorized = !!(state.musicKit && state.musicKit.isAuthorized);
+  const appleItem = document.querySelector('.service-menu-item[data-service="apple"]');
+  
+  if (appleItem) {
+    if (isAppleAuthorized) {
+      appleItem.classList.remove('offline');
+      el.badgeStatusApple.textContent = "Connected";
+      el.badgeStatusApple.className = "service-status-badge online";
+      el.btnConnectAppleMenu.classList.add('hidden');
+      el.btnDisconnectAppleAction.classList.remove('hidden');
+      
+      if (state.activeService === 'apple') {
+        el.btnActivateApple.classList.add('hidden');
+        appleItem.classList.add('active');
+      } else {
+        el.btnActivateApple.classList.remove('hidden');
+        appleItem.classList.remove('active');
+      }
+    } else {
+      appleItem.classList.add('offline');
+      appleItem.classList.remove('active');
+      el.badgeStatusApple.textContent = "Disconnected";
+      el.badgeStatusApple.className = "service-status-badge offline";
+      el.btnConnectAppleMenu.classList.remove('hidden');
+      el.btnDisconnectAppleAction.classList.add('hidden');
+      el.btnActivateApple.classList.add('hidden');
+    }
+  }
+
+  // 2. Spotify Status
+  const isSpotifyAuthorized = !!(state.spotifyAccessToken && state.spotifyExpiresAt && parseInt(state.spotifyExpiresAt, 10) > Date.now());
+  const spotifyItem = document.querySelector('.service-menu-item[data-service="spotify"]');
+
+  if (spotifyItem) {
+    if (isSpotifyAuthorized) {
+      spotifyItem.classList.remove('offline');
+      el.badgeStatusSpotify.textContent = "Connected";
+      el.badgeStatusSpotify.className = "service-status-badge online";
+      el.btnConnectSpotifyMenu.classList.add('hidden');
+      el.btnDisconnectSpotifyAction.classList.remove('hidden');
+      
+      if (state.activeService === 'spotify') {
+        el.btnActivateSpotify.classList.add('hidden');
+        spotifyItem.classList.add('active');
+      } else {
+        el.btnActivateSpotify.classList.remove('hidden');
+        spotifyItem.classList.remove('active');
+      }
+    } else {
+      spotifyItem.classList.add('offline');
+      spotifyItem.classList.remove('active');
+      el.badgeStatusSpotify.textContent = "Disconnected";
+      el.badgeStatusSpotify.className = "service-status-badge offline";
+      el.btnConnectSpotifyMenu.classList.remove('hidden');
+      el.btnDisconnectSpotifyAction.classList.add('hidden');
+      el.btnActivateSpotify.classList.add('hidden');
+    }
+  }
+
+  // 3. Dropdown Header Trigger Label and Indicator
+  const isServiceConnected = state.activeService === 'apple' ? isAppleAuthorized : isSpotifyAuthorized;
+  const serviceLabel = state.activeService === 'apple' ? 'Apple Music' : 'Spotify';
+  
+  if (el.activeServiceName) {
+    el.activeServiceName.textContent = `Service: ${serviceLabel}`;
+  }
+  
+  if (el.activeServiceDot) {
+    el.activeServiceDot.className = `status-indicator-dot ${isServiceConnected ? 'online' : 'offline'}`;
+  }
+}
+
+async function handleConnectAppleMusic() {
+  if (!state.musicKit) {
+    alert("Apple Music is not configured or unavailable. Please refresh the page.");
+    return;
+  }
+  try {
+    // Refresh configurations right before auth popups to guarantee active JWT validity
+    await refreshMusicKitConfiguration();
+    await state.musicKit.authorize();
+    showSuccessToast("Connected to Apple Music successfully!");
+  } catch (err) {
+    console.error("Authorization flow error:", err);
+    showErrorToast("Could not authorize Apple Music account.");
+  }
+}
+
+async function handleDisconnectAppleMusic() {
+  if (!state.musicKit) return;
+  try {
+    await state.musicKit.unauthorize();
+    showSuccessToast("Disconnected from Apple Music.");
+    if (state.activeService === 'apple') {
+      handleSelectActive('spotify');
+    } else {
+      updateConnectionUI();
+    }
+  } catch (err) {
+    console.error("Apple Music disconnect error:", err);
+  }
+}
+
+function handleConnectSpotify() {
+  window.location.href = '/api/spotify/login';
+}
+
+function handleDisconnectSpotify() {
+  state.spotifyAccessToken = null;
+  state.spotifyRefreshToken = null;
+  state.spotifyExpiresAt = null;
+
+  localStorage.removeItem('spotifyAccessToken');
+  localStorage.removeItem('spotifyRefreshToken');
+  localStorage.removeItem('spotifyExpiresAt');
+
+  showSuccessToast("Disconnected from Spotify.");
+  if (state.activeService === 'spotify') {
+    handleSelectActive('apple');
+  } else {
+    updateConnectionUI();
+  }
+}
+
+function handleSelectActive(service) {
+  state.activeService = service;
+  localStorage.setItem('activeService', service);
+  
+  // Clear fetched/loaded playlist selection options
+  el.playlistSelectGroup.classList.add('hidden');
+  el.selectLibraryPlaylists.innerHTML = '<option value="" disabled selected>Choose a playlist...</option>';
+  el.btnLoadPlaylist.setAttribute('disabled', 'disabled');
+  state.loadedPlaylistId = null;
+  state.loadedPlaylistName = null;
+  state.loadedPlaylistDesc = null;
+  state.loadedPlaylistOriginalTrackIds = [];
+  saveAppState();
+
+  updateConnectionUI();
+  updateCreatePlaylistButtonState();
+  
+  showSuccessToast(`Switched active service to ${service === 'apple' ? 'Apple Music' : 'Spotify'}.`);
 }
 
 // Re-configure/refresh configuration dynamically to prevent JWT expirations
 async function refreshMusicKitConfiguration() {
-
   // Try to load backend session config
   try {
     const response = await fetch('/api/session/config');
@@ -255,31 +521,9 @@ async function refreshMusicKitConfiguration() {
   }
 }
 
-async function handleConnectAppleMusic() {
-  if (!state.musicKit) {
-    alert("Apple Music is not configured or unavailable. Please refresh the page.");
-    return;
-  }
-
-  try {
-    if (state.musicKit.isAuthorized) {
-      await state.musicKit.unauthorize();
-      showSuccessToast("Disconnected from Apple Music.");
-    } else {
-      // Refresh configurations right before auth popups to guarantee active JWT validity
-      await refreshMusicKitConfiguration();
-      await state.musicKit.authorize();
-      showSuccessToast("Connected to Apple Music successfully!");
-    }
-  } catch (err) {
-    console.error("Authorization flow error:", err);
-    showErrorToast("Could not authorize Apple Music account.");
-  }
-}
-
 // Parsing & Analyze Actions
 function handleAnalyzeSongList() {
-  if (!state.musicKit) {
+  if (state.activeService === 'apple' && !state.musicKit) {
     alert("Apple Music is not configured or unavailable. Please refresh the page.");
     return;
   }
@@ -522,7 +766,7 @@ function updateTracksCounter() {
   }
   const total = state.tracks.length;
   const approved = state.tracks.filter(t => t.approved).length;
-  el.tracksCounter.textContent = `${approved}/${total}`;
+  el.tracksCounter.textContent = `${approved}/${total} selected`;
   el.tracksCounter.classList.remove('hidden');
 }
 
@@ -819,7 +1063,8 @@ async function executeNaturalLanguageGeneration(parsedPrompt) {
   
   const updateProgress = () => {
     const pct = Math.floor((completedQueries / totalQueries) * 100);
-    el.progressStatusText.textContent = `Searching Apple Music Catalog...`;
+    const serviceLabel = state.activeService === 'apple' ? 'Apple Music' : 'Spotify';
+    el.progressStatusText.textContent = `Searching ${serviceLabel} Catalog...`;
     el.progressPercentage.textContent = `${pct}%`;
     el.progressBarFill.style.width = `${pct}%`;
   };
@@ -932,13 +1177,19 @@ async function executeNaturalLanguageGeneration(parsedPrompt) {
 
 // Query the backend Express search proxy (token stays hidden)
 async function searchCatalogProxy(query, limit = 5, types = 'songs') {
+  if (state.activeService === 'spotify') {
+    await checkAndRefreshSpotifyToken();
+  }
   const storefront = (state.musicKit && state.musicKit.storefrontId) || 'us';
   const url = `/api/search?term=${encodeURIComponent(query)}&storefront=${storefront}&limit=${limit}&types=${types}`;
 
   // Fetch via backend proxy
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    headers: getAuthHeaders()
+  });
   if (!response.ok) {
-    throw new Error(`Proxy search endpoint returned HTTP status ${response.status}`);
+    const errMsg = await getResponseError(response);
+    throw new Error(errMsg);
   }
   const data = await response.json();
   if (data.results) {
@@ -954,22 +1205,34 @@ async function searchCatalogProxy(query, limit = 5, types = 'songs') {
 }
 
 async function fetchCatalogPlaylistTracks(playlistId) {
+  if (state.activeService === 'spotify') {
+    await checkAndRefreshSpotifyToken();
+  }
   const storefront = (state.musicKit && state.musicKit.storefrontId) || 'us';
   const url = `/api/catalog/playlists/${playlistId}/tracks?storefront=${storefront}`;
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    headers: getAuthHeaders()
+  });
   if (!response.ok) {
-    throw new Error(`Catalog playlist tracks endpoint returned HTTP status ${response.status}`);
+    const errMsg = await getResponseError(response);
+    throw new Error(errMsg);
   }
   const data = await response.json();
   return data.data || [];
 }
 
 async function fetchCatalogAlbumTracks(albumId) {
+  if (state.activeService === 'spotify') {
+    await checkAndRefreshSpotifyToken();
+  }
   const storefront = (state.musicKit && state.musicKit.storefrontId) || 'us';
   const url = `/api/catalog/albums/${albumId}/tracks?storefront=${storefront}`;
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    headers: getAuthHeaders()
+  });
   if (!response.ok) {
-    throw new Error(`Catalog album tracks endpoint returned HTTP status ${response.status}`);
+    const errMsg = await getResponseError(response);
+    throw new Error(errMsg);
   }
   const data = await response.json();
   return data.data || [];
@@ -984,7 +1247,8 @@ async function executeCatalogSearches(pendingTracks) {
   // Function to update progress bar status
   const updateProgress = () => {
     const pct = Math.floor((completed / total) * 100);
-    el.progressStatusText.textContent = `Searching Apple Music Catalog (${completed}/${total})...`;
+    const serviceLabel = state.activeService === 'apple' ? 'Apple Music' : 'Spotify';
+    el.progressStatusText.textContent = `Searching ${serviceLabel} Catalog (${completed}/${total})...`;
     el.progressPercentage.textContent = `${pct}%`;
     el.progressBarFill.style.width = `${pct}%`;
   };
@@ -1076,7 +1340,7 @@ function renderTracksList() {
     const artist = activeSong ? activeSong.attributes.artistName : 'Try refining your search';
     const album = activeSong ? activeSong.attributes.albumName : '';
     const duration = activeSong ? formatDuration(activeSong.attributes.durationInMillis) : '';
-    const isExplicit = activeSong && activeSong.attributes.contentRating && activeSong.attributes.contentRating.toLowerCase() === 'explicit';
+    const isExplicit = activeSong && (activeSong.attributes.isExplicit || (activeSong.attributes.contentRating && activeSong.attributes.contentRating.toLowerCase() === 'explicit'));
     const isFirst = index === 0;
     const isLast = index === state.tracks.length - 1;
 
@@ -1365,7 +1629,7 @@ function updateSingleTrackCard(track) {
   const artist = activeSong ? activeSong.attributes.artistName : 'Try refining your search';
   const album = activeSong ? activeSong.attributes.albumName : '';
   const duration = activeSong ? formatDuration(activeSong.attributes.durationInMillis) : '';
-  const isExplicit = activeSong && activeSong.attributes.contentRating && activeSong.attributes.contentRating.toLowerCase() === 'explicit';
+  const isExplicit = activeSong && (activeSong.attributes.isExplicit || (activeSong.attributes.contentRating && activeSong.attributes.contentRating.toLowerCase() === 'explicit'));
   const index = state.tracks.findIndex(t => t.id === track.id);
   const isFirst = index === 0;
   const isLast = index === state.tracks.length - 1;
@@ -1627,20 +1891,29 @@ function updateCreatePlaylistButtonState() {
 }
 
 async function handleCreatePlaylist() {
-  if (!state.musicKit) {
-    alert("Apple Music is not configured or unavailable. Please refresh the page.");
-    return;
-  }
+  if (state.activeService === 'apple') {
+    if (!state.musicKit) {
+      alert("Apple Music is not configured or unavailable. Please refresh the page.");
+      return;
+    }
 
-  // Refresh config before checking auth to prevent expired developer token issues
-  await refreshMusicKitConfiguration();
+    // Refresh config before checking auth to prevent expired developer token issues
+    await refreshMusicKitConfiguration();
 
-  // Ensure Apple Music User is authenticated before saving
-  if (!state.musicKit.isAuthorized) {
-    try {
-      await state.musicKit.authorize();
-    } catch (err) {
-      showErrorToast("Apple Music authentication cancelled or failed.");
+    // Ensure Apple Music User is authenticated before saving
+    if (!state.musicKit.isAuthorized) {
+      try {
+        await state.musicKit.authorize();
+      } catch (err) {
+        showErrorToast("Apple Music authentication cancelled or failed.");
+        return;
+      }
+    }
+  } else {
+    // Spotify
+    const valid = await checkAndRefreshSpotifyToken();
+    if (!valid || !state.spotifyAccessToken) {
+      handleConnectSpotify();
       return;
     }
   }
@@ -1660,10 +1933,16 @@ async function handleCreatePlaylist() {
     const hasMetadataChanges = (name !== state.loadedPlaylistName || desc !== state.loadedPlaylistDesc);
 
     if (hasMetadataChanges) {
-      // If user changed name or description, create a new playlist directly without asking
-      await executeCreatePlaylist();
+      if (state.activeService === 'apple') {
+        // Apple Music does not support PATCHing metadata, so we force-create a new playlist
+        await executeCreatePlaylist();
+      } else if (el.modalExportOptions) {
+        // Spotify supports metadata update, so we let the user choose in the modal
+        el.modalExportOptions.showModal();
+      } else {
+        await executeCreatePlaylist();
+      }
     } else if (el.modalExportOptions) {
-      // If metadata is unchanged, show the options dialog
       el.modalExportOptions.showModal();
     } else {
       await executeCreatePlaylist();
@@ -1684,29 +1963,27 @@ async function executeCreatePlaylist() {
   el.btnCreateText.textContent = "Creating...";
 
   try {
-    const userToken = state.musicKit.musicUserToken;
-
-    // Step 1: Create playlist through our backend proxy (developer token never exposed in request logs)
+    // Step 1: Create playlist through our backend proxy
     const createResponse = await fetch('/api/playlists', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
       },
       body: JSON.stringify({
         name: name,
-        description: desc,
-        musicUserToken: userToken
+        description: desc
       })
     });
 
     if (!createResponse.ok) {
-      const errData = await createResponse.text();
-      throw new Error(`Failed to create playlist container: ${errData}`);
+      const errMsg = await getResponseError(createResponse);
+      throw new Error(errMsg);
     }
 
     const createData = await createResponse.json();
     if (!createData.data || !createData.data[0]) {
-      throw new Error("Invalid playlist creation response from Apple Music proxy.");
+      throw new Error(`Invalid playlist creation response from ${state.activeService === 'apple' ? 'Apple Music' : 'Spotify'} proxy.`);
     }
 
     const playlistId = createData.data[0].id;
@@ -1723,17 +2000,17 @@ async function executeCreatePlaylist() {
     const addResponse = await fetch(`/api/playlists/${playlistId}/tracks`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
       },
       body: JSON.stringify({
-        tracks: trackPayload,
-        musicUserToken: userToken
+        tracks: trackPayload
       })
     });
 
     if (!addResponse.ok) {
-      const errData = await addResponse.text();
-      throw new Error(`Failed to add tracks: ${errData}`);
+      const errMsg = await getResponseError(addResponse);
+      throw new Error(errMsg);
     }
 
     // Update loaded playlist state to point to the newly created playlist
@@ -1768,10 +2045,32 @@ async function handleUpdatePlaylist() {
   el.btnCreateText.textContent = "Updating...";
 
   try {
-    const userToken = state.musicKit.musicUserToken;
-
     // Check if the user tried to change name or description
     const hasMetadataChanges = (name !== state.loadedPlaylistName || desc !== state.loadedPlaylistDesc);
+
+    // If Spotify, support metadata updates
+    if (state.activeService === 'spotify' && hasMetadataChanges) {
+      const patchResponse = await fetch(`/api/playlists/${playlistId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify({
+          name: name,
+          description: desc
+        })
+      });
+
+      if (!patchResponse.ok) {
+        const errMsg = await getResponseError(patchResponse);
+        throw new Error(errMsg);
+      }
+
+      state.loadedPlaylistName = name;
+      state.loadedPlaylistDesc = desc;
+      showSuccessToast("Playlist details updated successfully!");
+    }
 
     // Determine which approved tracks are NEW (not in state.loadedPlaylistOriginalTrackIds)
     const newTracks = approvedTracks.filter(track => {
@@ -1792,17 +2091,17 @@ async function handleUpdatePlaylist() {
       const addResponse = await fetch(`/api/playlists/${playlistId}/tracks`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
         },
         body: JSON.stringify({
-          tracks: trackPayload,
-          musicUserToken: userToken
+          tracks: trackPayload
         })
       });
 
       if (!addResponse.ok) {
-        const errData = await addResponse.text();
-        throw new Error(`Failed to append new tracks: ${errData}`);
+        const errMsg = await getResponseError(addResponse);
+        throw new Error(errMsg);
       }
 
       // Add newly appended IDs to state.loadedPlaylistOriginalTrackIds
@@ -1814,15 +2113,14 @@ async function handleUpdatePlaylist() {
       saveAppState();
       showSuccessToast(`Successfully appended ${trackPayload.length} new songs to the playlist!`);
     } else {
-      if (hasMetadataChanges) {
+      if (state.activeService === 'apple' && hasMetadataChanges) {
         showWarningToast("Note: Apple Music API does not support editing playlist name/description via web app.");
-      } else {
+      } else if (!hasMetadataChanges) {
         showSuccessToast("Playlist is up-to-date (no new songs to append).");
       }
     }
 
-    if (hasMetadataChanges && newTracks.length > 0) {
-      // Show warning about name/desc not being editable shortly after success toast
+    if (state.activeService === 'apple' && hasMetadataChanges && newTracks.length > 0) {
       setTimeout(() => {
         showWarningToast("Note: Playlist name/description changes cannot be saved due to Apple Music API limits.");
       }, 1500);
@@ -1838,6 +2136,23 @@ async function handleUpdatePlaylist() {
 }
 
 // Helpers
+async function getResponseError(response) {
+  let fallbackMsg = `Request failed with status ${response.status}`;
+  try {
+    const text = await response.text();
+    try {
+      const json = JSON.parse(text);
+      if (json && json.error) {
+        return json.error;
+      }
+    } catch (_) {
+      if (text && text.trim().length > 0 && text.length < 200) {
+        return text;
+      }
+    }
+  } catch (_) {}
+  return fallbackMsg;
+}
 function formatDuration(ms) {
   if (!ms) return '0:00';
   const totalSeconds = Math.floor(ms / 1000);
@@ -2082,18 +2397,27 @@ function handleResetApp() {
 
 // Fetch user's library playlists via proxy
 async function handleFetchLibraryPlaylists() {
-  if (!state.musicKit) {
-    alert("Apple Music is not configured or unavailable. Please refresh the page.");
-    return;
-  }
+  if (state.activeService === 'apple') {
+    if (!state.musicKit) {
+      alert("Apple Music is not configured or unavailable. Please refresh the page.");
+      return;
+    }
 
-  // Refresh config and authenticate if needed
-  await refreshMusicKitConfiguration();
-  if (!state.musicKit.isAuthorized) {
-    try {
-      await state.musicKit.authorize();
-    } catch (err) {
-      showErrorToast("Apple Music authorization failed.");
+    // Refresh config and authenticate if needed
+    await refreshMusicKitConfiguration();
+    if (!state.musicKit.isAuthorized) {
+      try {
+        await state.musicKit.authorize();
+      } catch (err) {
+        showErrorToast("Apple Music authorization failed.");
+        return;
+      }
+    }
+  } else {
+    // Spotify
+    const valid = await checkAndRefreshSpotifyToken();
+    if (!valid || !state.spotifyAccessToken) {
+      handleConnectSpotify();
       return;
     }
   }
@@ -2104,15 +2428,17 @@ async function handleFetchLibraryPlaylists() {
   el.btnFetchText.textContent = "Fetching Playlists...";
 
   try {
-    const userToken = state.musicKit.musicUserToken;
-    const response = await fetch(`/api/library/playlists?musicUserToken=${encodeURIComponent(userToken)}`);
+    const response = await fetch('/api/library/playlists', {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) {
-      throw new Error(`Proxy playlists endpoint returned ${response.status}`);
+      const errMsg = await getResponseError(response);
+      throw new Error(errMsg);
     }
 
     const data = await response.json();
     if (!data.data || data.data.length === 0) {
-      alert("No playlists found in your Apple Music library.");
+      alert(`No playlists found in your ${state.activeService === 'apple' ? 'Apple Music' : 'Spotify'} library.`);
       return;
     }
 
@@ -2156,10 +2482,15 @@ async function handleLoadSelectedPlaylist() {
   el.btnLoadText.textContent = "Loading tracks...";
 
   try {
-    const userToken = state.musicKit.musicUserToken;
-    const response = await fetch(`/api/library/playlists/${playlistId}/tracks?musicUserToken=${encodeURIComponent(userToken)}`);
+    if (state.activeService === 'spotify') {
+      await checkAndRefreshSpotifyToken();
+    }
+    const response = await fetch(`/api/library/playlists/${playlistId}/tracks`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) {
-      throw new Error(`Proxy tracks endpoint returned ${response.status}`);
+      const errMsg = await getResponseError(response);
+      throw new Error(errMsg);
     }
 
     const data = await response.json();
@@ -2179,7 +2510,7 @@ async function handleLoadSelectedPlaylist() {
       const queryText = `${artist} - ${name}`;
       tracksLines.push(queryText);
 
-      const catalogSong = track.relationships?.catalog?.data?.[0];
+      const catalogSong = track.relationships?.catalog?.data?.[0] || (state.activeService === 'spotify' ? track : null);
       if (catalogSong) {
         originalTrackIds.push(catalogSong.id);
         return {

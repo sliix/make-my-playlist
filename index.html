@@ -39,9 +39,6 @@
       <h1>MakeMyPlaylist</h1>
     </div>
     <div class="header-right">
-      <div class="header-status-indicator">
-        <div id="connection-indicator" class="status-indicator offline" title="Apple Music Connection Status"></div>
-      </div>
       <button id="btn-menu-toggle" class="btn-menu-toggle" aria-label="Toggle Menu">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="4" y1="12" x2="20" y2="12"></line>
@@ -50,8 +47,47 @@
         </svg>
       </button>
       <div id="header-actions" class="header-actions">
-        <span id="connection-text" class="connection-text">Apple Music: Not Connected</span>
-        <button id="btn-connect-apple" class="btn btn-secondary btn-sm">Connect Apple Music</button>
+        <div id="services-dropdown" class="services-dropdown">
+          <button id="btn-services-dropdown" class="btn btn-secondary btn-services-dropdown" type="button">
+            <span id="active-service-dot" class="status-indicator-dot offline"></span>
+            <span id="active-service-name">Service: Apple Music</span>
+            <svg class="icon icon-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div id="menu-services-dropdown" class="menu-services-dropdown hidden">
+            <!-- Apple Music Item -->
+            <div class="service-menu-item" data-service="apple">
+              <div class="service-menu-header">
+                <div class="service-info">
+                  <span class="service-icon">🍎</span>
+                  <span class="service-title">Apple Music</span>
+                </div>
+                <span class="service-status-badge offline" id="badge-status-apple">Disconnected</span>
+              </div>
+              <div class="service-actions">
+                <button class="btn btn-xs btn-primary btn-service-active hidden" id="btn-activate-apple" type="button">Set Active</button>
+                <button class="btn btn-xs btn-secondary btn-service-connect" id="btn-connect-apple-menu" type="button">Connect</button>
+                <button class="btn btn-xs btn-outline-danger btn-service-disconnect hidden" id="btn-disconnect-apple-action" type="button">Disconnect</button>
+              </div>
+            </div>
+            <!-- Spotify Item -->
+            <div class="service-menu-item" data-service="spotify">
+              <div class="service-menu-header">
+                <div class="service-info">
+                  <span class="service-icon">🟢</span>
+                  <span class="service-title">Spotify</span>
+                </div>
+                <span class="service-status-badge offline" id="badge-status-spotify">Disconnected</span>
+              </div>
+              <div class="service-actions">
+                <button class="btn btn-xs btn-primary btn-service-active hidden" id="btn-activate-spotify" type="button">Set Active</button>
+                <button class="btn btn-xs btn-secondary btn-service-connect" id="btn-connect-spotify-menu" type="button">Connect</button>
+                <button class="btn btn-xs btn-outline-danger btn-service-disconnect hidden" id="btn-disconnect-spotify-action" type="button">Disconnect</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -62,7 +98,7 @@
     <section class="control-panel panel">
       <div id="card-import-playlist" class="section-card">
         <h2>Import Existing Playlist (Optional)</h2>
-        <p class="section-desc">Select one of your existing Apple Music library playlists to load its songs and details.</p>
+        <p class="section-desc">Select one of your existing library playlists to load its songs and details.</p>
         <div class="import-controls">
           <button id="btn-fetch-playlists" class="btn btn-secondary btn-block">
             <svg class="icon animate-spin hidden" id="spinner-fetch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -101,31 +137,10 @@
           </div>
         </div>
       </div>
-      <div class="section-card">
-        <h2>1. Playlist Details</h2>
-        <div class="form-group">
-          <label for="playlist-name">Playlist Name</label>
-          <input type="text" id="playlist-name" placeholder="My Awesome Playlist" value="My Awesome Playlist">
-        </div>
-        <div class="form-group">
-          <label for="playlist-desc">Description</label>
-          <textarea id="playlist-desc" rows="2" placeholder="Created with MakeMyPlaylist"></textarea>
-        </div>
-        <div class="form-group toggle-group">
-          <div class="toggle-label-container">
-            <span class="toggle-title">Public Playlist</span>
-            <span class="toggle-desc">Make this playlist visible to other Apple Music users.</span>
-          </div>
-          <label class="switch" for="playlist-public">
-            <input type="checkbox" id="playlist-public">
-            <span class="slider round"></span>
-          </label>
-        </div>
-      </div>
 
       <div class="section-card">
-        <h2>2. Input Songs or Describe Your Playlist</h2>
-        <p class="section-desc">Paste a list of specific songs (each on a new line, e.g., "Artist - Title") or describe what you want in natural language (e.g., "80s Israeli music"). The system will automatically detect the mode.</p>
+        <h2>1. Input Songs or Describe Your Playlist</h2>
+        <p class="section-desc">Paste your song list below, with each song on a new line (e.g., "Artist - Title" or "Title by Artist"), or describe your playlist in natural language (e.g., "80s Israeli music"). The system will automatically detect the input style.</p>
         <div class="textarea-container">
           <textarea id="input-song-list" placeholder="Examples:
 1. Daft Punk - Get Lucky
@@ -148,6 +163,28 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
           </div>
           <label class="switch" for="chk-append-mode">
             <input type="checkbox" id="chk-append-mode">
+            <span class="slider round"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h2>2. Playlist Details</h2>
+        <div class="form-group">
+          <label for="playlist-name">Playlist Name</label>
+          <input type="text" id="playlist-name" placeholder="My Awesome Playlist" value="My Awesome Playlist">
+        </div>
+        <div class="form-group">
+          <label for="playlist-desc">Description</label>
+          <textarea id="playlist-desc" rows="2" placeholder="Created with MakeMyPlaylist"></textarea>
+        </div>
+        <div class="form-group toggle-group">
+          <div class="toggle-label-container">
+            <span class="toggle-title">Public Playlist</span>
+            <span class="toggle-desc">Make this playlist visible to other users.</span>
+          </div>
+          <label class="switch" for="playlist-public">
+            <input type="checkbox" id="playlist-public">
             <span class="slider round"></span>
           </label>
         </div>
