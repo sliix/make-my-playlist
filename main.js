@@ -25,7 +25,6 @@ const el = {
   btnReset: document.getElementById('btn-reset'),
   btnMenuToggle: document.getElementById('btn-menu-toggle'),
   headerActions: document.getElementById('header-actions'),
-  headerLogoIcon: document.getElementById('header-logo-icon'),
   activeServiceIcon: document.getElementById('active-service-icon'),
 
   inputSongList: document.getElementById('input-song-list'),
@@ -433,12 +432,6 @@ function updateConnectionUI() {
 
   if (el.activeServiceName) {
     el.activeServiceName.textContent = serviceLabel;
-  }
-
-  if (el.headerLogoIcon) {
-    el.headerLogoIcon.textContent = serviceIcon;
-    el.headerLogoIcon.style.opacity = isServiceConnected ? "1" : "0.5";
-    el.headerLogoIcon.style.filter = isServiceConnected ? "none" : "grayscale(1)";
   }
 
   if (el.activeServiceIcon) {
