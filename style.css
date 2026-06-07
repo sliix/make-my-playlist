@@ -1794,6 +1794,13 @@ dialog[open] {
   transition: all var(--transition-fast);
 }
 
+.btn-lang-toggle .lang-icon {
+  font-size: 22px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+}
+
 .btn-lang-toggle:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.25);
