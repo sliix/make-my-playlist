@@ -11,7 +11,7 @@ export const translations = {
     "service.action.setActive": "Set Active",
     "service.action.connect": "Connect",
     "service.action.disconnect": "Disconnect",
-    
+
     // Import Playlist Card
     "card.import.title": "Import Existing Playlist",
     "card.import.desc": "Select one of your existing library playlists to load its songs and details.",
@@ -21,7 +21,7 @@ export const translations = {
     "card.import.selectDefault": "Choose a playlist...",
     "card.import.btnLoad": "Load Playlist Songs",
     "card.import.btnLoadLoading": "Loading tracks...",
-    
+
     // Playlist Details Card
     "card.details.title": "1. Playlist Details",
     "card.details.nameLabel": "Playlist Name",
@@ -30,7 +30,7 @@ export const translations = {
     "card.details.descPlaceholder": "Created with MakeMyPlaylist",
     "card.details.publicTitle": "Public Playlist",
     "card.details.publicDesc": "Make this playlist visible to other users.",
-    
+
     // Input Songs Card
     "card.input.title": "2. Input Songs or Describe Your Playlist",
     "card.input.desc": "Paste your song list below, with each song on a new line (e.g., \"Artist - Title\" or \"Title by Artist\"), or describe your playlist in natural language (e.g., \"80s Israeli music\"). The system will automatically detect the input style.",
@@ -40,7 +40,7 @@ export const translations = {
     "card.input.btnSearch": "Search Catalog",
     "card.input.btnSearchAnalyzing": "Analyzing prompt...",
     "card.input.btnSearchSearching": "Searching Catalog...",
-    
+
     // Playlist Items Card
     "card.items.title": "3. Playlist Items",
     "card.items.btnApproveAll": "Check/Uncheck All",
@@ -48,7 +48,7 @@ export const translations = {
     "card.items.emptyDesc": "Paste a list of songs on the left and click \"Search Catalog\" to fetch matches from your active music service.",
     "card.items.progressLabel": "Searching {service} Catalog ({completed}/{total})...",
     "card.items.progressLLM": "Sending prompt to AI parser...",
-    
+
     // Track Card
     "track.versionLabel": "Version / Match Options",
     "track.refineLabel": "Refine Search",
@@ -61,13 +61,13 @@ export const translations = {
     "track.tryRefining": "Try refining your search",
     "track.alternativesDefault": "No options available",
     "track.counter": "{approved}/{total} selected",
-    
+
     // Global Actions & Reset
     "action.reset": "Reset",
     "action.resetLabel": "Reset Editor",
     "action.createPlaylist": "Create Playlist",
     "action.exportPlaylist": "Export Playlist",
-    
+
     // Modals
     "modal.export.title": "Export Options",
     "modal.export.desc": "Would you like to overwrite the existing playlist or create a new one?",
@@ -78,7 +78,7 @@ export const translations = {
     "modal.name.placeholder": "e.g., My Summer Playlist 2026",
     "modal.name.btnSave": "Save & Export",
     "modal.name.btnCancel": "Cancel",
-    
+
     // Toasts & Alerts
     "alert.resetConfirm": "Are you sure you want to clear the editor? This will erase the current song list, playlist settings, and all search results.",
     "alert.resetSuccess": "Editor cleared successfully!",
@@ -107,8 +107,15 @@ export const translations = {
     "alert.appleMusicLimitWarning": "Note: Playlist name/description changes cannot be saved due to Apple Music API limits.",
     "alert.playlistsLoaded": "Playlists loaded successfully!",
     "alert.importedFrom": "Imported from library playlist: {name}",
+    "alert.serviceUnavailable": "The service is not available right now. Please try refreshing the page or try again later.",
+    "alert.spotifyConnected": "Connected to Spotify successfully!",
+    "alert.appleConnected": "Connected to Apple Music successfully!",
+    "alert.appleAuthFailed": "Could not authorize Apple Music account.",
+    "alert.appleDisconnected": "Disconnected from Apple Music.",
+    "alert.spotifyDisconnected": "Disconnected from Spotify.",
+    "alert.serviceSwitched": "Switched active service to {service}.",
     "card.items.updatingText": "Updating...",
-    
+
     // Badges
     "badge.listMode": "Song List Mode",
     "badge.naturalMode": "Natural Language Mode",
@@ -120,7 +127,7 @@ export const translations = {
     "badge.listExplanationManual": "Matching specific tracks.",
     "badge.aiExplanation": "We detected a request to build a custom playlist with AI.",
     "badge.aiExplanationManual": "AI will build a playlist based on your prompt.",
-    
+
     // Service Names
     "serviceName.apple": "Apple Music",
     "serviceName.spotify": "Spotify"
@@ -129,24 +136,24 @@ export const translations = {
     // Header
     "header.title": "MakeMyPlaylist",
     "header.logoAlt": "לוגו MakeMyPlaylist",
-    "service.apple": "Apple Music",
-    "service.spotify": "Spotify",
+    "service.apple": "אפל מיוזיק",
+    "service.spotify": "ספוטיפיי",
     "service.status.connected": "מחובר",
     "service.status.disconnected": "מנותק",
     "service.action.setActive": "הגדר כפעיל",
     "service.action.connect": "התחבר",
     "service.action.disconnect": "התנתק",
-    
+
     // Import Playlist Card
     "card.import.title": "יבוא פלייליסט קיים",
-    "card.import.desc": "בחר פלייליסט קיים מהספרייה שלך כדי לטעון את השירים והפרטים שלו.",
+    "card.import.desc": "בחרו פלייליסט קיים מהספרייה שלכם כדי לטעון את השירים והפרטים שלו.",
     "card.import.btnFetch": "טען את הפלייליסטים שלי",
     "card.import.btnFetchLoading": "טוען פלייליסטים...",
     "card.import.selectLabel": "בחר פלייליסט",
-    "card.import.selectDefault": "בחר פלייליסט...",
+    "card.import.selectDefault": "בחרו פלייליסט...",
     "card.import.btnLoad": "טען שירים מהפלייליסט",
     "card.import.btnLoadLoading": "טוען שירים...",
-    
+
     // Playlist Details Card
     "card.details.title": "1. פרטי הפלייליסט",
     "card.details.nameLabel": "שם הפלייליסט",
@@ -155,25 +162,25 @@ export const translations = {
     "card.details.descPlaceholder": "נוצר באמצעות MakeMyPlaylist",
     "card.details.publicTitle": "פלייליסט ציבורי",
     "card.details.publicDesc": "הצג פלייליסט זה למשתמשים אחרים.",
-    
+
     // Input Songs Card
-    "card.input.title": "2. הכנס שירים או תאר את הפלייליסט שלך",
-    "card.input.desc": "הדבק את רשימת השירים שלך למטה, כל שיר בשורה חדשה (לדוגמה: \"אמן - שם השיר\" או \"שם השיר של אמן\"), או תאר את הפלייליסט שלך בשפה חופשית (לדוגמה: \"מוזיקה ישראלית משנות השמונים\"). המערכת תזהה אוטומטית את סגנון הקלט.",
+    "card.input.title": "2. הכניסו שירים או תארו את הפלייליסט שלכם",
+    "card.input.desc": "הדביקו את רשימת השירים שלכם למטה, כל שיר בשורה חדשה (לדוגמה: \"אמן - שם השיר\" או \"שם השיר של אמן\"), או תארו את הפלייליסט שלכם בשפה חופשית (לדוגמה: \"מוזיקה ישראלית משנות השמונים\"). המערכת תזהה אוטומטית את סגנון הקלט.",
     "card.input.placeholder": "דוגמאות:\n1. Daft Punk - Get Lucky\nBillie Eilish - Bad Guy\nBohemian Rhapsody by Queen (1975)\nBlinding Lights - The Weeknd\nStay - Justin Bieber & The Kid LAROI",
     "card.input.appendTitle": "הוסף לקיים",
-    "card.input.appendDesc": "הוסף התאמות חדשות לרשימה הנוכחית שלך במקום לדרוס אותה.",
-    "card.input.btnSearch": "חפש בקטלוג",
+    "card.input.appendDesc": "הוסיפו התאמות חדשות לרשימה הנוכחית שלכם במקום לדרוס אותה.",
+    "card.input.btnSearch": "חיפוש בקטלוג",
     "card.input.btnSearchAnalyzing": "מנתח הנחיה...",
     "card.input.btnSearchSearching": "מחפש בקטלוג...",
-    
+
     // Playlist Items Card
     "card.items.title": "3. פריטי הפלייליסט",
     "card.items.btnApproveAll": "סמן/בטל סימון להכל",
-    "card.items.emptyTitle": "לא נותחו שירים עדיין",
-    "card.items.emptyDesc": "הדבק רשימת שירים משמאל ולחץ על \"חפש בקטלוג\" כדי למשוך התאמות משירות המוזיקה הפעיל שלך.",
+    "card.items.emptyTitle": "אין שירים עדיין",
+    "card.items.emptyDesc": "הדבק רשימת שירים מימין ולחץ על \"חפש בקטלוג\" כדי למשוך התאמות משירות המוזיקה הפעיל שלך.",
     "card.items.progressLabel": "מחפש בקטלוג של {service} ({completed}/{total})...",
     "card.items.progressLLM": "שולח הנחיה למנתח ה-AI...",
-    
+
     // Track Card
     "track.versionLabel": "גרסאות / אפשרויות התאמה",
     "track.refineLabel": "עדן חיפוש",
@@ -183,39 +190,39 @@ export const translations = {
     "track.queryLabel": "שאילתה",
     "track.explicit": "אקספליסיט",
     "track.noMatch": "לא נמצאה התאמה",
-    "track.tryRefining": "נסה לעדן את החיפוש שלך",
+    "track.tryRefining": "נסו לעדן את החיפוש שלכם",
     "track.alternativesDefault": "אין אפשרויות זמינות",
     "track.counter": "נבחרו {approved}/{total}",
-    
+
     // Global Actions & Reset
     "action.reset": "איפוס",
     "action.resetLabel": "איפוס העורך",
-    "action.createPlaylist": "צור פלייליסט",
-    "action.exportPlaylist": "ייצא פלייליסט",
-    
+    "action.createPlaylist": "יצירת פלייליסט",
+    "action.exportPlaylist": "ייצוא פלייליסט",
+
     // Modals
     "modal.export.title": "אפשרויות ייצוא",
-    "modal.export.desc": "האם תרצה לעדכן את הפלייליסט הקיים או ליצור פלייליסט חדש?",
-    "modal.export.btnUpdate": "עדכן פלייליסט קיים",
-    "modal.export.btnCreate": "צור פלייליסט חדש",
+    "modal.export.desc": "האם תרצו לעדכן את הפלייליסט הקיים או ליצור פלייליסט חדש?",
+    "modal.export.btnUpdate": "עדכון פלייליסט קיים",
+    "modal.export.btnCreate": "יצירת פלייליסט חדש",
     "modal.name.title": "שם הפלייליסט",
-    "modal.name.desc": "אנא הזן שם פלייליסט מותאם וייחודי לפני יצירת הפלייליסט:",
+    "modal.name.desc": "אנא הזינו שם פלייליסט מותאם וייחודי לפני יצירת הפלייליסט:",
     "modal.name.placeholder": "לדוגמה: הפלייליסט הקיצי שלי 2026",
-    "modal.name.btnSave": "שמור וייצא",
+    "modal.name.btnSave": "שמירה וייצוא",
     "modal.name.btnCancel": "ביטול",
-    
+
     // Toasts & Alerts
-    "alert.resetConfirm": "האם אתה בטוח שברצונך לאפס את העורך? פעולה זו תמחק את רשימת השירים הנוכחית, הגדרות הפלייליסט וכל תוצאות החיפוש.",
+    "alert.resetConfirm": "האם אתם בטוחים שברצונכם לאפס את העורך? פעולה זו תמחק את רשימת השירים הנוכחית, הגדרות הפלייליסט וכל תוצאות החיפוש.",
     "alert.resetSuccess": "העורך אופס בהצלחה!",
     "alert.loadSuccess": "נטענו בהצלחה {count} שירים ורשימת השירים עודכנה!",
     "alert.noSongsInPlaylist": "בפלייליסט זה אין שירים.",
     "alert.loadFailed": "לא ניתן לטעון שירים מהפלייליסט: {error}",
-    "alert.emptyInput": "אנא הדבק או כתוב רשימת שירים תחילה.",
-    "alert.emptyPrompt": "אנא הזן תיאור לחיפוש הפלייליסט שלך.",
+    "alert.emptyInput": "אנא הדביקו או כתבו רשימת שירים תחילה.",
+    "alert.emptyPrompt": "אנא הזינו תיאור לחיפוש הפלייליסט שלכם.",
     "alert.noNewSongs": "לא נמצאו שירים חדשים או ייחודיים להוספה לרשימה.",
     "alert.toastUpdated": "רשימת השירים עודכנה (לא נדרשו חיפושים חדשים).",
-    "alert.noMatchesFound": "לא נמצאו שירים חדשים התואמים לביקוש זה ב-{service}. נסה מילות מפתח אחרות.",
-    "alert.customNameRequired": "אנא הזן שם פלייליסט ייחודי ומותאם אישית.",
+    "alert.noMatchesFound": "לא נמצאו שירים חדשים התואמים לביקוש זה ב-{service}. נסו מילות מפתח אחרות.",
+    "alert.customNameRequired": "אנא הזינו שם פלייליסט ייחודי ומותאם אישית.",
     "alert.updateFailed": "עדכון הפלייליסט נכשל: {error}",
     "alert.createFailed": "יצירת הפלייליסט נכשלה: {error}",
     "alert.successPlaylistCreated": "הפלייליסט נוצר בהצלחה!",
@@ -232,8 +239,15 @@ export const translations = {
     "alert.appleMusicLimitWarning": "הערה: לא ניתן לשמור שינויים בשם או בתיאור הפלייליסט עקב מגבלות ה-API של Apple Music.",
     "alert.playlistsLoaded": "הפלייליסטים נטענו בהצלחה!",
     "alert.importedFrom": "יובא מפלייליסט הספרייה: {name}",
+    "alert.serviceUnavailable": "השירות אינו זמין כעת. אנא נסו לרענן את העמוד או לנסות שוב מאוחר יותר.",
+    "alert.spotifyConnected": "התחברתם לספוטיפיי בהצלחה!",
+    "alert.appleConnected": "התחברתם ל-Apple Music בהצלחה!",
+    "alert.appleAuthFailed": "לא ניתן היה לאמת את חשבון Apple Music.",
+    "alert.appleDisconnected": "נותקתם מ-Apple Music.",
+    "alert.spotifyDisconnected": "נותקתם מספוטיפיי.",
+    "alert.serviceSwitched": "השירות הפעיל שונה ל-{service}.",
     "card.items.updatingText": "מעדכן...",
-    
+
     // Badges
     "badge.listMode": "מצב רשימת שירים",
     "badge.naturalMode": "מצב שפה חופשית",
@@ -245,10 +259,10 @@ export const translations = {
     "badge.listExplanationManual": "מתאים שירים ספציפיים.",
     "badge.aiExplanation": "זיהינו בקשה לבניית פלייליסט מותאם אישית בעזרת AI.",
     "badge.aiExplanationManual": "ה-AI יבנה פלייליסט בהתבסס על ההנחיה שלך.",
-    
+
     // Service Names
-    "serviceName.apple": "Apple Music",
-    "serviceName.spotify": "Spotify"
+    "serviceName.apple": "אפל מיוזיק",
+    "serviceName.spotify": "ספוטיפיי"
   }
 };
 
@@ -275,19 +289,19 @@ export function setLocale(lang) {
 export function t(key, params = {}) {
   const lang = getLocale();
   let text = translations[lang][key] || translations['en'][key] || key;
-  
+
   // Replace placeholders e.g., {count}
   Object.keys(params).forEach(p => {
     text = text.replace(new RegExp(`{${p}}`, 'g'), params[p]);
   });
-  
+
   return text;
 }
 
 export function applyTranslations() {
   const lang = getLocale();
   const dir = lang === 'he' ? 'rtl' : 'ltr';
-  
+
   // Set HTML attributes
   document.documentElement.setAttribute('lang', lang);
   document.documentElement.setAttribute('dir', dir);

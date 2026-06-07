@@ -1,6 +1,7 @@
 import { state, el, saveAppState } from './state.js';
 import { getResponseError, showSuccessToast, showErrorToast } from './utils.js';
 import { updateCreatePlaylistButtonState } from './renderer.js';
+import { t } from './i18n.js';
 
 // Helper to fetch session configuration with up to 3 retries (1 second apart)
 export async function loadSessionConfigWithRetries(maxAttempts = 4, delayMs = 1000) {
@@ -16,7 +17,7 @@ export async function loadSessionConfigWithRetries(maxAttempts = 4, delayMs = 10
     }
   }
   // All attempts failed
-  alert("The service is not available right now. Please try refreshing the page or try again later.");
+  alert(t('alert.serviceUnavailable'));
 }
 
 // Fetch session configurations dynamically from secure Express backend
@@ -129,7 +130,7 @@ export function handleSpotifyCallback() {
     const cleanUrl = window.location.pathname + window.location.hash;
     window.history.replaceState({}, document.title, cleanUrl);
 
-    showSuccessToast("Connected to Spotify successfully!");
+    showSuccessToast(t('alert.spotifyConnected'));
   }
 }
 
@@ -141,7 +142,8 @@ export function updateConnectionUI() {
   if (appleItem) {
     if (isAppleAuthorized) {
       appleItem.classList.remove('offline');
-      el.badgeStatusApple.textContent = "Connected";
+      el.badgeStatusApple.textContent = t('service.status.connected');
+      el.badgeStatusApple.setAttribute('data-i18n', 'service.status.connected');
       el.badgeStatusApple.className = "service-status-badge online";
       el.btnConnectAppleMenu.classList.add('hidden');
       el.btnDisconnectAppleAction.classList.remove('hidden');
@@ -156,7 +158,8 @@ export function updateConnectionUI() {
     } else {
       appleItem.classList.add('offline');
       appleItem.classList.remove('active');
-      el.badgeStatusApple.textContent = "Disconnected";
+      el.badgeStatusApple.textContent = t('service.status.disconnected');
+      el.badgeStatusApple.setAttribute('data-i18n', 'service.status.disconnected');
       el.badgeStatusApple.className = "service-status-badge offline";
       el.btnConnectAppleMenu.classList.remove('hidden');
       el.btnDisconnectAppleAction.classList.add('hidden');
@@ -171,7 +174,8 @@ export function updateConnectionUI() {
   if (spotifyItem) {
     if (isSpotifyAuthorized) {
       spotifyItem.classList.remove('offline');
-      el.badgeStatusSpotify.textContent = "Connected";
+      el.badgeStatusSpotify.textContent = t('service.status.connected');
+      el.badgeStatusSpotify.setAttribute('data-i18n', 'service.status.connected');
       el.badgeStatusSpotify.className = "service-status-badge online";
       el.btnConnectSpotifyMenu.classList.add('hidden');
       el.btnDisconnectSpotifyAction.classList.remove('hidden');
@@ -186,7 +190,8 @@ export function updateConnectionUI() {
     } else {
       spotifyItem.classList.add('offline');
       spotifyItem.classList.remove('active');
-      el.badgeStatusSpotify.textContent = "Disconnected";
+      el.badgeStatusSpotify.textContent = t('service.status.disconnected');
+      el.badgeStatusSpotify.setAttribute('data-i18n', 'service.status.disconnected');
       el.badgeStatusSpotify.className = "service-status-badge offline";
       el.btnConnectSpotifyMenu.classList.remove('hidden');
       el.btnDisconnectSpotifyAction.classList.add('hidden');
@@ -196,12 +201,13 @@ export function updateConnectionUI() {
 
   // 3. Dropdown Header Trigger Label and Indicator
   const isServiceConnected = state.activeService === 'apple' ? isAppleAuthorized : isSpotifyAuthorized;
-  const serviceLabel = state.activeService === 'apple' ? 'Apple Music' : 'Spotify';
+  const serviceKey = state.activeService === 'apple' ? 'service.apple' : 'service.spotify';
   
   const serviceIcon = state.activeService === 'apple' ? '🍏' : '🟢';
 
   if (el.activeServiceName) {
-    el.activeServiceName.textContent = serviceLabel;
+    el.activeServiceName.setAttribute('data-i18n', serviceKey);
+    el.activeServiceName.textContent = t(serviceKey);
   }
 
   if (el.activeServiceIcon) {
@@ -213,17 +219,17 @@ export function updateConnectionUI() {
 
 export async function handleConnectAppleMusic() {
   if (!state.musicKit) {
-    alert("Apple Music is not configured or unavailable. Please refresh the page.");
+    alert(t('alert.musicKitUnavailable'));
     return;
   }
   try {
     // Refresh configurations right before auth popups to guarantee active JWT validity
     await refreshMusicKitConfiguration();
     await state.musicKit.authorize();
-    showSuccessToast("Connected to Apple Music successfully!");
+    showSuccessToast(t('alert.appleConnected'));
   } catch (err) {
     console.error("Authorization flow error:", err);
-    showErrorToast("Could not authorize Apple Music account.");
+    showErrorToast(t('alert.appleAuthFailed'));
   }
 }
 
@@ -231,7 +237,7 @@ export async function handleDisconnectAppleMusic() {
   if (!state.musicKit) return;
   try {
     await state.musicKit.unauthorize();
-    showSuccessToast("Disconnected from Apple Music.");
+    showSuccessToast(t('alert.appleDisconnected'));
     if (state.activeService === 'apple') {
       handleSelectActive('spotify');
     } else {
@@ -255,7 +261,7 @@ export function handleDisconnectSpotify() {
   localStorage.removeItem('spotifyRefreshToken');
   localStorage.removeItem('spotifyExpiresAt');
 
-  showSuccessToast("Disconnected from Spotify.");
+  showSuccessToast(t('alert.spotifyDisconnected'));
   if (state.activeService === 'spotify') {
     handleSelectActive('apple');
   } else {
@@ -280,7 +286,8 @@ export function handleSelectActive(service) {
   updateConnectionUI();
   updateCreatePlaylistButtonState();
   
-  showSuccessToast(`Switched active service to ${service === 'apple' ? 'Apple Music' : 'Spotify'}.`);
+  const targetServiceLabel = service === 'apple' ? t('service.apple') : t('service.spotify');
+  showSuccessToast(t('alert.serviceSwitched', { service: targetServiceLabel }));
 }
 
 // Re-configure/refresh configuration dynamically to prevent JWT expirations
