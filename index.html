@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <!-- SEO Meta Tags -->
-  <title>MakeMyPlaylist - Create Apple Music Playlists Instantly</title>
-  <meta name="description" content="Convert your raw text song lists into Apple Music playlists. Review, refine, search alternatives, and export directly to your Apple Music library.">
-  <meta name="keywords" content="Apple Music, playlist creator, playlist generator, music importer, text to playlist">
+  <title>MakeMyPlaylist - Create Playlists Instantly</title>
+  <meta name="description" content="Convert your raw text song lists into Spotify, Apple Music, and other service playlists. Review, refine, search alternatives, and export directly.">
+  <meta name="keywords" content="playlist creator, playlist generator, music importer, text to playlist, Spotify, Apple Music">
   
   <!-- Google Fonts for Modern Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -220,13 +220,13 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
           </svg>
         </div>
         <h3>No Songs Analyzed Yet</h3>
-        <p>Paste a list of songs on the left and click "Analyze & Search Catalog" to fetch matches from Apple Music.</p>
+        <p>Paste a list of songs on the left and click "Analyze & Search Catalog" to fetch matches from your active music service.</p>
       </div>
 
       <!-- Search Progress Card -->
       <div id="search-progress-card" class="progress-card hidden">
         <div class="progress-details">
-          <span id="progress-status-text">Searching Apple Music Catalog...</span>
+          <span id="progress-status-text">Searching Catalog...</span>
           <span id="progress-percentage">0/0</span>
         </div>
         <div class="progress-bar-bg">
@@ -296,7 +296,7 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
             <div class="option-card-content">
               <span class="option-card-title">Update Existing Playlist</span>
               <span class="option-card-desc">Appends any newly approved tracks to the existing library playlist.</span>
-              <span class="option-card-warning">Note: Apple Music API does not support deleting or reordering existing tracks.</span>
+              <span class="option-card-warning">Note: Currently, only appending new tracks is supported when updating an existing playlist.</span>
             </div>
           </button>
           

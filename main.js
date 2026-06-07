@@ -1141,7 +1141,7 @@ async function executeNaturalLanguageGeneration(parsedPrompt) {
   const slicedSongs = finalSongs.slice(0, parsedPrompt.size);
 
   if (slicedSongs.length === 0) {
-    alert("No matching songs found on Apple Music for this request. Try different keywords.");
+    alert(`No matching songs found on ${serviceLabel} for this request. Try different keywords.`);
     el.searchProgressCard.classList.add('hidden');
     el.resultsEmptyState.classList.remove('hidden');
     el.btnAnalyze.disabled = false;

@@ -1,7 +1,7 @@
 {
   "name": "MakeMyPlaylist",
   "short_name": "MakePlaylist",
-  "description": "Convert your song lists into Apple Music playlists instantly.",
+  "description": "Convert your song lists into music service playlists instantly.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0812",
