@@ -40,6 +40,7 @@ const el = {
   progressPercentage: document.getElementById('progress-percentage'),
   progressBarFill: document.getElementById('progress-bar-fill'),
   tracksList: document.getElementById('tracks-list'),
+  tracksCounter: document.getElementById('tracks-counter'),
 
   connectionIndicator: document.getElementById('connection-indicator'),
   connectionText: document.getElementById('connection-text'),
@@ -506,6 +507,17 @@ function updateInputAutoDetection() {
     });
     el.btnOverrideMode.after(resetBtn);
   }
+}
+
+function updateTracksCounter() {
+  if (!state.tracks || state.tracks.length === 0) {
+    el.tracksCounter.classList.add('hidden');
+    return;
+  }
+  const total = state.tracks.length;
+  const approved = state.tracks.filter(t => t.approved).length;
+  el.tracksCounter.textContent = `${approved}/${total}`;
+  el.tracksCounter.classList.remove('hidden');
 }
 
 function parseNaturalLanguagePrompt(text) {
@@ -1015,6 +1027,7 @@ async function executeCatalogSearches(pendingTracks) {
 // UI Rendering for track cards
 function renderTracksList() {
   el.tracksList.innerHTML = '';
+  updateTracksCounter();
 
   state.tracks.forEach((track, index) => {
     const card = document.createElement('div');
@@ -1184,6 +1197,7 @@ function bindTrackCardListeners() {
           card.classList.remove('approved');
         }
         updateCreatePlaylistButtonState();
+        updateTracksCounter();
         saveAppState();
       }
     });
@@ -1573,6 +1587,7 @@ function handleApproveAll() {
   });
 
   updateCreatePlaylistButtonState();
+  updateTracksCounter();
   saveAppState();
 }
 
@@ -2013,6 +2028,7 @@ function handleResetApp() {
     el.playlistDesc.value = "";
     el.playlistPublic.checked = false;
     updateInputAutoDetection();
+    updateTracksCounter();
 
     // 4. Do not clear the fetched library playlists or importer selector selection
 
