@@ -57,7 +57,6 @@ const el = {
   // Services Dropdown UI
   btnServicesDropdown: document.getElementById('btn-services-dropdown'),
   menuServicesDropdown: document.getElementById('menu-services-dropdown'),
-  activeServiceDot: document.getElementById('active-service-dot'),
   activeServiceName: document.getElementById('active-service-name'),
   badgeStatusApple: document.getElementById('badge-status-apple'),
   badgeStatusSpotify: document.getElementById('badge-status-spotify'),
@@ -435,17 +434,17 @@ function updateConnectionUI() {
   if (el.activeServiceName) {
     el.activeServiceName.textContent = serviceLabel;
   }
-  
-  if (el.activeServiceDot) {
-    el.activeServiceDot.className = `status-indicator-dot ${isServiceConnected ? 'online' : 'offline'}`;
-  }
 
   if (el.headerLogoIcon) {
     el.headerLogoIcon.textContent = serviceIcon;
+    el.headerLogoIcon.style.opacity = isServiceConnected ? "1" : "0.5";
+    el.headerLogoIcon.style.filter = isServiceConnected ? "none" : "grayscale(1)";
   }
 
   if (el.activeServiceIcon) {
     el.activeServiceIcon.textContent = serviceIcon;
+    el.activeServiceIcon.style.opacity = isServiceConnected ? "1" : "0.5";
+    el.activeServiceIcon.style.filter = isServiceConnected ? "none" : "grayscale(1)";
   }
 }
 

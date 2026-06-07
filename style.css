@@ -192,6 +192,7 @@ h1, h2, h3, h4 {
   justify-content: center;
   line-height: 1;
   user-select: none;
+  transition: all var(--transition-fast);
 }
 
 .btn-services-dropdown:hover {
@@ -210,23 +211,7 @@ h1, h2, h3, h4 {
   transform: rotate(180deg);
 }
 
-.status-indicator-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-  box-shadow: 0 0 8px currentColor;
-}
 
-.status-indicator-dot.online {
-  background-color: var(--accent-success);
-  color: var(--accent-success);
-}
-
-.status-indicator-dot.offline {
-  background-color: var(--accent-danger);
-  color: var(--accent-danger);
-}
 
 .menu-services-dropdown {
   position: absolute;
