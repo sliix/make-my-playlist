@@ -1550,7 +1550,9 @@ dialog[open] {
     padding: 3px 8px;
   }
 
-  #btn-analyze {
+  #btn-analyze,
+  #btn-fetch-playlists,
+  #btn-load-playlist {
     padding: 12px 24px !important;
     font-size: 14px !important;
   }
