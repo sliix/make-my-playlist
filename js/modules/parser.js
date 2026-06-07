@@ -470,20 +470,7 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
     }
   }
 
-  // Slice to target playlist size
-  const slicedSongs = finalSongs.slice(0, parsedPrompt.size);
-
-  if (slicedSongs.length === 0) {
-    alert(`No matching songs found on ${serviceLabel} for this request. Try different keywords.`);
-    el.searchProgressCard.classList.add('hidden');
-    el.resultsEmptyState.classList.remove('hidden');
-    el.btnAnalyze.disabled = false;
-    el.spinnerAnalyze.classList.add('hidden');
-    el.btnAnalyzeText.textContent = "Analyze & Search Catalog";
-    return;
-  }
-
-  // Map and filter out duplicates
+  // Deduplicate and filter finalSongs against state.tracks and duplicates within the batch
   const existingSongIds = new Set(
     (el.chkAppendMode.checked ? state.tracks : [])
       .filter(t => t.status === 'matched' && t.results[t.selectedIndex])
@@ -493,12 +480,11 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
     (el.chkAppendMode.checked ? state.tracks : []).map(t => t.searchQuery.toLowerCase())
   );
 
-  const uniqueMappedTracks = [];
+  const uniqueSongsPool = [];
   const seenQueries = new Set();
   const seenMappedIds = new Set();
-  let nextId = el.chkAppendMode.checked ? Math.max(0, ...state.tracks.map(t => t.id)) + 1 : 1;
 
-  for (const song of slicedSongs) {
+  for (const song of finalSongs) {
     const songId = song.id;
     const qName = `${song.attributes.artistName} - ${song.attributes.name}`;
     const qLower = qName.toLowerCase();
@@ -510,32 +496,40 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
     if (!isDup) {
       if (songId) seenMappedIds.add(songId);
       seenQueries.add(qLower);
-      uniqueMappedTracks.push({
-        id: nextId++,
-        originalQuery: qName,
-        searchQuery: qName,
-        status: 'matched',
-        results: [song],
-        selectedIndex: 0,
-        approved: true,
-        errorMessage: ''
-      });
+      uniqueSongsPool.push(song);
     }
   }
 
-  if (uniqueMappedTracks.length === 0 && el.chkAppendMode.checked) {
-    alert("All generated songs are already present in your playlist.");
+  // Slice unique songs pool to target playlist size
+  const slicedSongs = uniqueSongsPool.slice(0, parsedPrompt.size);
+
+  if (slicedSongs.length === 0) {
+    alert(`No new matching songs found on ${serviceLabel} for this request. Try different keywords.`);
     el.searchProgressCard.classList.add('hidden');
+    el.resultsEmptyState.classList.remove('hidden');
     el.btnAnalyze.disabled = false;
     el.spinnerAnalyze.classList.add('hidden');
     el.btnAnalyzeText.textContent = "Analyze & Search Catalog";
     return;
   }
 
+  // Map into state.tracks format
+  let nextId = el.chkAppendMode.checked ? Math.max(0, ...state.tracks.map(t => t.id)) + 1 : 1;
+  const mappedTracks = slicedSongs.map((song, idx) => ({
+    id: nextId + idx,
+    originalQuery: `${song.attributes.artistName} - ${song.attributes.name}`,
+    searchQuery: `${song.attributes.artistName} - ${song.attributes.name}`,
+    status: 'matched',
+    results: [song],
+    selectedIndex: 0,
+    approved: true,
+    errorMessage: ''
+  }));
+
   if (el.chkAppendMode.checked) {
-    state.tracks = [...state.tracks, ...uniqueMappedTracks];
+    state.tracks = [...state.tracks, ...mappedTracks];
   } else {
-    state.tracks = uniqueMappedTracks;
+    state.tracks = mappedTracks;
   }
 
   // Complete search and draw UI list
