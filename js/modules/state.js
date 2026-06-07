@@ -94,7 +94,7 @@ export const el = {
   // Language switcher elements
   btnLangToggle: document.getElementById('btn-lang-toggle'),
   menuLangDropdown: document.getElementById('menu-lang-dropdown'),
-  currentLangName: document.getElementById('current-lang-name'),
+  currentLangFlag: document.getElementById('current-lang-flag'),
 };
 
 // Local Storage Session Persistence Helpers

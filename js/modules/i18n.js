@@ -328,9 +328,9 @@ export function applyTranslations() {
     el.setAttribute('placeholder', t(key));
   });
 
-  // Update current language indicator in switcher button if present
-  const currentLangLabel = document.getElementById('current-lang-name');
-  if (currentLangLabel) {
-    currentLangLabel.textContent = lang === 'he' ? 'עברית' : 'English';
+  // Update current language flag in switcher button if present
+  const currentLangFlag = document.getElementById('current-lang-flag');
+  if (currentLangFlag) {
+    currentLangFlag.textContent = lang === 'he' ? '🇮🇱' : '🇺🇸';
   }
 }
