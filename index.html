@@ -40,20 +40,6 @@
     </div>
     <div class="header-right">
       <div id="header-actions" class="header-actions">
-        <!-- Language Selector Dropdown -->
-        <div id="language-selector" class="language-selector">
-          <button id="btn-lang-toggle" class="btn btn-secondary btn-lang-toggle" type="button" aria-label="Switch Language">
-            <span id="current-lang-flag" class="lang-icon">🇺🇸</span>
-            <svg class="icon icon-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </button>
-          <div id="menu-lang-dropdown" class="menu-lang-dropdown hidden">
-            <div class="lang-menu-item" data-lang="en">🇺🇸 English</div>
-            <div class="lang-menu-item" data-lang="he">🇮🇱 עברית</div>
-          </div>
-        </div>
-
         <!-- Services Selector Dropdown -->
         <div id="services-dropdown" class="services-dropdown">
           <button id="btn-services-dropdown" class="btn btn-secondary btn-services-dropdown" type="button">
@@ -94,6 +80,17 @@
                 <button class="btn btn-xs btn-outline-danger btn-service-disconnect hidden" id="btn-disconnect-spotify-action" type="button" data-i18n="service.action.disconnect">Disconnect</button>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Language Selector Dropdown -->
+        <div id="language-selector" class="language-selector">
+          <button id="btn-lang-toggle" class="btn btn-lang-toggle" type="button" aria-label="Switch Language">
+            <span id="current-lang-flag" class="lang-icon">🇺🇸</span>
+          </button>
+          <div id="menu-lang-dropdown" class="menu-lang-dropdown hidden">
+            <div class="lang-menu-item" data-lang="en">🇺🇸 English</div>
+            <div class="lang-menu-item" data-lang="he">🇮🇱 עברית</div>
           </div>
         </div>
       </div>
