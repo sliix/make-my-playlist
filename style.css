@@ -1520,6 +1520,7 @@ dialog[open] {
   .results-header {
     flex-wrap: nowrap;
     align-items: center;
+    padding-inline: 24px;
   }
 
   .results-title-container {
