@@ -178,25 +178,29 @@ function initEventListeners() {
   });
 
   // Mobile Hamburger Toggle
-  el.btnMenuToggle.addEventListener('click', (e) => {
-    e.stopPropagation();
-    el.headerActions.classList.toggle('open');
-  });
+  if (el.btnMenuToggle) {
+    el.btnMenuToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      el.headerActions.classList.toggle('open');
+    });
+  }
 
   // Close menus when clicking outside
   document.addEventListener('click', (e) => {
     // Mobile menu toggle click outside
-    if (el.headerActions.classList.contains('open') &&
-      !el.headerActions.contains(e.target) &&
-      e.target !== el.btnMenuToggle &&
-      !el.btnMenuToggle.contains(e.target)) {
-      el.headerActions.classList.remove('open');
+    if (el.headerActions && el.headerActions.classList.contains('open')) {
+      if (!el.headerActions.contains(e.target) &&
+          (!el.btnMenuToggle || (e.target !== el.btnMenuToggle && !el.btnMenuToggle.contains(e.target)))) {
+        el.headerActions.classList.remove('open');
+      }
     }
 
     // Dropdown toggle click outside
-    if (!el.btnServicesDropdown.contains(e.target) && !el.menuServicesDropdown.contains(e.target)) {
-      el.menuServicesDropdown.classList.add('hidden');
-      el.btnServicesDropdown.parentElement.classList.remove('open');
+    if (el.btnServicesDropdown && el.menuServicesDropdown) {
+      if (!el.btnServicesDropdown.contains(e.target) && !el.menuServicesDropdown.contains(e.target)) {
+        el.menuServicesDropdown.classList.add('hidden');
+        el.btnServicesDropdown.parentElement.classList.remove('open');
+      }
     }
   });
 
@@ -425,7 +429,7 @@ function updateConnectionUI() {
   const serviceLabel = state.activeService === 'apple' ? 'Apple Music' : 'Spotify';
   
   if (el.activeServiceName) {
-    el.activeServiceName.textContent = `Service: ${serviceLabel}`;
+    el.activeServiceName.textContent = serviceLabel;
   }
   
   if (el.activeServiceDot) {
