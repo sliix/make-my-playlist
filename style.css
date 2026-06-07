@@ -442,6 +442,10 @@ textarea {
   min-height: auto;
 }
 
+#input-song-list {
+  min-height: 120px;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
