@@ -1708,6 +1708,14 @@ dialog[open] {
     flex-direction: column;
     width: 100%;
   }
+
+  .action-bar-container {
+    padding: 16px 39px !important;
+  }
+
+  .action-buttons .btn {
+    width: 100%;
+  }
 }
 
 /* Play Preview Button Overlay & Animation */
