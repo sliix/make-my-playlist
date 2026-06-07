@@ -25,6 +25,8 @@ const el = {
   btnReset: document.getElementById('btn-reset'),
   btnMenuToggle: document.getElementById('btn-menu-toggle'),
   headerActions: document.getElementById('header-actions'),
+  headerLogoIcon: document.getElementById('header-logo-icon'),
+  activeServiceIcon: document.getElementById('active-service-icon'),
 
   inputSongList: document.getElementById('input-song-list'),
   detectionStatusContainer: document.getElementById('detection-status-container'),
@@ -428,12 +430,22 @@ function updateConnectionUI() {
   const isServiceConnected = state.activeService === 'apple' ? isAppleAuthorized : isSpotifyAuthorized;
   const serviceLabel = state.activeService === 'apple' ? 'Apple Music' : 'Spotify';
   
+  const serviceIcon = state.activeService === 'apple' ? '🍏' : '🟢';
+
   if (el.activeServiceName) {
     el.activeServiceName.textContent = serviceLabel;
   }
   
   if (el.activeServiceDot) {
     el.activeServiceDot.className = `status-indicator-dot ${isServiceConnected ? 'online' : 'offline'}`;
+  }
+
+  if (el.headerLogoIcon) {
+    el.headerLogoIcon.textContent = serviceIcon;
+  }
+
+  if (el.activeServiceIcon) {
+    el.activeServiceIcon.textContent = serviceIcon;
   }
 }
 

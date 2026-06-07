@@ -122,6 +122,16 @@ h1, h2, h3, h4 {
   filter: drop-shadow(0 0 8px var(--color-primary-glow));
 }
 
+.logo-icon-emoji {
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  filter: drop-shadow(0 0 8px var(--color-primary-glow));
+  user-select: none;
+}
+
 .header-logo h1 {
   font-size: 24px;
   background: var(--gradient-neon);
@@ -173,6 +183,15 @@ h1, h2, h3, h4 {
 
 #active-service-name::before {
   content: "Service: ";
+}
+
+.active-service-icon {
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  user-select: none;
 }
 
 .btn-services-dropdown:hover {
@@ -1479,10 +1498,18 @@ dialog[open] {
     height: 24px;
   }
 
+  .logo-icon-emoji {
+    font-size: 20px;
+  }
+
   .btn-services-dropdown {
     padding: 6px 12px;
     font-size: 12px;
     gap: 6px;
+  }
+
+  .active-service-icon {
+    font-size: 12px;
   }
 
   #active-service-name::before {

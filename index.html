@@ -31,11 +31,7 @@
   <!-- Header Section -->
   <header class="app-header">
     <div class="header-logo">
-      <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 18V5l12-2v13"></path>
-        <circle cx="6" cy="18" r="3"></circle>
-        <circle cx="18" cy="16" r="3"></circle>
-      </svg>
+      <span id="header-logo-icon" class="logo-icon-emoji">🍏</span>
       <h1>MakeMyPlaylist</h1>
     </div>
     <div class="header-right">
@@ -43,6 +39,7 @@
         <div id="services-dropdown" class="services-dropdown">
           <button id="btn-services-dropdown" class="btn btn-secondary btn-services-dropdown" type="button">
             <span id="active-service-dot" class="status-indicator-dot offline"></span>
+            <span id="active-service-icon" class="active-service-icon">🍏</span>
             <span id="active-service-name">Apple Music</span>
             <svg class="icon icon-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="6 9 12 15 18 9"></polyline>
@@ -53,7 +50,7 @@
             <div class="service-menu-item" data-service="apple">
               <div class="service-menu-header">
                 <div class="service-info">
-                  <span class="service-icon">🍎</span>
+                  <span class="service-icon">🍏</span>
                   <span class="service-title">Apple Music</span>
                 </div>
                 <span class="service-status-badge offline" id="badge-status-apple">Disconnected</span>
