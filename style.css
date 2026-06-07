@@ -1583,15 +1583,11 @@ dialog[open] {
   }
 
   .track-status-check {
-    display: flex !important;
-    padding: 8px !important;
-    margin: -8px !important;
+    display: none !important;
   }
 
   .track-drag-handle {
-    display: flex !important;
-    padding: 8px !important;
-    margin: -8px !important;
+    display: none !important;
   }
 
   .track-reorder-buttons {
