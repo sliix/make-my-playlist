@@ -1550,6 +1550,11 @@ dialog[open] {
     padding: 3px 8px;
   }
 
+  #btn-analyze {
+    padding: 12px 24px !important;
+    font-size: 14px !important;
+  }
+
   .app-header {
     padding: 15px 20px;
   }
