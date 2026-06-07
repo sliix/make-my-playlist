@@ -11,6 +11,8 @@ const state = {
   loadedPlaylistName: null,           // Name of loaded library playlist if any
   loadedPlaylistDesc: null,           // Description of loaded library playlist if any
   loadedPlaylistOriginalTrackIds: [], // array of track IDs currently in the loaded playlist
+  detectedMode: 'list',               // auto-detected mode ('list' or 'natural')
+  isModeOverridden: false,            // whether the user manually locked the mode
 };
 
 // UI Elements Cache
@@ -20,7 +22,10 @@ const el = {
   headerActions: document.getElementById('header-actions'),
 
   inputSongList: document.getElementById('input-song-list'),
-  chkNaturalLanguage: document.getElementById('chk-natural-language'),
+  detectionStatusContainer: document.getElementById('detection-status-container'),
+  detectionBadge: document.getElementById('detection-badge'),
+  detectionExplanation: document.getElementById('detection-explanation'),
+  btnOverrideMode: document.getElementById('btn-override-mode'),
   playlistName: document.getElementById('playlist-name'),
   playlistDesc: document.getElementById('playlist-desc'),
   playlistPublic: document.getElementById('playlist-public'),
@@ -134,8 +139,17 @@ function initEventListeners() {
   });
 
   // Persist input values as they type
-  el.inputSongList.addEventListener('input', saveAppState);
-  el.chkNaturalLanguage.addEventListener('change', saveAppState);
+  el.inputSongList.addEventListener('input', () => {
+    updateInputAutoDetection();
+    saveAppState();
+  });
+  el.btnOverrideMode.addEventListener('click', (e) => {
+    e.preventDefault();
+    state.isModeOverridden = true;
+    state.detectedMode = state.detectedMode === 'list' ? 'natural' : 'list';
+    updateInputAutoDetection();
+    saveAppState();
+  });
   el.playlistName.addEventListener('input', saveAppState);
   el.playlistDesc.addEventListener('input', saveAppState);
   el.playlistPublic.addEventListener('change', saveAppState);
@@ -276,11 +290,11 @@ function handleAnalyzeSongList() {
 
   const rawText = el.inputSongList.value;
   if (!rawText.trim()) {
-    alert(el.chkNaturalLanguage.checked ? "Please enter a prompt describing your playlist." : "Please paste or write a list of songs first.");
+    alert(state.detectedMode === 'natural' ? "Please enter a prompt describing your playlist." : "Please paste or write a list of songs first.");
     return;
   }
 
-  if (el.chkNaturalLanguage.checked) {
+  if (state.detectedMode === 'natural') {
     // Show searching/parsing progress indicator
     el.resultsEmptyState.classList.add('hidden');
     el.tracksList.classList.add('hidden');
@@ -401,6 +415,97 @@ function parseSongLine(line) {
   cleaned = cleaned.replace(/\s+/g, ' ');
 
   return cleaned;
+}
+
+function detectInputType(text) {
+  const rawText = text.trim();
+  if (!rawText) return 'list';
+
+  const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  if (lines.length === 0) return 'list';
+
+  // Standard prompt keywords
+  const promptKeywords = [
+    // English keywords
+    'want', 'playlist', 'best', 'essentials', 'like', 'similar', 'recommend', 'show', 'genre',
+    'music', 'songs', 'tracks', 'album', 'decade', 'mix', 'collection', 'mood', 'vibe',
+    'chill', 'workout', 'happy', 'sad', 'party', 'focus', 'study',
+    // Hebrew keywords
+    'רוצה', 'פלייליסט', 'הכי טוב', 'אמנים', 'כמו', 'בסגנון', 'סגנון', 'שירים', 'מוזיקה', 'מוסיקה', 'שנות', 'אלבום'
+  ];
+
+  const hasPromptKeyword = (line) => {
+    const lower = line.toLowerCase();
+    return promptKeywords.some(keyword => lower.includes(keyword));
+  };
+
+  let songLinesCount = 0;
+  for (const line of lines) {
+    const hasSeparator = line.includes('-') || /\bby\b/i.test(line);
+    const hasKeywords = hasPromptKeyword(line);
+    
+    if (hasSeparator && !hasKeywords) {
+      songLinesCount++;
+    }
+  }
+
+  // If more than 50% of the non-empty lines look like songs, it's a song list
+  const ratio = songLinesCount / lines.length;
+  return ratio > 0.5 ? 'list' : 'natural';
+}
+
+function updateInputAutoDetection() {
+  const rawText = el.inputSongList.value.trim();
+  if (!rawText) {
+    el.detectionStatusContainer.classList.add('hidden');
+    state.detectedMode = 'list';
+    state.isModeOverridden = false;
+    return;
+  }
+
+  // Remove existing reset buttons next to override button if any
+  const existingReset = el.detectionStatusContainer.querySelector('.btn-reset-auto');
+  if (existingReset) {
+    existingReset.remove();
+  }
+
+  if (!state.isModeOverridden) {
+    state.detectedMode = detectInputType(rawText);
+  }
+
+  el.detectionStatusContainer.classList.remove('hidden');
+
+  if (state.detectedMode === 'list') {
+    el.detectionBadge.className = 'badge badge-info';
+    el.detectionBadge.textContent = '📄 Song List Mode';
+    el.detectionExplanation.textContent = state.isModeOverridden 
+      ? 'Matching specific tracks (Manually Set).' 
+      : 'We detected a list of specific tracks to search and match.';
+    el.btnOverrideMode.textContent = 'Switch to Auto-Playlist Mode';
+  } else {
+    el.detectionBadge.className = 'badge badge-purple';
+    el.detectionBadge.textContent = '✨ Auto-Playlist Mode';
+    el.detectionExplanation.textContent = state.isModeOverridden 
+      ? 'Gemini will build a playlist based on your prompt (Manually Set).' 
+      : 'We detected a request to build a custom playlist with Gemini.';
+    el.btnOverrideMode.textContent = 'Switch to Song List Mode';
+  }
+
+  if (state.isModeOverridden) {
+    const resetBtn = document.createElement('button');
+    resetBtn.type = 'button';
+    resetBtn.className = 'btn-override-mode btn-reset-auto';
+    resetBtn.style.marginLeft = '8px';
+    resetBtn.style.color = 'var(--text-muted)';
+    resetBtn.textContent = '(Reset to Auto)';
+    resetBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.isModeOverridden = false;
+      updateInputAutoDetection();
+      saveAppState();
+    });
+    el.btnOverrideMode.after(resetBtn);
+  }
 }
 
 function parseNaturalLanguagePrompt(text) {
@@ -1820,7 +1925,8 @@ function updateAllPlayButtonUI() {
 // Local Storage Session Persistence Helpers
 function saveAppState() {
   localStorage.setItem('makemyplaylist_raw_input', el.inputSongList.value);
-  localStorage.setItem('makemyplaylist_natural_language', el.chkNaturalLanguage.checked ? 'true' : 'false');
+  localStorage.setItem('makemyplaylist_detected_mode', state.detectedMode || 'list');
+  localStorage.setItem('makemyplaylist_is_mode_overridden', state.isModeOverridden ? 'true' : 'false');
 
   const details = {
     name: el.playlistName.value,
@@ -1852,10 +1958,9 @@ function restoreAppState() {
       el.playlistPublic.checked = details.isPublic === true;
     }
 
-    const naturalLanguage = localStorage.getItem('makemyplaylist_natural_language');
-    if (naturalLanguage !== null) {
-      el.chkNaturalLanguage.checked = naturalLanguage === 'true';
-    }
+    state.detectedMode = localStorage.getItem('makemyplaylist_detected_mode') || 'list';
+    state.isModeOverridden = localStorage.getItem('makemyplaylist_is_mode_overridden') === 'true';
+    updateInputAutoDetection();
 
     state.loadedPlaylistId = localStorage.getItem('makemyplaylist_loaded_playlist_id') || null;
     state.loadedPlaylistName = localStorage.getItem('makemyplaylist_loaded_playlist_name') || null;
@@ -1899,12 +2004,15 @@ function handleResetApp() {
     state.loadedPlaylistName = null;
     state.loadedPlaylistDesc = null;
     state.loadedPlaylistOriginalTrackIds = [];
+    state.detectedMode = 'list';
+    state.isModeOverridden = false;
 
     // 3. Reset UI inputs to defaults
     el.inputSongList.value = "";
     el.playlistName.value = "My Awesome Playlist";
     el.playlistDesc.value = "";
     el.playlistPublic.checked = false;
+    updateInputAutoDetection();
 
     // 4. Do not clear the fetched library playlists or importer selector selection
 
@@ -1921,6 +2029,8 @@ function handleResetApp() {
 
     // 7. Clear local storage state
     localStorage.removeItem('makemyplaylist_raw_input');
+    localStorage.removeItem('makemyplaylist_detected_mode');
+    localStorage.removeItem('makemyplaylist_is_mode_overridden');
     localStorage.removeItem('makemyplaylist_details');
     localStorage.removeItem('makemyplaylist_tracks');
     localStorage.removeItem('makemyplaylist_loaded_playlist_id');

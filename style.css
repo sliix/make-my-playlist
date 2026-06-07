@@ -1523,3 +1523,55 @@ dialog[open] {
   border-color: var(--color-primary);
   animation: artworkPulse 1.8s infinite;
 }
+
+/* Detection Status Badge under input */
+.detection-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glass);
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-top: 10px;
+  font-size: 13px;
+  transition: all 0.3s ease;
+}
+
+.detection-status.hidden {
+  display: none !important;
+}
+
+.detection-status .badge-info {
+  background: rgba(10, 132, 255, 0.15);
+  color: #0a84ff;
+  border: 1px solid rgba(10, 132, 255, 0.3);
+}
+
+.detection-status .badge-purple {
+  background: rgba(191, 90, 242, 0.15);
+  color: #bf5af2;
+  border: 1px solid rgba(191, 90, 242, 0.3);
+}
+
+.detection-status .detection-explanation {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.detection-status .btn-override-mode {
+  background: none;
+  border: none;
+  color: var(--accent-color);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: auto;
+  transition: opacity 0.2s ease;
+}
+
+.detection-status .btn-override-mode:hover {
+  opacity: 0.8;
+}
