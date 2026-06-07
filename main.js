@@ -477,18 +477,18 @@ function updateInputAutoDetection() {
 
   if (state.detectedMode === 'list') {
     el.detectionBadge.className = 'badge badge-info';
-    el.detectionBadge.textContent = '📄 Song List Mode';
+    el.detectionBadge.textContent = '📄 List mode';
     el.detectionExplanation.textContent = state.isModeOverridden 
       ? 'Matching specific tracks (Manually Set).' 
       : 'We detected a list of specific tracks to search and match.';
-    el.btnOverrideMode.textContent = 'Switch to Auto-Playlist Mode';
+    el.btnOverrideMode.textContent = 'Switch to AI mode';
   } else {
     el.detectionBadge.className = 'badge badge-purple';
-    el.detectionBadge.textContent = '✨ Auto-Playlist Mode';
+    el.detectionBadge.textContent = '✨ AI mode';
     el.detectionExplanation.textContent = state.isModeOverridden 
       ? 'Gemini will build a playlist based on your prompt (Manually Set).' 
       : 'We detected a request to build a custom playlist with Gemini.';
-    el.btnOverrideMode.textContent = 'Switch to Song List Mode';
+    el.btnOverrideMode.textContent = 'Switch to List mode';
   }
 
   if (state.isModeOverridden) {
