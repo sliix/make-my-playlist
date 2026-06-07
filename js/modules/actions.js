@@ -88,15 +88,28 @@ export function handleAnalyzeSongList() {
   const lines = rawText.split('\n');
   const newTracks = [];
   const currentTracks = el.chkAppendMode.checked ? [] : [...state.tracks];
+  const existingSearchQueries = new Set(
+    (el.chkAppendMode.checked ? state.tracks : []).map(t => t.searchQuery.toLowerCase())
+  );
+  const seenNewQueries = new Set();
+  
   let nextId = Math.max(0, ...state.tracks.map(t => t.id)) + 1;
 
   for (const line of lines) {
     const cleanedQuery = parseSongLine(line);
     if (cleanedQuery) {
+      const qLower = cleanedQuery.toLowerCase();
+      
+      // Prevent duplicates in the newly parsed batch or against existing tracks (if appending)
+      if (existingSearchQueries.has(qLower) || seenNewQueries.has(qLower)) {
+        continue;
+      }
+      seenNewQueries.add(qLower);
+
       // Find an existing track that matches this line (by originalQuery or searchQuery)
       const existingIndex = currentTracks.findIndex(t =>
         t.originalQuery.toLowerCase() === line.trim().toLowerCase() ||
-        t.searchQuery.toLowerCase() === cleanedQuery.toLowerCase()
+        t.searchQuery.toLowerCase() === qLower
       );
 
       if (existingIndex !== -1) {
@@ -120,7 +133,7 @@ export function handleAnalyzeSongList() {
   }
 
   if (newTracks.length === 0) {
-    alert("No valid songs found in the input list.");
+    alert("No new or unique songs found to add to the list.");
     return;
   }
 

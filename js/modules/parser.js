@@ -483,23 +483,59 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
     return;
   }
 
-  // Map into state.tracks format
+  // Map and filter out duplicates
+  const existingSongIds = new Set(
+    (el.chkAppendMode.checked ? state.tracks : [])
+      .filter(t => t.status === 'matched' && t.results[t.selectedIndex])
+      .map(t => t.results[t.selectedIndex].id)
+  );
+  const existingSearchQueries = new Set(
+    (el.chkAppendMode.checked ? state.tracks : []).map(t => t.searchQuery.toLowerCase())
+  );
+
+  const uniqueMappedTracks = [];
+  const seenQueries = new Set();
+  const seenMappedIds = new Set();
   let nextId = el.chkAppendMode.checked ? Math.max(0, ...state.tracks.map(t => t.id)) + 1 : 1;
-  const mappedTracks = slicedSongs.map((song, idx) => ({
-    id: nextId + idx,
-    originalQuery: `${song.attributes.artistName} - ${song.attributes.name}`,
-    searchQuery: `${song.attributes.artistName} - ${song.attributes.name}`,
-    status: 'matched',
-    results: [song],
-    selectedIndex: 0,
-    approved: true,
-    errorMessage: ''
-  }));
+
+  for (const song of slicedSongs) {
+    const songId = song.id;
+    const qName = `${song.attributes.artistName} - ${song.attributes.name}`;
+    const qLower = qName.toLowerCase();
+
+    const isDup = (songId && (existingSongIds.has(songId) || seenMappedIds.has(songId))) ||
+                  existingSearchQueries.has(qLower) ||
+                  seenQueries.has(qLower);
+
+    if (!isDup) {
+      if (songId) seenMappedIds.add(songId);
+      seenQueries.add(qLower);
+      uniqueMappedTracks.push({
+        id: nextId++,
+        originalQuery: qName,
+        searchQuery: qName,
+        status: 'matched',
+        results: [song],
+        selectedIndex: 0,
+        approved: true,
+        errorMessage: ''
+      });
+    }
+  }
+
+  if (uniqueMappedTracks.length === 0 && el.chkAppendMode.checked) {
+    alert("All generated songs are already present in your playlist.");
+    el.searchProgressCard.classList.add('hidden');
+    el.btnAnalyze.disabled = false;
+    el.spinnerAnalyze.classList.add('hidden');
+    el.btnAnalyzeText.textContent = "Analyze & Search Catalog";
+    return;
+  }
 
   if (el.chkAppendMode.checked) {
-    state.tracks = [...state.tracks, ...mappedTracks];
+    state.tracks = [...state.tracks, ...uniqueMappedTracks];
   } else {
-    state.tracks = mappedTracks;
+    state.tracks = uniqueMappedTracks;
   }
 
   // Complete search and draw UI list
