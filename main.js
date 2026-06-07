@@ -50,6 +50,17 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Update connection UI after initialization
   updateConnectionUI();
+
+  // Prevent pinch-to-zoom gestures on touch devices
+  document.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  document.addEventListener('gesturestart', (e) => {
+    e.preventDefault();
+  });
 });
 
 // Event Listeners Registration
