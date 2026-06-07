@@ -171,6 +171,44 @@ function initEventListeners() {
     });
   }
 
+  // Collapsible cards header toggle listener
+  document.querySelectorAll('.section-card.collapsible .card-header-toggle').forEach(header => {
+    header.addEventListener('click', () => {
+      const card = header.closest('.section-card.collapsible');
+      if (card) {
+        card.classList.toggle('collapsed');
+      }
+    });
+  });
+
+  // Playlist Name Modal listeners
+  if (el.btnCloseNameModal) {
+    el.btnCloseNameModal.addEventListener('click', () => el.modalPlaylistName.close());
+  }
+  if (el.btnCancelNameModal) {
+    el.btnCancelNameModal.addEventListener('click', () => el.modalPlaylistName.close());
+  }
+  if (el.modalPlaylistName) {
+    el.modalPlaylistName.addEventListener('click', (e) => {
+      if (e.target === el.modalPlaylistName) {
+        el.modalPlaylistName.close();
+      }
+    });
+  }
+  if (el.btnSaveNameModal) {
+    el.btnSaveNameModal.addEventListener('click', () => {
+      const newName = el.modalInputPlaylistName.value.trim();
+      if (!newName || newName === "My Awesome Playlist") {
+        alert("Please enter a custom, unique playlist name.");
+        return;
+      }
+      el.playlistName.value = newName;
+      saveAppState();
+      el.modalPlaylistName.close();
+      executeCreatePlaylist();
+    });
+  }
+
   // Initialize Drag & Drop events
   initDragAndDrop();
 }

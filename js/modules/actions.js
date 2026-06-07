@@ -252,7 +252,23 @@ export async function handleCreatePlaylist() {
       await executeCreatePlaylist();
     }
   } else {
-    await executeCreatePlaylist();
+    const name = el.playlistName.value.trim();
+    if (name === "My Awesome Playlist") {
+      if (el.modalPlaylistName) {
+        el.modalInputPlaylistName.value = "My Awesome Playlist";
+        el.modalPlaylistName.showModal();
+        el.modalInputPlaylistName.select(); // Highlight for quick replacement
+      } else {
+        const newName = prompt("Please enter a custom playlist name:", "My Awesome Playlist");
+        if (newName && newName.trim() && newName.trim() !== "My Awesome Playlist") {
+          el.playlistName.value = newName.trim();
+          saveAppState();
+          await executeCreatePlaylist();
+        }
+      }
+    } else {
+      await executeCreatePlaylist();
+    }
   }
 }
 

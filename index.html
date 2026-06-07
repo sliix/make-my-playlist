@@ -89,33 +89,20 @@
   <main class="app-main">
     <!-- Left Column: Input & Configuration -->
     <section class="control-panel panel">
-      <div id="card-import-playlist" class="section-card">
-        <h2>Import Existing Playlist (Optional)</h2>
-        <p class="section-desc">Select one of your existing library playlists to load its songs and details.</p>
-        <div class="import-controls">
-          <button id="btn-fetch-playlists" class="btn btn-secondary btn-block">
-            <svg class="icon animate-spin hidden" id="spinner-fetch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="2" x2="12" y2="6"></line>
-              <line x1="12" y1="18" x2="12" y2="22"></line>
-              <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-              <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-              <line x1="2" y1="12" x2="6" y2="12"></line>
-              <line x1="18" y1="12" x2="22" y2="12"></line>
-              <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-              <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+      <div id="card-import-playlist" class="section-card collapsible collapsed">
+        <div class="card-header-toggle">
+          <h2>Import Existing Playlist (Optional)</h2>
+          <button class="btn-toggle" type="button" aria-label="Toggle Section">
+            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
-            <span id="btn-fetch-text">Fetch My Playlists</span>
           </button>
-          
-          <div id="playlist-select-group" class="form-group mt-4 hidden">
-            <label for="select-library-playlists">Select Playlist</label>
-            <div class="select-wrapper">
-              <select id="select-library-playlists">
-                <option value="" disabled selected>Choose a playlist...</option>
-              </select>
-            </div>
-            <button id="btn-load-playlist" class="btn btn-primary btn-block mt-4" disabled>
-              <svg class="icon animate-spin hidden" id="spinner-load" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        </div>
+        <div class="collapsible-content">
+          <p class="section-desc">Select one of your existing library playlists to load its songs and details.</p>
+          <div class="import-controls">
+            <button id="btn-fetch-playlists" class="btn btn-secondary btn-block">
+              <svg class="icon animate-spin hidden" id="spinner-fetch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="2" x2="12" y2="6"></line>
                 <line x1="12" y1="18" x2="12" y2="22"></line>
                 <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
@@ -125,31 +112,62 @@
                 <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
                 <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
               </svg>
-              <span id="btn-load-text">Load Playlist Songs</span>
+              <span id="btn-fetch-text">Fetch My Playlists</span>
             </button>
+            
+            <div id="playlist-select-group" class="form-group mt-4 hidden">
+              <label for="select-library-playlists">Select Playlist</label>
+              <div class="select-wrapper">
+                <select id="select-library-playlists">
+                  <option value="" disabled selected>Choose a playlist...</option>
+                </select>
+              </div>
+              <button id="btn-load-playlist" class="btn btn-primary btn-block mt-4" disabled>
+                <svg class="icon animate-spin hidden" id="spinner-load" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="2" x2="12" y2="6"></line>
+                  <line x1="12" y1="18" x2="12" y2="22"></line>
+                  <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                  <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                  <line x1="2" y1="12" x2="6" y2="12"></line>
+                  <line x1="18" y1="12" x2="22" y2="12"></line>
+                  <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                  <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                </svg>
+                <span id="btn-load-text">Load Playlist Songs</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="section-card">
-        <h2>1. Playlist Details</h2>
-        <div class="form-group">
-          <label for="playlist-name">Playlist Name</label>
-          <input type="text" id="playlist-name" placeholder="My Awesome Playlist" value="My Awesome Playlist">
+      <div id="card-playlist-details" class="section-card collapsible collapsed">
+        <div class="card-header-toggle">
+          <h2>1. Playlist Details</h2>
+          <button class="btn-toggle" type="button" aria-label="Toggle Section">
+            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
         </div>
-        <div class="form-group">
-          <label for="playlist-desc">Description</label>
-          <textarea id="playlist-desc" rows="2" placeholder="Created with MakeMyPlaylist"></textarea>
-        </div>
-        <div class="form-group toggle-group">
-          <div class="toggle-label-container">
-            <span class="toggle-title">Public Playlist</span>
-            <span class="toggle-desc">Make this playlist visible to other users.</span>
+        <div class="collapsible-content">
+          <div class="form-group">
+            <label for="playlist-name">Playlist Name</label>
+            <input type="text" id="playlist-name" placeholder="My Awesome Playlist" value="My Awesome Playlist">
           </div>
-          <label class="switch" for="playlist-public">
-            <input type="checkbox" id="playlist-public">
-            <span class="slider round"></span>
-          </label>
+          <div class="form-group">
+            <label for="playlist-desc">Description</label>
+            <textarea id="playlist-desc" rows="2" placeholder="Created with MakeMyPlaylist"></textarea>
+          </div>
+          <div class="form-group toggle-group">
+            <div class="toggle-label-container">
+              <span class="toggle-title">Public Playlist</span>
+              <span class="toggle-desc">Make this playlist visible to other users.</span>
+            </div>
+            <label class="switch" for="playlist-public">
+              <input type="checkbox" id="playlist-public">
+              <span class="slider round"></span>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -312,6 +330,32 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
               <span class="option-card-desc">Creates a brand new library playlist with all approved tracks in their current order.</span>
             </div>
           </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Playlist Name Setup Glass Modal Dialog -->
+  <dialog id="modal-playlist-name" class="glass-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Name Your Playlist</h3>
+        <button id="btn-close-name-modal" class="btn-close" aria-label="Close Modal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 20px;">Please give your playlist a custom name before saving.</p>
+        <div class="form-group">
+          <label for="modal-input-playlist-name">Playlist Name</label>
+          <input type="text" id="modal-input-playlist-name" placeholder="My Awesome Playlist" value="My Awesome Playlist">
+        </div>
+        <div class="modal-footer mt-4" style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button id="btn-cancel-name-modal" class="btn btn-secondary" type="button">Cancel</button>
+          <button id="btn-save-name-modal" class="btn btn-primary" type="button">Save Playlist</button>
         </div>
       </div>
     </div>

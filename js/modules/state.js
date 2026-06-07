@@ -84,6 +84,11 @@ export const el = {
   btnCloseModal: document.getElementById('btn-close-modal'),
   btnModalUpdate: document.getElementById('btn-modal-update'),
   btnModalCreateNew: document.getElementById('btn-modal-create-new'),
+  modalPlaylistName: document.getElementById('modal-playlist-name'),
+  modalInputPlaylistName: document.getElementById('modal-input-playlist-name'),
+  btnSaveNameModal: document.getElementById('btn-save-name-modal'),
+  btnCancelNameModal: document.getElementById('btn-cancel-name-modal'),
+  btnCloseNameModal: document.getElementById('btn-close-name-modal'),
 };
 
 // Local Storage Session Persistence Helpers
