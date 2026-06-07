@@ -134,6 +134,12 @@ export function handleSpotifyCallback() {
   }
 }
 
+export function isAnyServiceConnected() {
+  const isAppleAuthorized = !!(state.musicKit && state.musicKit.isAuthorized);
+  const isSpotifyAuthorized = !!(state.spotifyAccessToken && state.spotifyExpiresAt && parseInt(state.spotifyExpiresAt, 10) > Date.now());
+  return isAppleAuthorized || isSpotifyAuthorized;
+}
+
 export function updateConnectionUI() {
   // 1. Apple Music Status
   const isAppleAuthorized = !!(state.musicKit && state.musicKit.isAuthorized);
@@ -200,10 +206,17 @@ export function updateConnectionUI() {
   }
 
   // 3. Dropdown Header Trigger Label and Indicator
+  const isAnyConnected = isAnyServiceConnected();
   const isServiceConnected = state.activeService === 'apple' ? isAppleAuthorized : isSpotifyAuthorized;
-  const serviceKey = state.activeService === 'apple' ? 'service.apple' : 'service.spotify';
   
-  const serviceIcon = state.activeService === 'apple' ? '🍏' : '🟢';
+  let serviceKey, serviceIcon;
+  if (!isAnyConnected) {
+    serviceKey = 'service.none';
+    serviceIcon = '';
+  } else {
+    serviceKey = state.activeService === 'apple' ? 'service.apple' : 'service.spotify';
+    serviceIcon = state.activeService === 'apple' ? '🍏' : '🟢';
+  }
 
   if (el.activeServiceName) {
     el.activeServiceName.setAttribute('data-i18n', serviceKey);
@@ -212,8 +225,13 @@ export function updateConnectionUI() {
 
   if (el.activeServiceIcon) {
     el.activeServiceIcon.textContent = serviceIcon;
-    el.activeServiceIcon.style.opacity = isServiceConnected ? "1" : "0.5";
-    el.activeServiceIcon.style.filter = isServiceConnected ? "none" : "grayscale(1)";
+    if (isAnyConnected) {
+      el.activeServiceIcon.style.opacity = isServiceConnected ? "1" : "0.5";
+      el.activeServiceIcon.style.filter = isServiceConnected ? "none" : "grayscale(1)";
+    } else {
+      el.activeServiceIcon.style.opacity = "0.5";
+      el.activeServiceIcon.style.filter = "grayscale(1)";
+    }
   }
 }
 

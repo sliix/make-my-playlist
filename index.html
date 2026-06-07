@@ -381,6 +381,54 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
     </div>
   </dialog>
 
+  <!-- Connect Music Service Glass Modal Dialog -->
+  <dialog id="modal-connect-service" class="glass-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 data-i18n="modal.connect.title">Connect to a Music Service</h3>
+        <button id="btn-close-connect-modal" class="btn-close" aria-label="Close Modal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 20px;" data-i18n="modal.connect.desc">To export playlists or load playlists from your library, you need to connect to a music service.</p>
+        
+        <div class="services-connect-options" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+          <!-- Apple Music option -->
+          <div class="service-connect-card" style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glass); border-radius: var(--radius-md);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 24px;">🍏</span>
+              <div>
+                <strong style="color: var(--text-main); font-size: 16px;" data-i18n="service.apple">Apple Music</strong>
+                <div style="color: var(--text-muted); font-size: 12px;" data-i18n="service.status.disconnected">Disconnected</div>
+              </div>
+            </div>
+            <button id="btn-connect-apple-modal" class="btn btn-secondary btn-sm" type="button" data-i18n="service.action.connect">Connect</button>
+          </div>
+          
+          <!-- Spotify option -->
+          <div class="service-connect-card" style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glass); border-radius: var(--radius-md);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 24px;">🟢</span>
+              <div>
+                <strong style="color: var(--text-main); font-size: 16px;" data-i18n="service.spotify">Spotify</strong>
+                <div style="color: var(--text-muted); font-size: 12px;" data-i18n="service.status.disconnected">Disconnected</div>
+              </div>
+            </div>
+            <button id="btn-connect-spotify-modal" class="btn btn-secondary btn-sm" type="button" data-i18n="service.action.connect">Connect</button>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button id="btn-cancel-connect-modal" class="btn btn-secondary" type="button" data-i18n="modal.name.btnCancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
   <!-- Application Entry Point -->
   <script type="module" src="main.js"></script>
 </body>

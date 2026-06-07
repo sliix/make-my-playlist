@@ -91,6 +91,13 @@ export const el = {
   btnCancelNameModal: document.getElementById('btn-cancel-name-modal'),
   btnCloseNameModal: document.getElementById('btn-close-name-modal'),
 
+  // Service connection modal elements
+  modalConnectService: document.getElementById('modal-connect-service'),
+  btnConnectAppleModal: document.getElementById('btn-connect-apple-modal'),
+  btnConnectSpotifyModal: document.getElementById('btn-connect-spotify-modal'),
+  btnCancelConnectModal: document.getElementById('btn-cancel-connect-modal'),
+  btnCloseConnectModal: document.getElementById('btn-close-connect-modal'),
+
   // Language switcher elements
   btnLangToggle: document.getElementById('btn-lang-toggle'),
   menuLangDropdown: document.getElementById('menu-lang-dropdown'),

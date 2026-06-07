@@ -3,7 +3,8 @@ import {
   checkAndRefreshSpotifyToken, 
   handleConnectSpotify, 
   refreshMusicKitConfiguration, 
-  getAuthHeaders 
+  getAuthHeaders,
+  isAnyServiceConnected
 } from './api.js';
 import { 
   renderTracksList, 
@@ -197,8 +198,21 @@ export function handleApproveAll() {
   saveAppState();
 }
 
+export function checkAndPromptServiceConnection() {
+  if (!isAnyServiceConnected()) {
+    if (el.modalConnectService) {
+      el.modalConnectService.showModal();
+    }
+    return false;
+  }
+  return true;
+}
+
 // Global Playlist Export Operations
 export async function handleCreatePlaylist() {
+  if (!checkAndPromptServiceConnection()) {
+    return;
+  }
   if (state.activeService === 'apple') {
     if (!state.musicKit) {
       alert(t("alert.musicKitUnavailable"));
@@ -521,6 +535,10 @@ export function handleResetApp() {
 
 // Fetch user's library playlists via proxy
 export async function handleFetchLibraryPlaylists() {
+  if (!checkAndPromptServiceConnection()) {
+    return;
+  }
+
   if (state.activeService === 'apple') {
     if (!state.musicKit) {
       alert(t("alert.musicKitUnavailable"));

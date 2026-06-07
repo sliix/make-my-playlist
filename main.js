@@ -243,6 +243,33 @@ function initEventListeners() {
     });
   }
 
+  // Connect Service Modal listeners
+  if (el.btnCloseConnectModal) {
+    el.btnCloseConnectModal.addEventListener('click', () => el.modalConnectService.close());
+  }
+  if (el.btnCancelConnectModal) {
+    el.btnCancelConnectModal.addEventListener('click', () => el.modalConnectService.close());
+  }
+  if (el.modalConnectService) {
+    el.modalConnectService.addEventListener('click', (e) => {
+      if (e.target === el.modalConnectService) {
+        el.modalConnectService.close();
+      }
+    });
+  }
+  if (el.btnConnectAppleModal) {
+    el.btnConnectAppleModal.addEventListener('click', async () => {
+      el.modalConnectService.close();
+      await handleConnectAppleMusic();
+    });
+  }
+  if (el.btnConnectSpotifyModal) {
+    el.btnConnectSpotifyModal.addEventListener('click', () => {
+      el.modalConnectService.close();
+      handleConnectSpotify();
+    });
+  }
+
   // Initialize Drag & Drop events
   initDragAndDrop();
 }

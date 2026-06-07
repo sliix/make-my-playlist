@@ -12,6 +12,7 @@ export const translations = {
     "service.action.connect": "Connect",
     "service.action.disconnect": "Disconnect",
     "service.prefixLabel": "Service: ",
+    "service.none": "None",
 
     // Import Playlist Card
     "card.import.title": "Import Existing Playlist",
@@ -79,6 +80,8 @@ export const translations = {
     "modal.name.placeholder": "e.g., My Summer Playlist 2026",
     "modal.name.btnSave": "Save & Export",
     "modal.name.btnCancel": "Cancel",
+    "modal.connect.title": "Connect to a Music Service",
+    "modal.connect.desc": "To export playlists or load playlists from your library, you need to connect to a music service.",
 
     // Toasts & Alerts
     "alert.resetConfirm": "Are you sure you want to clear the editor? This will erase the current song list, playlist settings, and all search results.",
@@ -145,6 +148,7 @@ export const translations = {
     "service.action.connect": "התחבר",
     "service.action.disconnect": "התנתק",
     "service.prefixLabel": "שירות: ",
+    "service.none": "ללא",
 
     // Import Playlist Card
     "card.import.title": "יבוא פלייליסט קיים",
@@ -212,6 +216,8 @@ export const translations = {
     "modal.name.placeholder": "לדוגמה: הפלייליסט הקיצי שלי 2026",
     "modal.name.btnSave": "שמירה וייצוא",
     "modal.name.btnCancel": "ביטול",
+    "modal.connect.title": "התחברות לשירות מוזיקה",
+    "modal.connect.desc": "כדי לייצא פלייליסטים או לטעון פלייליסטים מהספרייה שלך, עליך להתחבר לשירות מוזיקה.",
 
     // Toasts & Alerts
     "alert.resetConfirm": "האם אתם בטוחים שברצונכם לאפס את העורך? פעולה זו תמחק את רשימת השירים הנוכחית, הגדרות הפלייליסט וכל תוצאות החיפוש.",
