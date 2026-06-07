@@ -36,7 +36,7 @@ export const translations = {
     // Input Songs Card
     "card.input.title": "2. Input Songs or Describe Your Playlist",
     "card.input.desc": "Paste your song list below, with each song on a new line (e.g., \"Artist - Title\" or \"Title by Artist\"), or describe your playlist in natural language (e.g., \"80s Israeli music\"). The system will automatically detect the input style.",
-    "card.input.placeholder": "Examples:\n1. Daft Punk - Get Lucky\nBillie Eilish - Bad Guy\nBohemian Rhapsody by Queen (1975)\nBlinding Lights - The Weeknd\nStay - Justin Bieber & The Kid LAROI",
+    "card.input.placeholder": "",
     "card.input.appendTitle": "Append results",
     "card.input.appendDesc": "Add new matches to your current list instead of overwriting.",
     "card.input.btnSearch": "Search Catalog",
@@ -44,7 +44,7 @@ export const translations = {
     "card.input.btnSearchSearching": "Searching Catalog...",
 
     // Playlist Items Card
-    "card.items.title": "Track List",
+    "card.items.title": "3. Track List",
     "card.items.btnApproveAll": "Check/Uncheck All",
     "card.items.emptyTitle": "No Songs Analyzed Yet",
     "card.items.emptyDesc": "Paste a list of songs on the left and click \"Search Catalog\" to fetch matches from your active music service.",
@@ -172,7 +172,7 @@ export const translations = {
     // Input Songs Card
     "card.input.title": "2. הכניסו שירים או תארו את הפלייליסט שלכם",
     "card.input.desc": "הדביקו את רשימת השירים שלכם למטה, כל שיר בשורה חדשה (לדוגמה: \"אמן - שם השיר\" או \"שם השיר של אמן\"), או תארו את הפלייליסט שלכם בשפה חופשית (לדוגמה: \"מוזיקה ישראלית משנות השמונים\"). המערכת תזהה אוטומטית את סגנון הקלט.",
-    "card.input.placeholder": "דוגמאות:\n1. Daft Punk - Get Lucky\nBillie Eilish - Bad Guy\nBohemian Rhapsody by Queen (1975)\nBlinding Lights - The Weeknd\nStay - Justin Bieber & The Kid LAROI",
+    "card.input.placeholder": "",
     "card.input.appendTitle": "הוסף לקיים",
     "card.input.appendDesc": "הוסיפו התאמות חדשות לרשימה הנוכחית שלכם במקום לדרוס אותה.",
     "card.input.btnSearch": "חיפוש בקטלוג",
@@ -180,7 +180,7 @@ export const translations = {
     "card.input.btnSearchSearching": "מחפש בקטלוג...",
 
     // Playlist Items Card
-    "card.items.title": "רשימת שירים",
+    "card.items.title": "3. רשימת השירים",
     "card.items.btnApproveAll": "סמן/בטל סימון להכל",
     "card.items.emptyTitle": "אין שירים עדיין",
     "card.items.emptyDesc": "הדבק רשימת שירים מימין ולחץ על \"חפש בקטלוג\" כדי למשוך התאמות משירות המוזיקה הפעיל שלך.",

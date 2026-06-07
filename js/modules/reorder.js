@@ -1,5 +1,5 @@
 import { state, el, saveAppState } from './state.js';
-import { renderTracksList } from './renderer.js';
+import { renderTracksList, updateCreatePlaylistButtonState } from './renderer.js';
 
 let draggedCard = null;
 let dragDirection = 'down';
@@ -145,74 +145,52 @@ export function bindDragAndDropListeners(card) {
     reorderStateFromDOM();
   });
 
-  // Mobile touch drag-and-drop support: press-and-hold anywhere in the cell
-  let touchTimeout = null;
+  // Mobile touch drag-and-drop support: starts instantly when touching the drag handle
   let isDraggingStarted = false;
-  let startX = 0;
-  let startY = 0;
 
   card.addEventListener('touchstart', (e) => {
-    // Exclude interactive elements to let checkbox, play preview, and select alternatives work
-    if (e.target.closest('button, select, input, label, .btn-play-preview')) {
+    // Only initiate touch drag-and-drop if touching the drag handle
+    if (!e.target.closest('.track-drag-handle')) {
       return;
     }
 
     const touch = e.touches[0];
-    startX = touch.clientX;
-    startY = touch.clientY;
-    isDraggingStarted = false;
+    isDraggingStarted = true;
+    card.classList.add('dragging');
+    draggedCard = card;
+    dragDirection = 'down';
+    lastY = touch.clientY;
 
-    if (touchTimeout) clearTimeout(touchTimeout);
+    // Lock container and body scrolling to prevent touchcancel during drag
+    const list = el.tracksList;
+    if (list) {
+      list.style.overflow = 'hidden';
+    }
+    document.body.style.overflow = 'hidden';
 
-    // Start a timer for short press (e.g. 250ms) to dim the cell and start drag
-    touchTimeout = setTimeout(() => {
-      isDraggingStarted = true;
-      card.classList.add('dragging');
-      draggedCard = card;
-      dragDirection = 'down';
-      lastY = startY;
+    // Capture the relative touch Offset Y and height of the card at the moment drag starts
+    const rect = card.getBoundingClientRect();
+    touchOffsetY = touch.clientY - rect.top;
+    draggedCardHeight = rect.height;
+    lastSwapTime = 0; // reset swap throttle time
 
-      // Lock container and body scrolling to prevent touchcancel during drag
-      const list = el.tracksList;
-      if (list) {
-        list.style.overflow = 'hidden';
-      }
-      document.body.style.overflow = 'hidden';
+    // Haptic feedback if available
+    if (navigator.vibrate) {
+      navigator.vibrate(30);
+    }
 
-      // Capture the relative touch Offset Y and height of the card at the moment drag starts
-      const rect = card.getBoundingClientRect();
-      touchOffsetY = startY - rect.top;
-      draggedCardHeight = rect.height;
-      lastSwapTime = 0; // reset swap throttle time
-
-      // Haptic feedback if available
-      if (navigator.vibrate) {
-        navigator.vibrate(30);
-      }
-    }, 250);
-  }, { passive: true });
+    // Prevent scrolling instantly since the drag handle is active
+    e.preventDefault();
+  }, { passive: false });
 
   card.addEventListener('touchmove', (e) => {
-    const touch = e.touches[0];
-
-    if (!isDraggingStarted) {
-      // If we haven't started dragging yet, check if the finger has moved enough to scroll
-      const deltaX = Math.abs(touch.clientX - startX);
-      const deltaY = Math.abs(touch.clientY - startY);
-      if (deltaX > 10 || deltaY > 10) {
-        // User is scrolling, cancel the drag-start timer
-        if (touchTimeout) {
-          clearTimeout(touchTimeout);
-          touchTimeout = null;
-        }
-      }
-      return;
-    }
+    if (!isDraggingStarted) return;
 
     // If drag is active, prevent default scrolling
     e.preventDefault();
     if (draggedCard !== card) return;
 
+    const touch = e.touches[0];
     const clientY = touch.clientY;
 
     if (clientY > lastY) {
@@ -248,13 +226,6 @@ export function bindDragAndDropListeners(card) {
   }, { passive: false });
 
   const touchEndCancelHandler = (e) => {
-    let wasTap = false;
-    if (touchTimeout) {
-      clearTimeout(touchTimeout);
-      touchTimeout = null;
-      wasTap = true;
-    }
-
     // Unlock container and body scrolling
     const list = el.tracksList;
     if (list) {
@@ -267,26 +238,6 @@ export function bindDragAndDropListeners(card) {
       if (draggedCard === card) {
         draggedCard = null;
         reorderStateFromDOM();
-      }
-    } else if (wasTap && e.type === 'touchend') {
-      const isMobile = window.innerWidth <= 640;
-      if (isMobile) {
-        const trackId = parseInt(card.id.replace('track-card-', ''));
-        const track = state.tracks.find(t => t.id === trackId);
-        if (track && track.status !== 'no-match') {
-          track.approved = !track.approved;
-          if (track.approved) {
-            card.classList.add('approved');
-          } else {
-            card.classList.remove('approved');
-          }
-          const checkbox = card.querySelector('.track-checkbox');
-          if (checkbox) {
-            checkbox.checked = track.approved;
-          }
-          updateCreatePlaylistButtonState();
-          saveAppState();
-        }
       }
     }
     isDraggingStarted = false;
