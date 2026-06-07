@@ -150,6 +150,9 @@ export function handleAnalyzeSongList() {
     // No new tracks to search! Just re-render the list and save
     renderTracksList();
     updateCreatePlaylistButtonState();
+    if (el.cardInputSongs) {
+      el.cardInputSongs.classList.add('collapsed');
+    }
     saveAppState();
     showSuccessToast("Track list updated (no new searches needed).");
     return;
@@ -511,6 +514,7 @@ export function handleResetApp() {
     localStorage.removeItem('makemyplaylist_loaded_playlist_original_track_ids');
 
     showSuccessToast("Editor cleared successfully!");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
 
@@ -675,6 +679,9 @@ export async function handleLoadSelectedPlaylist() {
 
     renderTracksList();
     updateCreatePlaylistButtonState();
+    if (el.cardInputSongs) {
+      el.cardInputSongs.classList.add('collapsed');
+    }
     saveAppState();
 
     showSuccessToast(`Successfully loaded ${tracksLines.length} songs and updated track list!`);
