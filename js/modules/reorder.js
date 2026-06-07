@@ -1,5 +1,5 @@
 import { state, el, saveAppState } from './state.js';
-import { renderTracksList, updateCreatePlaylistButtonState } from './renderer.js';
+import { renderTracksList, updateCreatePlaylistButtonState, updateTracksCounter } from './renderer.js';
 
 let draggedCard = null;
 let dragDirection = 'down';
@@ -289,6 +289,7 @@ export function bindDragAndDropListeners(card) {
             checkbox.checked = track.approved;
           }
           updateCreatePlaylistButtonState();
+          updateTracksCounter();
           saveAppState();
         }
       }
