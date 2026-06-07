@@ -44,7 +44,7 @@ export const translations = {
     "card.input.btnSearchSearching": "Searching Catalog...",
 
     // Playlist Items Card
-    "card.items.title": "3. Playlist Items",
+    "card.items.title": "Track List",
     "card.items.btnApproveAll": "Check/Uncheck All",
     "card.items.emptyTitle": "No Songs Analyzed Yet",
     "card.items.emptyDesc": "Paste a list of songs on the left and click \"Search Catalog\" to fetch matches from your active music service.",
@@ -180,7 +180,7 @@ export const translations = {
     "card.input.btnSearchSearching": "מחפש בקטלוג...",
 
     // Playlist Items Card
-    "card.items.title": "3. פריטי הפלייליסט",
+    "card.items.title": "רשימת שירים",
     "card.items.btnApproveAll": "סמן/בטל סימון להכל",
     "card.items.emptyTitle": "אין שירים עדיין",
     "card.items.emptyDesc": "הדבק רשימת שירים מימין ולחץ על \"חפש בקטלוג\" כדי למשוך התאמות משירות המוזיקה הפעיל שלך.",
