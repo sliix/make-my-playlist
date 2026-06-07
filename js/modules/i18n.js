@@ -36,7 +36,7 @@ export const translations = {
     // Input Songs Card
     "card.input.title": "2. Input Songs or Describe Your Playlist",
     "card.input.desc": "Paste your song list below, with each song on a new line (e.g., \"Artist - Title\" or \"Title by Artist\"), or describe your playlist in natural language (e.g., \"80s Israeli music\"). The system will automatically detect the input style.",
-    "card.input.placeholder": "",
+    "card.input.placeholder": "e.g., 80s synthwave music and similar artists...",
     "card.input.appendTitle": "Append results",
     "card.input.appendDesc": "Add new matches to your current list instead of overwriting.",
     "card.input.btnSearch": "Search Catalog",
@@ -172,7 +172,7 @@ export const translations = {
     // Input Songs Card
     "card.input.title": "2. הכניסו שירים או תארו את הפלייליסט שלכם",
     "card.input.desc": "הדביקו את רשימת השירים שלכם למטה, כל שיר בשורה חדשה (לדוגמה: \"אמן - שם השיר\" או \"שם השיר של אמן\"), או תארו את הפלייליסט שלכם בשפה חופשית (לדוגמה: \"מוזיקה ישראלית משנות השמונים\"). המערכת תזהה אוטומטית את סגנון הקלט.",
-    "card.input.placeholder": "",
+    "card.input.placeholder": "לדוגמה: מוזיקת סינת'ווייב משנות ה-80 ואמנים דומים...",
     "card.input.appendTitle": "הוסף לקיים",
     "card.input.appendDesc": "הוסיפו התאמות חדשות לרשימה הנוכחית שלכם במקום לדרוס אותה.",
     "card.input.btnSearch": "חיפוש בקטלוג",
