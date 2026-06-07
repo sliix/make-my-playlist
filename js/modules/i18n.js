@@ -190,7 +190,7 @@ export const translations = {
     "track.btnRequery": "חפש מחדש",
     "track.btnRequerying": "...",
     "track.queryLabel": "שאילתה",
-    "track.explicit": "אקספליסיט",
+    "track.explicit": "יחיד",
     "track.noMatch": "לא נמצאה התאמה",
     "track.tryRefining": "נסו לעדן את החיפוש שלכם",
     "track.alternativesDefault": "אין אפשרויות זמינות",
