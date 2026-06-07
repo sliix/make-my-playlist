@@ -1878,15 +1878,7 @@ html[dir="rtl"] .section-card.collapsible.collapsed .chevron-icon {
   transform: scaleX(-1) rotate(-90deg);
 }
 
-/* Flex flow alignment corrections */
-html[dir="rtl"] .modal-header {
-  flex-direction: row-reverse;
-}
 
-html[dir="rtl"] .btn-close {
-  margin-left: 0;
-  margin-right: auto;
-}
 
 html[dir="rtl"] .modal-footer {
   justify-content: flex-start !important;
