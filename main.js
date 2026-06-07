@@ -304,11 +304,11 @@ function handleAnalyzeSongList() {
     el.btnAnalyze.disabled = true;
     el.spinnerAnalyze.classList.remove('hidden');
     el.btnAnalyzeText.textContent = "Analyzing prompt...";
-    el.progressStatusText.textContent = "Sending prompt to Gemini LLM parser...";
+    el.progressStatusText.textContent = "Sending prompt to AI parser...";
     el.progressPercentage.textContent = "0%";
     el.progressBarFill.style.width = "0%";
 
-    // Send prompt to Gemini API backend route
+    // Send prompt to AI backend route
     fetch('/api/parse-prompt', {
       method: 'POST',
       headers: {
@@ -327,7 +327,7 @@ function handleAnalyzeSongList() {
       executeNaturalLanguageGeneration(parsedPrompt);
     })
     .catch(err => {
-      console.warn("Gemini prompt parsing failed, falling back to local regex parser:", err);
+      console.warn("AI prompt parsing failed, falling back to local regex parser:", err);
       const parsedPrompt = parseNaturalLanguagePrompt(rawText);
       executeNaturalLanguageGeneration(parsedPrompt);
     });
@@ -486,8 +486,8 @@ function updateInputAutoDetection() {
     el.detectionBadge.className = 'badge badge-purple';
     el.detectionBadge.textContent = '✨ AI mode';
     el.detectionExplanation.textContent = state.isModeOverridden 
-      ? 'Gemini will build a playlist based on your prompt (Manually Set).' 
-      : 'We detected a request to build a custom playlist with Gemini.';
+      ? 'AI will build a playlist based on your prompt (Manually Set).' 
+      : 'We detected a request to build a custom playlist with AI.';
     el.btnOverrideMode.textContent = 'Switch to List mode';
   }
 
