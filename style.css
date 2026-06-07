@@ -1517,6 +1517,35 @@ dialog[open] {
     padding-bottom: 160px;
   }
 
+  .results-header {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .results-title-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .results-header h2 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 16px;
+    margin: 0;
+    width: 100%;
+  }
+
+  .tracks-counter {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px;
+    padding: 1px 6px;
+  }
+
   .app-header {
     padding: 15px 20px;
   }
