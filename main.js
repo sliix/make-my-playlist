@@ -495,6 +495,8 @@ function parseNaturalLanguagePrompt(text) {
 }
 
 async function executeNaturalLanguageGeneration(parsedPrompt) {
+  console.log("[Just Say It] Starting generation with parsed parameters:", parsedPrompt);
+
   // Show progress card
   el.resultsEmptyState.classList.add('hidden');
   el.tracksList.classList.add('hidden');
@@ -505,34 +507,175 @@ async function executeNaturalLanguageGeneration(parsedPrompt) {
   el.spinnerAnalyze.classList.remove('hidden');
   el.btnAnalyzeText.textContent = "Analyzing prompt...";
 
-  // 1. Generate search terms
+  // 1. Generate search and fetch tasks
   const queries = [];
   
-  // Add artist queries
-  parsedPrompt.artists.forEach(artist => {
-    queries.push({ term: `${artist} essentials` });
-    queries.push({ term: `${artist} best` });
-  });
+  // Count standard song queries to calculate limitPerQuery
+  let songsSearchCount = 0;
+  if (parsedPrompt.artists) {
+    songsSearchCount += parsedPrompt.artists.length;
+  }
+  if (parsedPrompt.genres) {
+    songsSearchCount += parsedPrompt.genres.length;
+  }
+  if (parsedPrompt.songs) {
+    songsSearchCount += parsedPrompt.songs.length;
+  }
 
-  // Add genre queries
-  parsedPrompt.genres.forEach(genre => {
-    queries.push({ term: `${genre} essentials` });
-    queries.push({ term: `${genre} best` });
-  });
+  // Calculate dynamic limit per query for standard song queries to satisfy the requested playlist size
+  let limitPerQuery = 5;
+  if (songsSearchCount > 0) {
+    limitPerQuery = Math.ceil((parsedPrompt.size / songsSearchCount) * 1.3) + 3;
+    if (limitPerQuery < 5) limitPerQuery = 5;
+    if (limitPerQuery > 50) limitPerQuery = 50;
+  }
 
-  // Add seed song queries
-  parsedPrompt.songs.forEach(song => {
-    queries.push({ term: song });
-  });
+  // Add artist tasks: essentials playlist, best playlist, plain artist songs
+  if (parsedPrompt.artists) {
+    parsedPrompt.artists.forEach(artist => {
+      queries.push({
+        type: 'playlist_search',
+        term: `${artist} essentials`,
+        run: async () => {
+          const playlists = await searchCatalogProxy(`${artist} essentials`, 1, 'playlists');
+          if (playlists && playlists.length > 0) {
+            return await fetchCatalogPlaylistTracks(playlists[0].id);
+          }
+          return [];
+        }
+      });
+      queries.push({
+        type: 'playlist_search',
+        term: `${artist} best`,
+        run: async () => {
+          const playlists = await searchCatalogProxy(`${artist} best`, 1, 'playlists');
+          if (playlists && playlists.length > 0) {
+            return await fetchCatalogPlaylistTracks(playlists[0].id);
+          }
+          return [];
+        }
+      });
+      queries.push({
+        type: 'songs_search',
+        term: artist,
+        run: async () => {
+          return await searchCatalogProxy(artist, limitPerQuery, 'songs');
+        }
+      });
+    });
+  }
 
-  // Fallback if no specific keywords are parsed
+  // Add genre tasks: essentials playlist, best playlist, plain genre songs
+  if (parsedPrompt.genres) {
+    parsedPrompt.genres.forEach(genre => {
+      queries.push({
+        type: 'playlist_search',
+        term: `${genre} essentials`,
+        run: async () => {
+          const playlists = await searchCatalogProxy(`${genre} essentials`, 1, 'playlists');
+          if (playlists && playlists.length > 0) {
+            return await fetchCatalogPlaylistTracks(playlists[0].id);
+          }
+          return [];
+        }
+      });
+      queries.push({
+        type: 'playlist_search',
+        term: `${genre} best`,
+        run: async () => {
+          const playlists = await searchCatalogProxy(`${genre} best`, 1, 'playlists');
+          if (playlists && playlists.length > 0) {
+            return await fetchCatalogPlaylistTracks(playlists[0].id);
+          }
+          return [];
+        }
+      });
+      queries.push({
+        type: 'songs_search',
+        term: genre,
+        run: async () => {
+          return await searchCatalogProxy(genre, limitPerQuery, 'songs');
+        }
+      });
+    });
+  }
+
+  // Add album tasks: retrieve entire album in order
+  if (parsedPrompt.albums) {
+    parsedPrompt.albums.forEach(album => {
+      queries.push({
+        type: 'album_search',
+        term: album,
+        run: async () => {
+          const albums = await searchCatalogProxy(album, 1, 'albums');
+          if (albums && albums.length > 0) {
+            return await fetchCatalogAlbumTracks(albums[0].id);
+          }
+          return [];
+        }
+      });
+    });
+  }
+
+  // Add seed song tasks
+  if (parsedPrompt.songs) {
+    parsedPrompt.songs.forEach(song => {
+      queries.push({
+        type: 'songs_search',
+        term: song,
+        run: async () => {
+          return await searchCatalogProxy(song, 5, 'songs');
+        }
+      });
+    });
+  }
+
+  // Fallback if no specific keywords are parsed or LLM failed
   if (queries.length === 0) {
     const rawText = el.inputSongList.value.trim();
-    const cleanPrompt = rawText.slice(0, 100).replace(/[^a-zA-Z0-9\s]/g, ' ').trim();
+    // Clean prompt by stripping common filler words
+    let cleanPrompt = rawText.toLowerCase()
+      .replace(/\b(best|tracks|songs|essentials|playlist|music|want|like|similar to|featuring|by|show|me|make|a|an|the|playlist of)\b/g, '')
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    if (!cleanPrompt) {
+      cleanPrompt = rawText.slice(0, 100).replace(/[^a-zA-Z0-9\s]/g, ' ').trim();
+    }
+
+    console.log("[Just Say It] Fallback active. Cleaned prompt:", cleanPrompt);
+
     if (cleanPrompt) {
-      queries.push({ term: `${cleanPrompt} essentials` });
-      queries.push({ term: `${cleanPrompt} best` });
-      queries.push({ term: cleanPrompt });
+      queries.push({
+        type: 'songs_search',
+        term: cleanPrompt,
+        run: async () => {
+          return await searchCatalogProxy(cleanPrompt, limitPerQuery || 15, 'songs');
+        }
+      });
+      queries.push({
+        type: 'playlist_search',
+        term: `${cleanPrompt} essentials`,
+        run: async () => {
+          const playlists = await searchCatalogProxy(`${cleanPrompt} essentials`, 1, 'playlists');
+          if (playlists && playlists.length > 0) {
+            return await fetchCatalogPlaylistTracks(playlists[0].id);
+          }
+          return [];
+        }
+      });
+      queries.push({
+        type: 'playlist_search',
+        term: `${cleanPrompt} best`,
+        run: async () => {
+          const playlists = await searchCatalogProxy(`${cleanPrompt} best`, 1, 'playlists');
+          if (playlists && playlists.length > 0) {
+            return await fetchCatalogPlaylistTracks(playlists[0].id);
+          }
+          return [];
+        }
+      });
     }
   }
 
@@ -544,6 +687,8 @@ async function executeNaturalLanguageGeneration(parsedPrompt) {
     el.btnAnalyzeText.textContent = "Analyze & Search Catalog";
     return;
   }
+
+  console.log("[Just Say It] Generated search queries queue:", queries.map(q => ({ type: q.type, term: q.term })));
 
   // 2. Execute searches in parallel
   const totalQueries = queries.length;
@@ -559,18 +704,24 @@ async function executeNaturalLanguageGeneration(parsedPrompt) {
   updateProgress();
 
   const queryResults = [];
+  const albumResults = [];
   const maxConcurrency = 5;
   const pool = Array.from({ length: Math.min(maxConcurrency, totalQueries) }, async (_, i) => {
     let index = i;
     while (index < totalQueries) {
       const queryItem = queries[index];
       try {
-        const results = await searchCatalogProxy(queryItem.term);
+        const results = await queryItem.run();
+        console.log(`[Just Say It] Sub-query "${queryItem.term}" (${queryItem.type}) returned ${results ? results.length : 0} results.`);
         if (results && results.length > 0) {
-          queryResults.push(results);
+          if (queryItem.type === 'album_search') {
+            albumResults.push(results);
+          } else {
+            queryResults.push(results);
+          }
         }
       } catch (err) {
-        console.warn(`Search failed for query "${queryItem.term}":`, err);
+        console.warn(`[Just Say It] Search failed for sub-query "${queryItem.term}":`, err);
       }
       completedQueries++;
       updateProgress();
@@ -580,27 +731,40 @@ async function executeNaturalLanguageGeneration(parsedPrompt) {
 
   await Promise.all(pool);
 
-  // 3. Round-Robin Mix & Deduplicate
-  const mixedSongs = [];
+  console.log(`[Just Say It] Sub-queries complete. queryResults batches: ${queryResults.length}, albumResults batches: ${albumResults.length}`);
+
+  // Assemble final results: albums contiguous and in-order first, then mixed songs
+  const finalSongs = [];
   const seenIds = new Set();
-  const maxResultsLength = Math.max(0, ...queryResults.map(arr => arr.length));
   
+  // 1. Add album tracks first to keep them in order
+  for (const albumTracks of albumResults) {
+    for (const song of albumTracks) {
+      if (!seenIds.has(song.id)) {
+        seenIds.add(song.id);
+        finalSongs.push(song);
+      }
+    }
+  }
+
+  // 2. Round-Robin Mix & Deduplicate non-album songs directly into finalSongs
+  const maxResultsLength = Math.max(0, ...queryResults.map(arr => arr.length));
   for (let step = 0; step < maxResultsLength; step++) {
     for (const resultsArray of queryResults) {
       if (step < resultsArray.length) {
         const song = resultsArray[step];
         if (!seenIds.has(song.id)) {
           seenIds.add(song.id);
-          mixedSongs.push(song);
+          finalSongs.push(song);
         }
       }
     }
   }
 
-  // Take target size
-  const finalSongs = mixedSongs.slice(0, parsedPrompt.size);
+  // Slice to target playlist size
+  const slicedSongs = finalSongs.slice(0, parsedPrompt.size);
 
-  if (finalSongs.length === 0) {
+  if (slicedSongs.length === 0) {
     alert("No matching songs found on Apple Music for this request. Try different keywords.");
     el.searchProgressCard.classList.add('hidden');
     el.resultsEmptyState.classList.remove('hidden');
@@ -611,7 +775,7 @@ async function executeNaturalLanguageGeneration(parsedPrompt) {
   }
 
   // Map into state.tracks format
-  state.tracks = finalSongs.map((song, idx) => ({
+  state.tracks = slicedSongs.map((song, idx) => ({
     id: idx + 1,
     originalQuery: `${song.attributes.artistName} - ${song.attributes.name}`,
     searchQuery: `${song.attributes.artistName} - ${song.attributes.name}`,
@@ -637,9 +801,9 @@ async function executeNaturalLanguageGeneration(parsedPrompt) {
 }
 
 // Query the backend Express search proxy (token stays hidden)
-async function searchCatalogProxy(query) {
+async function searchCatalogProxy(query, limit = 5, types = 'songs') {
   const storefront = (state.musicKit && state.musicKit.storefrontId) || 'us';
-  const url = `/api/search?term=${encodeURIComponent(query)}&storefront=${storefront}`;
+  const url = `/api/search?term=${encodeURIComponent(query)}&storefront=${storefront}&limit=${limit}&types=${types}`;
 
   // Fetch via backend proxy
   const response = await fetch(url);
@@ -647,10 +811,38 @@ async function searchCatalogProxy(query) {
     throw new Error(`Proxy search endpoint returned HTTP status ${response.status}`);
   }
   const data = await response.json();
-  if (data.results && data.results.songs) {
-    return data.results.songs.data;
+  if (data.results) {
+    if (types === 'songs' && data.results.songs) {
+      return data.results.songs.data || [];
+    } else if (types === 'playlists' && data.results.playlists) {
+      return data.results.playlists.data || [];
+    } else if (types === 'albums' && data.results.albums) {
+      return data.results.albums.data || [];
+    }
   }
   return [];
+}
+
+async function fetchCatalogPlaylistTracks(playlistId) {
+  const storefront = (state.musicKit && state.musicKit.storefrontId) || 'us';
+  const url = `/api/catalog/playlists/${playlistId}/tracks?storefront=${storefront}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Catalog playlist tracks endpoint returned HTTP status ${response.status}`);
+  }
+  const data = await response.json();
+  return data.data || [];
+}
+
+async function fetchCatalogAlbumTracks(albumId) {
+  const storefront = (state.musicKit && state.musicKit.storefrontId) || 'us';
+  const url = `/api/catalog/albums/${albumId}/tracks?storefront=${storefront}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Catalog album tracks endpoint returned HTTP status ${response.status}`);
+  }
+  const data = await response.json();
+  return data.data || [];
 }
 
 // Execute searches using a simple concurrent worker queue

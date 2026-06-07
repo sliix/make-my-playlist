@@ -8,7 +8,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "server": "nodemon server.js",
-    "start": "node server.js"
+    "server:debug": "nodemon --inspect server.js",
+    "start": "node server.js",
+    "list-models": "node -e \"import dotenv from 'dotenv'; dotenv.config(); fetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + process.env.GEMINI_API_KEY).then(r => r.json()).then(d => console.log(d.models ? d.models.map(m => m.name) : d))\"",
+    "test-env": "node -e \"import dotenv from 'dotenv'; dotenv.config(); console.log('KEY:', process.env.GEMINI_API_KEY ? 'DEFINED_OF_LENGTH_' + process.env.GEMINI_API_KEY.length : 'UNDEFINED')\""
   },
   "devDependencies": {
     "nodemon": "^3.1.14",

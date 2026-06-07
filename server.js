@@ -67,15 +67,56 @@ router.get('/session/config', (req, res) => {
 
 // API Route: Proxy Catalog searches to keep Developer Token invisible
 router.get('/search', async (req, res) => {
-  const { term, storefront = 'us' } = req.query;
+  const { term, storefront = 'us', limit = 5, types = 'songs' } = req.query;
   if (!term) {
     return res.status(400).json({ error: "Missing query term parameter" });
   }
 
+  let parsedLimit = parseInt(limit, 10);
+  if (isNaN(parsedLimit) || parsedLimit < 1) {
+    parsedLimit = 5;
+  } else if (parsedLimit > 50) {
+    parsedLimit = 50;
+  }
+
   try {
     const token = generateDeveloperToken('2m'); // Short-lived single-transaction token
-    const url = `https://api.music.apple.com/v1/catalog/${storefront}/search?term=${encodeURIComponent(term)}&types=songs&limit=5`;
     
+    // If limit is > 25, we make two parallel paginated requests due to Apple Music's max limit of 25
+    if (parsedLimit > 25) {
+      const limit1 = 25;
+      const limit2 = parsedLimit - 25;
+      
+      const url1 = `https://api.music.apple.com/v1/catalog/${storefront}/search?term=${encodeURIComponent(term)}&types=${encodeURIComponent(types)}&limit=${limit1}`;
+      const url2 = `https://api.music.apple.com/v1/catalog/${storefront}/search?term=${encodeURIComponent(term)}&types=${encodeURIComponent(types)}&limit=${limit2}&offset=25`;
+      
+      const [resp1, resp2] = await Promise.all([
+        fetch(url1, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(url2, { headers: { 'Authorization': `Bearer ${token}` } })
+      ]);
+
+      let mergedResults = {};
+      
+      const mergeData = (data) => {
+        if (!data || !data.results) return;
+        for (const type of Object.keys(data.results)) {
+          if (!mergedResults[type]) {
+            mergedResults[type] = { data: [] };
+          }
+          if (data.results[type] && data.results[type].data) {
+            mergedResults[type].data = mergedResults[type].data.concat(data.results[type].data);
+          }
+        }
+      };
+
+      if (resp1.ok) mergeData(await resp1.json());
+      if (resp2.ok) mergeData(await resp2.json());
+
+      return res.json({ results: mergedResults });
+    }
+
+    // Standard case: limit <= 25
+    const url = `https://api.music.apple.com/v1/catalog/${storefront}/search?term=${encodeURIComponent(term)}&types=${encodeURIComponent(types)}&limit=${parsedLimit}`;
     const response = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${token}`
@@ -91,6 +132,40 @@ router.get('/search', async (req, res) => {
   } catch (error) {
     console.error(`Proxy catalog search failed for term "${term}":`, error.message);
     res.status(500).json({ error: "Failed to query catalog search via backend proxy." });
+  }
+});
+
+// API Route: Proxy Catalog Playlist Tracks
+router.get('/catalog/playlists/:id/tracks', async (req, res) => {
+  const { id } = req.params;
+  const { storefront = 'us' } = req.query;
+  try {
+    const token = generateDeveloperToken('2m');
+    const url = `https://api.music.apple.com/v1/catalog/${storefront}/playlists/${id}/tracks?limit=100`;
+    const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!response.ok) throw new Error(`Apple Music API returned HTTP ${response.status}`);
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error(`Catalog playlist tracks failed:`, error.message);
+    res.status(500).json({ error: "Failed to fetch catalog playlist tracks." });
+  }
+});
+
+// API Route: Proxy Catalog Album Tracks
+router.get('/catalog/albums/:id/tracks', async (req, res) => {
+  const { id } = req.params;
+  const { storefront = 'us' } = req.query;
+  try {
+    const token = generateDeveloperToken('2m');
+    const url = `https://api.music.apple.com/v1/catalog/${storefront}/albums/${id}/tracks?limit=100`;
+    const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!response.ok) throw new Error(`Apple Music API returned HTTP ${response.status}`);
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error(`Catalog album tracks failed:`, error.message);
+    res.status(500).json({ error: "Failed to fetch catalog album tracks." });
   }
 });
 
@@ -284,7 +359,7 @@ router.post('/parse-prompt', async (req, res) => {
   }
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -297,8 +372,9 @@ router.post('/parse-prompt', async (req, res) => {
 
 Extract:
 - size: number of tracks requested (default to 20 if not specified).
-- genres: list of music genres mentioned (translated to English if in another language, e.g., 'רוק' -> 'rock').
+- genres: list of music genres, styles, vibes, or time periods/decades mentioned (translated to English if in another language. Keep descriptive modifiers, styles, or decades attached to the genre/style, e.g., 'מוסיקה ישראלית של שנות ה-80' -> '80s Israeli music', 'רוק כבד' -> 'hard rock', 'chill pop' -> 'chill pop', '90s dance' -> '90s dance').
 - artists: list of musicians/bands mentioned (standard English spelling/names, e.g., 'קאווינסקי' -> 'Kavinsky').
+- albums: list of album titles mentioned (standard English spelling/names).
 - songs: list of song titles mentioned (standard English spelling/names).
 
 Respond ONLY with a valid JSON object matching this schema:
@@ -306,6 +382,7 @@ Respond ONLY with a valid JSON object matching this schema:
   "size": number,
   "genres": string[],
   "artists": string[],
+  "albums": string[],
   "songs": string[]
 }`
           }]
