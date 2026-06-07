@@ -157,3 +157,34 @@ export async function handleSpotifyRefresh(req, res) {
     res.status(500).json({ error: `Token refresh failed: ${error.message}` });
   }
 }
+
+// Spotify Client Credentials flow cache
+let clientCredentialsToken = null;
+let clientCredentialsTokenExpiresAt = 0;
+
+export async function getSpotifyClientCredentialsToken() {
+  if (clientCredentialsToken && Date.now() < clientCredentialsTokenExpiresAt) {
+    return clientCredentialsToken;
+  }
+
+  console.log("Spotify client credentials token missing or expired, fetching a new one...");
+  const response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'Basic ' + Buffer.from(process.env.SPOTIFY_CLIENT_ID + ':' + process.env.SPOTIFY_CLIENT_SECRET).toString('base64')
+    },
+    body: 'grant_type=client_credentials'
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Spotify client credentials fetch failed with status ${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  clientCredentialsToken = data.access_token;
+  clientCredentialsTokenExpiresAt = Date.now() + (data.expires_in * 1000) - (60 * 1000); // 1 minute buffer
+  return clientCredentialsToken;
+}
+
