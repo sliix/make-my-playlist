@@ -479,14 +479,14 @@ function updateInputAutoDetection() {
     el.detectionBadge.className = 'badge badge-info';
     el.detectionBadge.textContent = '📄 List mode';
     el.detectionExplanation.textContent = state.isModeOverridden 
-      ? 'Matching specific tracks (Manually Set).' 
+      ? 'Matching specific tracks.' 
       : 'We detected a list of specific tracks to search and match.';
     el.btnOverrideMode.textContent = 'Switch to AI mode';
   } else {
     el.detectionBadge.className = 'badge badge-purple';
     el.detectionBadge.textContent = '✨ AI mode';
     el.detectionExplanation.textContent = state.isModeOverridden 
-      ? 'AI will build a playlist based on your prompt (Manually Set).' 
+      ? 'AI will build a playlist based on your prompt.' 
       : 'We detected a request to build a custom playlist with AI.';
     el.btnOverrideMode.textContent = 'Switch to List mode';
   }
