@@ -65,6 +65,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  padding-top: 85px; /* Space for fixed header */
   padding-bottom: 96px; /* Space for fixed action bar */
 }
 
@@ -105,8 +106,10 @@ h1, h2, h3, h4 {
   background: rgba(10, 8, 18, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
 }
 
@@ -439,6 +442,10 @@ textarea {
   min-height: 240px;
 }
 
+textarea:placeholder-shown {
+  overflow: hidden;
+}
+
 #playlist-desc {
   min-height: auto;
 }
@@ -653,6 +660,13 @@ input:checked + .slider:before {
   margin-bottom: 8px;
   padding-inline-start: 6px;
   padding-inline-end: 8px;
+}
+
+.results-header-left,
+.results-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .results-header h2 {
@@ -1515,21 +1529,80 @@ dialog[open] {
   }
 }
 
+@media (min-width: 641px) {
+  .mobile-only-btn {
+    display: none !important;
+  }
+}
+
 @media (max-width: 640px) {
   body {
+    padding-top: 65px;
     padding-bottom: 160px;
   }
 
+  /* Mobile Split-View: Toggle active views */
+  body.mobile-view-setup .results-panel {
+    display: none !important;
+  }
+  body.mobile-view-tracks .control-panel {
+    display: none !important;
+  }
+
+  /* Force Input card to be expanded and hide toggle chevrons */
+  #card-input-songs.collapsible.collapsed .collapsible-content {
+    display: block !important;
+  }
+  #card-input-songs .btn-toggle {
+    display: none !important;
+  }
+  #card-input-songs .card-header-toggle {
+    cursor: default !important;
+    pointer-events: none !important;
+  }
+
+  /* Footer action buttons visibility based on view */
+  body.mobile-view-setup #btn-create-playlist {
+    display: none !important;
+  }
+
+  body.mobile-view-tracks #btn-go-to-tracks {
+    display: none !important;
+  }
+
+  #card-input-songs .section-desc {
+    display: none;
+  }
+
   .results-header {
-    flex-wrap: nowrap;
-    align-items: center;
-    padding-inline: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0px;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .results-header-left {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .results-header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+    text-align: right;
   }
 
   .results-title-container {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     min-width: 0;
   }
 
@@ -1557,12 +1630,16 @@ dialog[open] {
     font-size: 14px !important;
   }
 
+  #btn-back-to-setup {
+    padding: 4px 8px !important;
+  }
+
   .app-header {
     padding: 15px 20px;
   }
   
   .app-main {
-    padding: 15px;
+    padding: 4px 15px 15px;
   }
 
   .header-logo h1 {
@@ -1960,5 +2037,66 @@ html[dir="rtl"] .track-reorder-buttons {
 html[dir="rtl"] .btn-reorder-up svg,
 html[dir="rtl"] .btn-reorder-down svg {
   transform: scaleY(-1); /* Keep reorder chevron orientation aligned visually */
+}
+
+/* YouTube Video Preview Modal Specifics */
+dialog.video-modal {
+  max-width: 720px;
+  width: 95%;
+}
+
+.video-modal-content {
+  padding: 16px;
+  gap: 12px;
+}
+
+.video-modal-body {
+  padding: 0;
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  height: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-glass);
+  background: #000;
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Green YouTube SVG Play Logo Styles */
+.icon-youtube-green {
+  fill: #00ff66;
+  filter: drop-shadow(0 0 6px rgba(0, 255, 102, 0.4));
+  transition: all var(--transition-fast);
+}
+
+.service-connect-card:hover .icon-youtube-green {
+  filter: drop-shadow(0 0 10px rgba(0, 255, 102, 0.8));
+  transform: scale(1.05);
+}
+
+/* Card Title Icons styling */
+.section-card h2, .results-header h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title-icon {
+  width: 20px;
+  height: 20px;
+  stroke: var(--color-primary);
+  stroke-width: 2.25px;
+  flex-shrink: 0;
 }
 

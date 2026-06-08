@@ -70,6 +70,8 @@ export function getAuthHeaders() {
     }
   } else if (state.activeService === 'spotify') {
     headers['X-User-Token'] = state.spotifyAccessToken || '';
+  } else if (state.activeService === 'youtube' || state.activeService === 'youtube_music') {
+    headers['X-User-Token'] = state.youtubeAccessToken || '';
   }
   
   return headers;
@@ -137,7 +139,8 @@ export function handleSpotifyCallback() {
 export function isAnyServiceConnected() {
   const isAppleAuthorized = !!(state.musicKit && state.musicKit.isAuthorized);
   const isSpotifyAuthorized = !!(state.spotifyAccessToken && state.spotifyExpiresAt && parseInt(state.spotifyExpiresAt, 10) > Date.now());
-  return isAppleAuthorized || isSpotifyAuthorized;
+  const isYoutubeAuthorized = !!(state.youtubeAccessToken && state.youtubeExpiresAt && parseInt(state.youtubeExpiresAt, 10) > Date.now());
+  return isAppleAuthorized || isSpotifyAuthorized || isYoutubeAuthorized;
 }
 
 export function updateConnectionUI() {
@@ -205,17 +208,91 @@ export function updateConnectionUI() {
     }
   }
 
-  // 3. Dropdown Header Trigger Label and Indicator
+  // 3. YouTube & YouTube Music Status
+  const isYoutubeAuthorized = !!(state.youtubeAccessToken && state.youtubeExpiresAt && parseInt(state.youtubeExpiresAt, 10) > Date.now());
+  const youtubeItem = document.querySelector('.service-menu-item[data-service="youtube"]');
+  const youtubeMusicItem = document.querySelector('.service-menu-item[data-service="youtube_music"]');
+
+  if (youtubeItem) {
+    if (isYoutubeAuthorized) {
+      youtubeItem.classList.remove('offline');
+      el.badgeStatusYoutube.textContent = t('service.status.connected');
+      el.badgeStatusYoutube.setAttribute('data-i18n', 'service.status.connected');
+      el.badgeStatusYoutube.className = "service-status-badge online";
+      el.btnConnectYoutubeMenu.classList.add('hidden');
+      el.btnDisconnectYoutubeAction.classList.remove('hidden');
+      
+      if (state.activeService === 'youtube') {
+        el.btnActivateYoutube.classList.add('hidden');
+        youtubeItem.classList.add('active');
+      } else {
+        el.btnActivateYoutube.classList.remove('hidden');
+        youtubeItem.classList.remove('active');
+      }
+    } else {
+      youtubeItem.classList.add('offline');
+      youtubeItem.classList.remove('active');
+      el.badgeStatusYoutube.textContent = t('service.status.disconnected');
+      el.badgeStatusYoutube.setAttribute('data-i18n', 'service.status.disconnected');
+      el.badgeStatusYoutube.className = "service-status-badge offline";
+      el.btnConnectYoutubeMenu.classList.remove('hidden');
+      el.btnDisconnectYoutubeAction.classList.add('hidden');
+      el.btnActivateYoutube.classList.add('hidden');
+    }
+  }
+
+  if (youtubeMusicItem) {
+    if (isYoutubeAuthorized) {
+      youtubeMusicItem.classList.remove('offline');
+      el.badgeStatusYoutubeMusic.textContent = t('service.status.connected');
+      el.badgeStatusYoutubeMusic.setAttribute('data-i18n', 'service.status.connected');
+      el.badgeStatusYoutubeMusic.className = "service-status-badge online";
+      el.btnConnectYoutubeMusicMenu.classList.add('hidden');
+      el.btnDisconnectYoutubeMusicAction.classList.remove('hidden');
+      
+      if (state.activeService === 'youtube_music') {
+        el.btnActivateYoutubeMusic.classList.add('hidden');
+        youtubeMusicItem.classList.add('active');
+      } else {
+        el.btnActivateYoutubeMusic.classList.remove('hidden');
+        youtubeMusicItem.classList.remove('active');
+      }
+    } else {
+      youtubeMusicItem.classList.add('offline');
+      youtubeMusicItem.classList.remove('active');
+      el.badgeStatusYoutubeMusic.textContent = t('service.status.disconnected');
+      el.badgeStatusYoutubeMusic.setAttribute('data-i18n', 'service.status.disconnected');
+      el.badgeStatusYoutubeMusic.className = "service-status-badge offline";
+      el.btnConnectYoutubeMusicMenu.classList.remove('hidden');
+      el.btnDisconnectYoutubeMusicAction.classList.add('hidden');
+      el.btnActivateYoutubeMusic.classList.add('hidden');
+    }
+  }
+
+  // 4. Dropdown Header Trigger Label and Indicator
   const isAnyConnected = isAnyServiceConnected();
-  const isServiceConnected = state.activeService === 'apple' ? isAppleAuthorized : isSpotifyAuthorized;
+  const isServiceConnected = state.activeService === 'apple' ? isAppleAuthorized : 
+                             state.activeService === 'spotify' ? isSpotifyAuthorized : 
+                             isYoutubeAuthorized;
   
   let serviceKey, serviceIcon;
   if (!isAnyConnected) {
     serviceKey = 'service.none';
     serviceIcon = '';
   } else {
-    serviceKey = state.activeService === 'apple' ? 'service.apple' : 'service.spotify';
-    serviceIcon = state.activeService === 'apple' ? '🍏' : '🟢';
+    if (state.activeService === 'apple') {
+      serviceKey = 'service.apple';
+      serviceIcon = '🍏';
+    } else if (state.activeService === 'spotify') {
+      serviceKey = 'service.spotify';
+      serviceIcon = '🟢';
+    } else if (state.activeService === 'youtube') {
+      serviceKey = 'service.youtube';
+      serviceIcon = '🔴';
+    } else if (state.activeService === 'youtube_music') {
+      serviceKey = 'service.youtube_music';
+      serviceIcon = '🔴';
+    }
   }
 
   if (el.activeServiceName) {
@@ -287,6 +364,95 @@ export function handleDisconnectSpotify() {
   }
 }
 
+export async function checkAndRefreshYoutubeToken() {
+  if (!state.youtubeAccessToken || !state.youtubeRefreshToken) return false;
+  
+  const expiresAt = parseInt(state.youtubeExpiresAt, 10);
+  if (isNaN(expiresAt) || expiresAt - Date.now() < 5 * 60 * 1000) {
+    try {
+      console.log("YouTube access token expiring soon, refreshing...");
+      const response = await fetch(`/api/youtube/refresh?refresh_token=${state.youtubeRefreshToken}`);
+      if (!response.ok) {
+        throw new Error(`Refresh request failed with status ${response.status}`);
+      }
+      const data = await response.json();
+      state.youtubeAccessToken = data.access_token;
+      state.youtubeExpiresAt = Date.now() + (data.expires_in * 1000);
+      
+      localStorage.setItem('youtubeAccessToken', state.youtubeAccessToken);
+      localStorage.setItem('youtubeExpiresAt', state.youtubeExpiresAt);
+      console.log("YouTube token refreshed successfully.");
+      updateConnectionUI();
+      return true;
+    } catch (err) {
+      console.error("Failed to refresh YouTube token:", err);
+      handleDisconnectYoutube();
+      return false;
+    }
+  }
+  return true;
+}
+
+export function handleYoutubeCallback() {
+  const hash = window.location.hash || '';
+  if (!hash.startsWith('#youtube_access_token=') && !hash.startsWith('#youtube_error=')) return;
+  
+  const params = new URLSearchParams(hash.substring(1));
+  const accessToken = params.get('youtube_access_token');
+  const refreshToken = params.get('youtube_refresh_token');
+  const expiresIn = params.get('youtube_expires_in');
+  const error = params.get('youtube_error');
+
+  if (error) {
+    showErrorToast(t('alert.youtubeAuthFailed', { error }));
+    window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+    return;
+  }
+
+  if (accessToken) {
+    state.youtubeAccessToken = accessToken;
+    if (refreshToken) {
+      state.youtubeRefreshToken = refreshToken;
+      localStorage.setItem('youtubeRefreshToken', state.youtubeRefreshToken);
+    }
+    state.youtubeExpiresAt = Date.now() + (parseInt(expiresIn || '3600', 10) * 1000);
+
+    localStorage.setItem('youtubeAccessToken', state.youtubeAccessToken);
+    localStorage.setItem('youtubeExpiresAt', state.youtubeExpiresAt);
+
+    // Set YouTube as active service
+    state.activeService = 'youtube';
+    localStorage.setItem('activeService', 'youtube');
+
+    // Clean URL
+    window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+
+    showSuccessToast(t('alert.youtubeConnected'));
+    updateConnectionUI();
+  }
+}
+
+export function handleConnectYoutube() {
+  window.location.href = '/api/youtube/login';
+}
+
+export function handleDisconnectYoutube() {
+  state.youtubeAccessToken = null;
+  state.youtubeRefreshToken = null;
+  state.youtubeExpiresAt = null;
+
+  localStorage.removeItem('youtubeAccessToken');
+  localStorage.removeItem('youtubeRefreshToken');
+  localStorage.removeItem('youtubeExpiresAt');
+
+  showSuccessToast(t('alert.youtubeDisconnected'));
+  if (state.activeService === 'youtube' || state.activeService === 'youtube_music') {
+    handleSelectActive('apple');
+  } else {
+    updateConnectionUI();
+  }
+}
+
 export function handleSelectActive(service) {
   state.activeService = service;
   localStorage.setItem('activeService', service);
@@ -304,7 +470,10 @@ export function handleSelectActive(service) {
   updateConnectionUI();
   updateCreatePlaylistButtonState();
   
-  const targetServiceLabel = service === 'apple' ? t('service.apple') : t('service.spotify');
+  const targetServiceLabel = service === 'apple' ? t('service.apple') : 
+                             service === 'spotify' ? t('service.spotify') : 
+                             service === 'youtube' ? t('service.youtube') : 
+                             t('service.youtube_music');
   showSuccessToast(t('alert.serviceSwitched', { service: targetServiceLabel }));
 }
 
@@ -328,6 +497,8 @@ export async function refreshMusicKitConfiguration() {
 export async function searchCatalogProxy(query, limit = 5, types = 'songs') {
   if (state.activeService === 'spotify') {
     await checkAndRefreshSpotifyToken();
+  } else if (state.activeService === 'youtube' || state.activeService === 'youtube_music') {
+    await checkAndRefreshYoutubeToken();
   }
   const storefront = (state.musicKit && state.musicKit.storefrontId) || 'us';
   const url = `/api/search?term=${encodeURIComponent(query)}&storefront=${storefront}&limit=${limit}&types=${types}`;
@@ -356,6 +527,8 @@ export async function searchCatalogProxy(query, limit = 5, types = 'songs') {
 export async function fetchCatalogPlaylistTracks(playlistId) {
   if (state.activeService === 'spotify') {
     await checkAndRefreshSpotifyToken();
+  } else if (state.activeService === 'youtube' || state.activeService === 'youtube_music') {
+    await checkAndRefreshYoutubeToken();
   }
   const storefront = (state.musicKit && state.musicKit.storefrontId) || 'us';
   const url = `/api/catalog/playlists/${playlistId}/tracks?storefront=${storefront}`;
@@ -373,6 +546,8 @@ export async function fetchCatalogPlaylistTracks(playlistId) {
 export async function fetchCatalogAlbumTracks(albumId) {
   if (state.activeService === 'spotify') {
     await checkAndRefreshSpotifyToken();
+  } else if (state.activeService === 'youtube' || state.activeService === 'youtube_music') {
+    await checkAndRefreshYoutubeToken();
   }
   const storefront = (state.musicKit && state.musicKit.storefrontId) || 'us';
   const url = `/api/catalog/albums/${albumId}/tracks?storefront=${storefront}`;

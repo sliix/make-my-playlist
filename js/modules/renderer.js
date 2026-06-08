@@ -4,15 +4,55 @@ import { searchCatalogProxy } from './api.js';
 import { moveTrack, bindDragAndDropListeners } from './reorder.js';
 import { t } from './i18n.js';
 
+export function updateMobileViewUI() {
+  const isMobile = window.innerWidth <= 640;
+  if (!isMobile) {
+    document.body.classList.remove('mobile-view-setup', 'mobile-view-tracks');
+    return;
+  }
+  
+  const count = state.tracks ? state.tracks.length : 0;
+  if (state.mobileView === 'tracks' && count > 0) {
+    document.body.classList.remove('mobile-view-setup');
+    document.body.classList.add('mobile-view-tracks');
+  } else {
+    state.mobileView = 'setup';
+    document.body.classList.remove('mobile-view-tracks');
+    document.body.classList.add('mobile-view-setup');
+  }
+
+  // Update Go to Tracks button text
+  if (el.btnGoToTracksText) {
+    el.btnGoToTracksText.textContent = t('action.goToTracks', { count });
+  }
+
+  // Show/hide Go to Tracks button based on track availability
+  if (el.btnGoToTracks) {
+    if (count > 0) {
+      el.btnGoToTracks.classList.remove('hidden');
+    } else {
+      el.btnGoToTracks.classList.add('hidden');
+    }
+  }
+}
+
 export function updateTracksCounter() {
   if (!state.tracks || state.tracks.length === 0) {
     el.tracksCounter.classList.add('hidden');
+    if (el.appendModeContainer) {
+      el.appendModeContainer.classList.add('hidden');
+    }
+    updateMobileViewUI();
     return;
   }
   const total = state.tracks.length;
   const approved = state.tracks.filter(t => t.approved).length;
   el.tracksCounter.textContent = t("track.counter", { approved, total });
   el.tracksCounter.classList.remove('hidden');
+  if (el.appendModeContainer) {
+    el.appendModeContainer.classList.remove('hidden');
+  }
+  updateMobileViewUI();
 }
 
 export function updateCreatePlaylistButtonState() {
@@ -582,6 +622,23 @@ export function updateTextMarquee(card, forceActive = false) {
 
 // Global Audio Preview Controllers
 export function playPreview(trackId, previewUrl) {
+  if (previewUrl && previewUrl.startsWith('youtube:')) {
+    const videoId = previewUrl.split(':')[1];
+    
+    if (state.playingAudio) {
+      state.playingAudio.pause();
+      state.playingAudio = null;
+      state.playingTrackId = null;
+      updateAllPlayButtonUI();
+    }
+
+    if (el.iframeYoutubePreview && el.modalYoutubePreview) {
+      el.iframeYoutubePreview.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+      el.modalYoutubePreview.showModal();
+    }
+    return;
+  }
+
   if (state.playingAudio && state.playingTrackId === trackId) {
     state.playingAudio.pause();
     state.playingAudio = null;

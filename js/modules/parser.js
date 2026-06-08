@@ -543,7 +543,12 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
   el.btnApproveAll.disabled = false;
 
   if (el.cardInputSongs) {
-    el.cardInputSongs.classList.add('collapsed');
+    const isMobile = window.innerWidth <= 640;
+    if (isMobile) {
+      el.cardInputSongs.classList.add('collapsed');
+    } else {
+      el.cardInputSongs.classList.remove('collapsed');
+    }
   }
 
   renderTracksList();
@@ -610,7 +615,12 @@ export async function executeCatalogSearches(pendingTracks) {
   el.btnApproveAll.disabled = false;
 
   if (el.cardInputSongs) {
-    el.cardInputSongs.classList.add('collapsed');
+    const isMobile = window.innerWidth <= 640;
+    if (isMobile) {
+      el.cardInputSongs.classList.add('collapsed');
+    } else {
+      el.cardInputSongs.classList.remove('collapsed');
+    }
   }
 
   renderTracksList();

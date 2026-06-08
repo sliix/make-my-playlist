@@ -6,6 +6,9 @@ export const translations = {
     "header.logoAlt": "MakeMyPlaylist Logo",
     "service.apple": "Apple Music",
     "service.spotify": "Spotify",
+    "service.youtube": "YouTube",
+    "service.youtube_music": "YouTube Music",
+    "service.google": "Google (YouTube / YT Music)",
     "service.status.connected": "Connected",
     "service.status.disconnected": "Disconnected",
     "service.action.setActive": "Set Active",
@@ -25,7 +28,7 @@ export const translations = {
     "card.import.btnLoadLoading": "Loading tracks...",
 
     // Playlist Details Card
-    "card.details.title": "1. Playlist Details",
+    "card.details.title": "Playlist Details",
     "card.details.nameLabel": "Playlist Name",
     "card.details.namePlaceholder": "My Awesome Playlist",
     "card.details.descLabel": "Description",
@@ -34,8 +37,8 @@ export const translations = {
     "card.details.publicDesc": "Make this playlist visible to other users.",
 
     // Input Songs Card
-    "card.input.title": "2. Input Songs or Describe Your Playlist",
-    "card.input.desc": "Paste your song list below, with each song on a new line (e.g., \"Artist - Title\" or \"Title by Artist\"), or describe your playlist in natural language (e.g., \"80s Israeli music\"). The system will automatically detect the input style.",
+    "card.input.title": "Input Songs or Describe Your Playlist",
+    "card.input.desc": "Paste your song list below, with each song on a new line (e.g., \"Artist - Title\" or \"Title by Artist\"), or describe your playlist in natural language (e.g., \"80s Israeli music\").",
     "card.input.placeholder": "e.g., 80s synthwave music and similar artists...",
     "card.input.appendTitle": "Append results",
     "card.input.appendDesc": "Add new matches to your current list instead of overwriting.",
@@ -44,7 +47,7 @@ export const translations = {
     "card.input.btnSearchSearching": "Searching Catalog...",
 
     // Playlist Items Card
-    "card.items.title": "3. Track List",
+    "card.items.title": "Track List",
     "card.items.btnApproveAll": "Check/Uncheck All",
     "card.items.emptyTitle": "No Songs Analyzed Yet",
     "card.items.emptyDesc": "Paste a list of songs on the left and click \"Search Catalog\" to fetch matches from your active music service.",
@@ -69,6 +72,8 @@ export const translations = {
     "action.resetLabel": "Reset Editor",
     "action.createPlaylist": "Create Playlist",
     "action.exportPlaylist": "Export Playlist",
+    "action.goToTracks": "Track List ({count}) ▶",
+    "action.backToSetup": "◀ Setup",
 
     // Modals
     "modal.export.title": "Export Options",
@@ -82,6 +87,7 @@ export const translations = {
     "modal.name.btnCancel": "Cancel",
     "modal.connect.title": "Connect to a Music Service",
     "modal.connect.desc": "To export playlists or load playlists from your library, you need to connect to a music service.",
+    "modal.preview.title": "Video Preview",
 
     // Toasts & Alerts
     "alert.resetConfirm": "Are you sure you want to clear the editor? This will erase the current song list, playlist settings, and all search results.",
@@ -117,6 +123,9 @@ export const translations = {
     "alert.appleAuthFailed": "Could not authorize Apple Music account.",
     "alert.appleDisconnected": "Disconnected from Apple Music.",
     "alert.spotifyDisconnected": "Disconnected from Spotify.",
+    "alert.youtubeConnected": "Successfully connected Google account!",
+    "alert.youtubeAuthFailed": "Could not authorize Google account: {error}",
+    "alert.youtubeDisconnected": "Disconnected Google account.",
     "alert.serviceSwitched": "Switched active service to {service}.",
     "card.items.updatingText": "Updating...",
 
@@ -134,7 +143,9 @@ export const translations = {
 
     // Service Names
     "serviceName.apple": "Apple Music",
-    "serviceName.spotify": "Spotify"
+    "serviceName.spotify": "Spotify",
+    "serviceName.youtube": "YouTube",
+    "serviceName.youtube_music": "YouTube Music"
   },
   he: {
     // Header
@@ -142,6 +153,9 @@ export const translations = {
     "header.logoAlt": "לוגו MakeMyPlaylist",
     "service.apple": "אפל מיוזיק",
     "service.spotify": "ספוטיפיי",
+    "service.youtube": "יוטיוב",
+    "service.youtube_music": "יוטיוב מיוזיק",
+    "service.google": "גוגל (YouTube / YT Music)",
     "service.status.connected": "מחובר",
     "service.status.disconnected": "מנותק",
     "service.action.setActive": "הגדר כפעיל",
@@ -161,7 +175,7 @@ export const translations = {
     "card.import.btnLoadLoading": "טוען שירים...",
 
     // Playlist Details Card
-    "card.details.title": "1. פרטי הפלייליסט",
+    "card.details.title": "פרטי הפלייליסט",
     "card.details.nameLabel": "שם הפלייליסט",
     "card.details.namePlaceholder": "הפלייליסט המגניב שלי",
     "card.details.descLabel": "תיאור",
@@ -170,8 +184,8 @@ export const translations = {
     "card.details.publicDesc": "הצג פלייליסט זה למשתמשים אחרים.",
 
     // Input Songs Card
-    "card.input.title": "2. הכניסו שירים או תארו את הפלייליסט שלכם",
-    "card.input.desc": "הדביקו את רשימת השירים שלכם למטה, כל שיר בשורה חדשה (לדוגמא: \"אמן - שם השיר\" או \"שם השיר של אמן\"), או תארו את הפלייליסט שלכם בשפה חופשית (לדוגמה: \"מוזיקה ישראלית משנות השמונים\"). המערכת תזהה אוטומטית את סגנון הקלט.",
+    "card.input.title": "הכניסו שירים או תארו את הפלייליסט שלכם",
+    "card.input.desc": "הדביקו את רשימת השירים שלכם למטה, כל שיר בשורה חדשה (לדוגמא: \"אמן - שם השיר\" או \"שם השיר של אמן\"), או תארו את הפלייליסט שלכם בשפה חופשית (לדוגמה: \"מוזיקה ישראלית משנות השמונים\").",
     "card.input.placeholder": "לדוגמא: מוזיקת סינת'ווייב משנות ה-80 ואמנים דומים...",
     "card.input.appendTitle": "הוסף לקיים",
     "card.input.appendDesc": "הוסיפו התאמות חדשות לרשימה הנוכחית שלכם במקום לדרוס אותה.",
@@ -180,7 +194,7 @@ export const translations = {
     "card.input.btnSearchSearching": "מחפש בקטלוג...",
 
     // Playlist Items Card
-    "card.items.title": "3. רשימת השירים",
+    "card.items.title": "רשימת השירים",
     "card.items.btnApproveAll": "סמן/בטל סימון להכל",
     "card.items.emptyTitle": "אין שירים עדיין",
     "card.items.emptyDesc": "הדבק רשימת שירים מימין ולחץ על \"חפש בקטלוג\" כדי למשוך התאמות משירות המוזיקה הפעיל שלך.",
@@ -205,6 +219,8 @@ export const translations = {
     "action.resetLabel": "איפוס העורך",
     "action.createPlaylist": "יצירת פלייליסט",
     "action.exportPlaylist": "ייצוא פלייליסט",
+    "action.goToTracks": "רשימת השירים ({count}) ◀",
+    "action.backToSetup": "▶ הגדרות",
 
     // Modals
     "modal.export.title": "אפשרויות ייצוא",
@@ -218,6 +234,7 @@ export const translations = {
     "modal.name.btnCancel": "ביטול",
     "modal.connect.title": "התחברות לשירות מוזיקה",
     "modal.connect.desc": "כדי לייצא פלייליסטים או לטעון פלייליסטים מהספרייה שלך, עליך להתחבר לשירות מוזיקה.",
+    "modal.preview.title": "תצוגה מקדימה של וידאו",
 
     // Toasts & Alerts
     "alert.resetConfirm": "האם אתם בטוחים שברצונכם לאפס את העורך? פעולה זו תמחק את רשימת השירים הנוכחית, הגדרות הפלייליסט וכל תוצאות החיפוש.",
@@ -253,6 +270,9 @@ export const translations = {
     "alert.appleAuthFailed": "לא ניתן היה לאמת את חשבון Apple Music.",
     "alert.appleDisconnected": "נותקתם מ-Apple Music.",
     "alert.spotifyDisconnected": "נותקתם מספוטיפיי.",
+    "alert.youtubeConnected": "חיבור לחשבון גוגל בוצע בהצלחה!",
+    "alert.youtubeAuthFailed": "אימות חשבון גוגל נכשל: {error}",
+    "alert.youtubeDisconnected": "נותקת מחשבון גוגל.",
     "alert.serviceSwitched": "השירות הפעיל שונה ל-{service}.",
     "card.items.updatingText": "מעדכן...",
 
@@ -270,7 +290,9 @@ export const translations = {
 
     // Service Names
     "serviceName.apple": "אפל מיוזיק",
-    "serviceName.spotify": "ספוטיפיי"
+    "serviceName.spotify": "ספוטיפיי",
+    "serviceName.youtube": "יוטיוב",
+    "serviceName.youtube_music": "יוטיוב מיוזיק"
   }
 };
 
@@ -346,7 +368,10 @@ export function applyTranslations() {
 
   // Update input placeholders with data-i18n-placeholder
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    const key = el.getAttribute('data-i18n-placeholder');
+    let key = el.getAttribute('data-i18n-placeholder');
+    if (el.id === 'input-song-list' && window.innerWidth <= 640) {
+      key = 'card.input.desc';
+    }
     el.setAttribute('placeholder', t(key));
   });
 

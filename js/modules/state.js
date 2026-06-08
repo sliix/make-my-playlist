@@ -1,5 +1,5 @@
 import { updateInputAutoDetection } from './parser.js';
-import { renderTracksList, updateCreatePlaylistButtonState } from './renderer.js';
+import { renderTracksList, updateCreatePlaylistButtonState, updateMobileViewUI } from './renderer.js';
 
 // Application State
 export const state = {
@@ -21,6 +21,10 @@ export const state = {
   spotifyAccessToken: localStorage.getItem('spotifyAccessToken') || null,
   spotifyRefreshToken: localStorage.getItem('spotifyRefreshToken') || null,
   spotifyExpiresAt: localStorage.getItem('spotifyExpiresAt') || null,
+  youtubeAccessToken: localStorage.getItem('youtubeAccessToken') || null,
+  youtubeRefreshToken: localStorage.getItem('youtubeRefreshToken') || null,
+  youtubeExpiresAt: localStorage.getItem('youtubeExpiresAt') || null,
+  mobileView: 'setup', // active view on phone ('setup' or 'tracks')
 };
 
 // UI Elements Cache
@@ -30,6 +34,10 @@ export const el = {
   headerActions: document.getElementById('header-actions'),
   activeServiceIcon: document.getElementById('active-service-icon'),
 
+  btnGoToTracks: document.getElementById('btn-go-to-tracks'),
+  btnGoToTracksText: document.getElementById('btn-go-to-tracks-text'),
+  btnBackToSetup: document.getElementById('btn-back-to-setup'),
+
   inputSongList: document.getElementById('input-song-list'),
   cardInputSongs: document.getElementById('card-input-songs'),
   detectionStatusContainer: document.getElementById('detection-status-container'),
@@ -37,6 +45,7 @@ export const el = {
   detectionExplanation: document.getElementById('detection-explanation'),
   btnOverrideMode: document.getElementById('btn-override-mode'),
   chkAppendMode: document.getElementById('chk-append-mode'),
+  appendModeContainer: document.getElementById('append-mode-container'),
   playlistName: document.getElementById('playlist-name'),
   playlistDesc: document.getElementById('playlist-desc'),
   playlistPublic: document.getElementById('playlist-public'),
@@ -63,12 +72,20 @@ export const el = {
   activeServiceName: document.getElementById('active-service-name'),
   badgeStatusApple: document.getElementById('badge-status-apple'),
   badgeStatusSpotify: document.getElementById('badge-status-spotify'),
+  badgeStatusYoutube: document.getElementById('badge-status-youtube'),
+  badgeStatusYoutubeMusic: document.getElementById('badge-status-youtube-music'),
   btnActivateApple: document.getElementById('btn-activate-apple'),
   btnActivateSpotify: document.getElementById('btn-activate-spotify'),
+  btnActivateYoutube: document.getElementById('btn-activate-youtube'),
+  btnActivateYoutubeMusic: document.getElementById('btn-activate-youtube-music'),
   btnConnectAppleMenu: document.getElementById('btn-connect-apple-menu'),
   btnConnectSpotifyMenu: document.getElementById('btn-connect-spotify-menu'),
+  btnConnectYoutubeMenu: document.getElementById('btn-connect-youtube-menu'),
+  btnConnectYoutubeMusicMenu: document.getElementById('btn-connect-youtube-music-menu'),
   btnDisconnectAppleAction: document.getElementById('btn-disconnect-apple-action'),
   btnDisconnectSpotifyAction: document.getElementById('btn-disconnect-spotify-action'),
+  btnDisconnectYoutubeAction: document.getElementById('btn-disconnect-youtube-action'),
+  btnDisconnectYoutubeMusicAction: document.getElementById('btn-disconnect-youtube-music-action'),
 
   // Library Playlist Import Elements
   btnFetchPlaylists: document.getElementById('btn-fetch-playlists'),
@@ -95,7 +112,18 @@ export const el = {
   modalConnectService: document.getElementById('modal-connect-service'),
   btnConnectAppleModal: document.getElementById('btn-connect-apple-modal'),
   btnConnectSpotifyModal: document.getElementById('btn-connect-spotify-modal'),
+  btnConnectYoutubeModal: document.getElementById('btn-connect-youtube-modal'),
   btnCloseConnectModal: document.getElementById('btn-close-connect-modal'),
+
+  // YouTube Video Preview modal
+  modalYoutubePreview: document.getElementById('modal-youtube-preview'),
+  iframeYoutubePreview: document.getElementById('iframe-youtube-preview'),
+  btnCloseYoutubePreview: document.getElementById('btn-close-youtube-preview'),
+
+  // Custom Alert Modal
+  modalCustomAlert: document.getElementById('modal-custom-alert'),
+  btnCloseAlertModal: document.getElementById('btn-close-alert-modal'),
+  btnCustomAlertOk: document.getElementById('btn-custom-alert-ok'),
 
   // Language switcher elements
   btnLangToggle: document.getElementById('btn-lang-toggle'),
@@ -121,6 +149,9 @@ export function saveAppState() {
   localStorage.setItem('makemyplaylist_loaded_playlist_name', state.loadedPlaylistName || '');
   localStorage.setItem('makemyplaylist_loaded_playlist_desc', state.loadedPlaylistDesc || '');
   localStorage.setItem('makemyplaylist_loaded_playlist_original_track_ids', JSON.stringify(state.loadedPlaylistOriginalTrackIds || []));
+  localStorage.setItem('youtubeAccessToken', state.youtubeAccessToken || '');
+  localStorage.setItem('youtubeRefreshToken', state.youtubeRefreshToken || '');
+  localStorage.setItem('youtubeExpiresAt', state.youtubeExpiresAt || '');
 
   updateCreatePlaylistButtonState();
 }
@@ -159,21 +190,21 @@ export function restoreAppState() {
       state.loadedPlaylistOriginalTrackIds = [];
     }
 
+    state.mobileView = 'setup';
     const tracksStr = localStorage.getItem('makemyplaylist_tracks');
     if (tracksStr) {
       const tracks = JSON.parse(tracksStr);
       if (tracks && tracks.length > 0) {
         state.tracks = tracks;
+        state.mobileView = 'tracks';
         el.resultsEmptyState.classList.add('hidden');
         el.tracksList.classList.remove('hidden');
         el.btnApproveAll.removeAttribute('disabled');
-        if (el.cardInputSongs) {
-          el.cardInputSongs.classList.add('collapsed');
-        }
         renderTracksList();
         updateCreatePlaylistButtonState();
       }
     }
+    updateMobileViewUI();
   } catch (e) {
     console.error("Error restoring app state:", e);
   }

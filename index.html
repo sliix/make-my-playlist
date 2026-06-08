@@ -81,6 +81,36 @@
                 <button class="btn btn-xs btn-outline-danger btn-service-disconnect hidden" id="btn-disconnect-spotify-action" type="button" data-i18n="service.action.disconnect">Disconnect</button>
               </div>
             </div>
+            <!-- YouTube Item -->
+            <div class="service-menu-item" data-service="youtube">
+              <div class="service-menu-header">
+                <div class="service-info">
+                  <span class="service-icon">🔴</span>
+                  <span class="service-title" data-i18n="service.youtube">YouTube</span>
+                </div>
+                <span class="service-status-badge offline" id="badge-status-youtube" data-i18n="service.status.disconnected">Disconnected</span>
+              </div>
+              <div class="service-actions">
+                <button class="btn btn-xs btn-primary btn-service-active hidden" id="btn-activate-youtube" type="button" data-i18n="service.action.setActive">Set Active</button>
+                <button class="btn btn-xs btn-secondary btn-service-connect" id="btn-connect-youtube-menu" type="button" data-i18n="service.action.connect">Connect</button>
+                <button class="btn btn-xs btn-outline-danger btn-service-disconnect hidden" id="btn-disconnect-youtube-action" type="button" data-i18n="service.action.disconnect">Disconnect</button>
+              </div>
+            </div>
+            <!-- YouTube Music Item -->
+            <div class="service-menu-item" data-service="youtube_music">
+              <div class="service-menu-header">
+                <div class="service-info">
+                  <span class="service-icon">🔴</span>
+                  <span class="service-title" data-i18n="service.youtube_music">YouTube Music</span>
+                </div>
+                <span class="service-status-badge offline" id="badge-status-youtube-music" data-i18n="service.status.disconnected">Disconnected</span>
+              </div>
+              <div class="service-actions">
+                <button class="btn btn-xs btn-primary btn-service-active hidden" id="btn-activate-youtube-music" type="button" data-i18n="service.action.setActive">Set Active</button>
+                <button class="btn btn-xs btn-secondary btn-service-connect" id="btn-connect-youtube-music-menu" type="button" data-i18n="service.action.connect">Connect</button>
+                <button class="btn btn-xs btn-outline-danger btn-service-disconnect hidden" id="btn-disconnect-youtube-music-action" type="button" data-i18n="service.action.disconnect">Disconnect</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -104,7 +134,13 @@
     <section class="control-panel panel">
       <div id="card-import-playlist" class="section-card collapsible collapsed">
         <div class="card-header-toggle">
-          <h2 data-i18n="card.import.title">Import Existing Playlist</h2>
+          <h2 data-i18n="card.import.title">
+            <svg class="icon title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>Import Existing Playlist
+          </h2>
           <button class="btn-toggle" type="button" aria-label="Toggle Section">
             <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="6 9 12 15 18 9"></polyline>
@@ -155,7 +191,12 @@
 
       <div id="card-playlist-details" class="section-card collapsible collapsed">
         <div class="card-header-toggle">
-          <h2 data-i18n="card.details.title">1. Playlist Details</h2>
+          <h2 data-i18n="card.details.title">
+            <svg class="icon title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>Playlist Details
+          </h2>
           <button class="btn-toggle" type="button" aria-label="Toggle Section">
             <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="6 9 12 15 18 9"></polyline>
@@ -186,7 +227,11 @@
 
       <div id="card-input-songs" class="section-card collapsible">
         <div class="card-header-toggle">
-          <h2 data-i18n="card.input.title">2. Input Songs or Describe Your Playlist</h2>
+          <h2 data-i18n="card.input.title">
+            <svg class="icon title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+            </svg>Input Songs or Describe Your Playlist
+          </h2>
           <button class="btn-toggle" type="button" aria-label="Toggle Section">
             <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="6 9 12 15 18 9"></polyline>
@@ -194,7 +239,7 @@
           </button>
         </div>
         <div class="collapsible-content">
-          <p class="section-desc" data-i18n="card.input.desc">Paste your song list below, with each song on a new line (e.g., "Artist - Title" or "Title by Artist"), or describe your playlist in natural language (e.g., "80s Israeli music"). The system will automatically detect the input style.</p>
+          <p class="section-desc" data-i18n="card.input.desc">Paste your song list below, with each song on a new line (e.g., "Artist - Title" or "Title by Artist"), or describe your playlist in natural language (e.g., "80s Israeli music").</p>
           <div class="textarea-container">
             <textarea id="input-song-list" data-i18n-placeholder="card.input.placeholder" placeholder="Examples:
 1. Daft Punk - Get Lucky
@@ -210,7 +255,7 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
             <button id="btn-override-mode" class="btn-override-mode" type="button"></button>
           </div>
 
-          <div class="form-group toggle-group mt-4">
+          <div id="append-mode-container" class="form-group toggle-group mt-4 hidden">
             <div class="toggle-label-container">
               <span class="toggle-title" data-i18n="card.input.appendTitle">Append results</span>
               <span class="toggle-desc" data-i18n="card.input.appendDesc">Add new matches to your current list instead of overwriting.</span>
@@ -241,12 +286,27 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
     <!-- Right Column: Verification & Refinement -->
     <section class="results-panel panel">
       <div class="results-header">
-        <div class="results-title-container">
-          <h2 data-i18n="card.items.title">Track List</h2>
-          <span id="tracks-counter" class="tracks-counter hidden"></span>
+        <div class="results-header-left">
+          <button id="btn-back-to-setup" class="btn btn-secondary btn-xs mobile-only-btn" aria-label="Back to Setup">
+            <span id="btn-back-to-setup-text" data-i18n="action.backToSetup">&lt; Setup</span>
+          </button>
+          <div class="results-title-container">
+            <h2 data-i18n="card.items.title">
+              <svg class="icon title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15V3H9v12"></path>
+                <circle cx="6" cy="18" r="3"></circle>
+                <circle cx="16" cy="16" r="3"></circle>
+                <line x1="21" y1="9" x2="9" y2="11"></line>
+              </svg>Track List
+            </h2>
+          </div>
         </div>
-        <div class="results-actions">
-          <button id="btn-approve-all" class="btn btn-secondary btn-sm" disabled data-i18n="card.items.btnApproveAll">Check/Uncheck All</button>
+        
+        <div class="results-header-right">
+          <span id="tracks-counter" class="tracks-counter hidden"></span>
+          <div class="results-actions">
+            <button id="btn-approve-all" class="btn btn-secondary btn-sm" disabled data-i18n="card.items.btnApproveAll">Check/Uncheck All</button>
+          </div>
         </div>
       </div>
 
@@ -291,6 +351,9 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
             <path d="M3 3v5h5"></path>
           </svg>
           <span data-i18n="action.reset">Reset</span>
+        </button>
+        <button id="btn-go-to-tracks" class="btn btn-primary mobile-only-btn hidden" aria-label="Go to Track List">
+          <span id="btn-go-to-tracks-text" data-i18n="action.goToTracks">Track List (0) &gt;</span>
         </button>
         <button id="btn-create-playlist" class="btn btn-primary" disabled>
           <svg class="icon animate-spin hidden" id="spinner-create" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -420,6 +483,43 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
             </div>
             <button id="btn-connect-spotify-modal" class="btn btn-secondary btn-sm" type="button" data-i18n="service.action.connect">Connect</button>
           </div>
+          
+          <!-- Google (YouTube / YT Music) option -->
+          <div class="service-connect-card" style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glass); border-radius: var(--radius-md);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div class="youtube-logo-container" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;">
+                <svg class="icon-youtube-green" viewBox="0 0 24 24" fill="currentColor" style="width: 28px; height: 28px; color: #00ff66;">
+                  <path d="M23.498 6.163c-.272-1.02-.124-1.507-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508c-1.986.603-1.838 1.09-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837c.272 1.02.124 1.507 2.11 2.11 1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508c1.986-.603 1.838-1.09 2.11-2.11.502-1.87.502-5.837.502-5.837s0-3.967-.502-5.837z"/>
+                  <polygon points="9.545 15.568 15.818 12 9.545 8.432" fill="#121214"/>
+                </svg>
+              </div>
+              <div>
+                <strong style="color: var(--text-main); font-size: 16px;" data-i18n="service.google">Google (YouTube / YT Music)</strong>
+                <div style="color: var(--text-muted); font-size: 12px;" data-i18n="service.status.disconnected">Disconnected</div>
+              </div>
+            </div>
+            <button id="btn-connect-youtube-modal" class="btn btn-secondary btn-sm" type="button" data-i18n="service.action.connect">Connect</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- YouTube Video Preview Glass Modal Dialog -->
+  <dialog id="modal-youtube-preview" class="glass-modal video-modal">
+    <div class="modal-content video-modal-content">
+      <div class="modal-header">
+        <h3 data-i18n="modal.preview.title">Video Preview</h3>
+        <button id="btn-close-youtube-preview" class="btn-close" aria-label="Close Preview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body video-modal-body">
+        <div class="video-container">
+          <iframe id="iframe-youtube-preview" width="100%" height="100%" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
       </div>
     </div>

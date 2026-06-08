@@ -9,7 +9,8 @@ import {
 import { 
   renderTracksList, 
   updateCreatePlaylistButtonState, 
-  updateTracksCounter 
+  updateTracksCounter,
+  updateMobileViewUI
 } from './renderer.js';
 import { 
   updateInputAutoDetection, 
@@ -45,6 +46,10 @@ export function handleAnalyzeSongList() {
     alert(state.detectedMode === 'natural' ? t("alert.emptyPrompt") : t("alert.emptyInput"));
     return;
   }
+
+  // Switch to tracks view on mobile when search starts
+  state.mobileView = 'tracks';
+  updateMobileViewUI();
 
   if (state.detectedMode === 'natural') {
     // Show searching/parsing progress indicator
@@ -153,7 +158,12 @@ export function handleAnalyzeSongList() {
     renderTracksList();
     updateCreatePlaylistButtonState();
     if (el.cardInputSongs) {
-      el.cardInputSongs.classList.add('collapsed');
+      const isMobile = window.innerWidth <= 640;
+      if (isMobile) {
+        el.cardInputSongs.classList.add('collapsed');
+      } else {
+        el.cardInputSongs.classList.remove('collapsed');
+      }
     }
     saveAppState();
     showSuccessToast(t("alert.toastUpdated"));
@@ -490,6 +500,7 @@ export function handleResetApp() {
     state.loadedPlaylistOriginalTrackIds = [];
     state.detectedMode = 'list';
     state.isModeOverridden = false;
+    state.mobileView = 'setup';
 
     // 3. Reset UI inputs to defaults
     el.inputSongList.value = "";
@@ -699,7 +710,12 @@ export async function handleLoadSelectedPlaylist() {
     renderTracksList();
     updateCreatePlaylistButtonState();
     if (el.cardInputSongs) {
-      el.cardInputSongs.classList.add('collapsed');
+      const isMobile = window.innerWidth <= 640;
+      if (isMobile) {
+        el.cardInputSongs.classList.add('collapsed');
+      } else {
+        el.cardInputSongs.classList.remove('collapsed');
+      }
     }
     saveAppState();
 

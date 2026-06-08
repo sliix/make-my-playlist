@@ -3,11 +3,14 @@ import { applyTranslations, setLocale } from './js/modules/i18n.js';
 import { 
   loadSessionConfigWithRetries, 
   handleSpotifyCallback, 
+  handleYoutubeCallback,
   updateConnectionUI,
   handleConnectAppleMusic,
   handleDisconnectAppleMusic,
   handleConnectSpotify,
   handleDisconnectSpotify,
+  handleConnectYoutube,
+  handleDisconnectYoutube,
   handleSelectActive
 } from './js/modules/api.js';
 import {
@@ -26,10 +29,12 @@ import {
 import {
   initDragAndDrop
 } from './js/modules/reorder.js';
+import { updateMobileViewUI } from './js/modules/renderer.js';
 
 // Initialize Application
 window.addEventListener('DOMContentLoaded', async () => {
   handleSpotifyCallback();
+  handleYoutubeCallback();
   initEventListeners();
 
   // Register Service Worker for PWA installability
@@ -47,6 +52,13 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Apply initial translations
   applyTranslations();
+  updateMobileViewUI();
+
+  // Update placeholders and mobile view styling dynamically on viewport resize
+  window.addEventListener('resize', () => {
+    applyTranslations();
+    updateMobileViewUI();
+  });
 
   // Update connection UI after initialization
   updateConnectionUI();
@@ -68,6 +80,23 @@ function initEventListeners() {
   // Reset handler
   el.btnReset.addEventListener('click', handleResetApp);
 
+  // Mobile View Navigation handlers
+  if (el.btnGoToTracks) {
+    el.btnGoToTracks.addEventListener('click', () => {
+      if (state.tracks && state.tracks.length > 0) {
+        state.mobileView = 'tracks';
+        updateMobileViewUI();
+      }
+    });
+  }
+
+  if (el.btnBackToSetup) {
+    el.btnBackToSetup.addEventListener('click', () => {
+      state.mobileView = 'setup';
+      updateMobileViewUI();
+    });
+  }
+
   // Action listeners
   el.btnAnalyze.addEventListener('click', handleAnalyzeSongList);
   el.btnApproveAll.addEventListener('click', handleApproveAll);
@@ -88,6 +117,7 @@ function initEventListeners() {
       e.stopPropagation();
       const lang = item.dataset.lang;
       setLocale(lang);
+      updateMobileViewUI();
       if (el.menuLangDropdown) {
         el.menuLangDropdown.classList.add('hidden');
         el.btnLangToggle.parentElement.classList.remove('open');
@@ -127,6 +157,32 @@ function initEventListeners() {
   el.btnActivateSpotify.addEventListener('click', (e) => {
     e.stopPropagation();
     handleSelectActive('spotify');
+  });
+
+  el.btnConnectYoutubeMenu.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleConnectYoutube();
+  });
+  el.btnDisconnectYoutubeAction.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleDisconnectYoutube();
+  });
+  el.btnActivateYoutube.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleSelectActive('youtube');
+  });
+
+  el.btnConnectYoutubeMusicMenu.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleConnectYoutube();
+  });
+  el.btnDisconnectYoutubeMusicAction.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleDisconnectYoutube();
+  });
+  el.btnActivateYoutubeMusic.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleSelectActive('youtube_music');
   });
 
   // Library Playlist Import listeners
@@ -275,6 +331,28 @@ function initEventListeners() {
     el.btnConnectSpotifyModal.addEventListener('click', () => {
       el.modalConnectService.close();
       handleConnectSpotify();
+    });
+  }
+  if (el.btnConnectYoutubeModal) {
+    el.btnConnectYoutubeModal.addEventListener('click', () => {
+      el.modalConnectService.close();
+      handleConnectYoutube();
+    });
+  }
+
+  // YouTube Video Preview modal close & backdrop clicks to stop play
+  if (el.btnCloseYoutubePreview) {
+    el.btnCloseYoutubePreview.addEventListener('click', () => {
+      if (el.iframeYoutubePreview) el.iframeYoutubePreview.src = '';
+      el.modalYoutubePreview.close();
+    });
+  }
+  if (el.modalYoutubePreview) {
+    el.modalYoutubePreview.addEventListener('click', (e) => {
+      if (e.target === el.modalYoutubePreview) {
+        if (el.iframeYoutubePreview) el.iframeYoutubePreview.src = '';
+        el.modalYoutubePreview.close();
+      }
     });
   }
 

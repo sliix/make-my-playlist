@@ -10,6 +10,14 @@ import {
   handleSpotifyRefresh
 } from './spotify.js';
 import { handleParsePrompt } from './ai.js';
+import {
+  handleYoutubeLogin,
+  handleYoutubeCallback,
+  handleYoutubeRefresh,
+  mapYoutubeVideoToStandard,
+  mapYoutubePlaylistItemToStandard,
+  mapYoutubePlaylistToStandard
+} from './youtube.js';
 
 const router = express.Router();
 
@@ -98,6 +106,38 @@ router.get('/search', async (req, res) => {
       return res.json({ results });
     } catch (error) {
       console.error(`Spotify catalog search failed for term "${term}":`, error.message);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  if (service === 'youtube' || service === 'youtube_music') {
+    if (!userToken) {
+      return res.status(400).json({ error: `Missing required X-User-Token header for ${service === 'youtube' ? 'YouTube' : 'YouTube Music'} search.` });
+    }
+    try {
+      const isMusic = service === 'youtube_music';
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(term)}&maxResults=${parsedLimit}&type=video${isMusic ? '&videoCategoryId=10' : ''}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${userToken}`
+        }
+      });
+      
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'YouTube search failed');
+      }
+      
+      const results = {
+        songs: {
+          data: (data.items || []).map(mapYoutubeVideoToStandard).filter(t => t !== null)
+        }
+      };
+      
+      return res.json({ results });
+    } catch (error) {
+      console.error(`${service === 'youtube' ? 'YouTube' : 'YouTube Music'} catalog search failed for term "${term}":`, error.message);
       return res.status(500).json({ error: error.message });
     }
   }
@@ -193,6 +233,28 @@ router.get('/catalog/playlists/:id/tracks', async (req, res) => {
     }
   }
 
+  if (service === 'youtube' || service === 'youtube_music') {
+    if (!userToken) {
+      return res.status(400).json({ error: "Missing required X-User-Token header for YouTube." });
+    }
+    try {
+      const response = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${id}&maxResults=100`, {
+        headers: { 'Authorization': `Bearer ${userToken}` }
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'YouTube Playlist Items API failed');
+      }
+      const mapped = {
+        data: (data.items || []).map(mapYoutubePlaylistItemToStandard).filter(t => t !== null)
+      };
+      return res.json(mapped);
+    } catch (error) {
+      console.error(`${service} catalog playlist tracks failed:`, error.message);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
   try {
     const token = generateDeveloperToken('2m');
     const url = `https://api.music.apple.com/v1/catalog/${storefront}/playlists/${id}/tracks?limit=100`;
@@ -239,6 +301,10 @@ router.get('/catalog/albums/:id/tracks', async (req, res) => {
       console.error(`Spotify catalog album tracks failed:`, error.message);
       return res.status(500).json({ error: error.message });
     }
+  }
+
+  if (service === 'youtube' || service === 'youtube_music') {
+    return res.json({ data: [] });
   }
 
   try {
@@ -316,6 +382,48 @@ router.post('/playlists', async (req, res) => {
     }
   }
 
+  if (service === 'youtube' || service === 'youtube_music') {
+    try {
+      const response = await fetch('https://www.googleapis.com/youtube/v3/playlists?part=snippet,status', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${userToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          snippet: {
+            title: name || "My Imported Playlist",
+            description: description || "Created with MakeMyPlaylist"
+          },
+          status: {
+            privacyStatus: 'private'
+          }
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'YouTube Playlist Creation failed');
+      }
+
+      return res.json({
+        data: [
+          {
+            id: data.id,
+            type: 'library-playlists',
+            attributes: {
+              name: data.snippet.title,
+              description: data.snippet.description || ''
+            }
+          }
+        ]
+      });
+    } catch (error) {
+      console.error("YouTube playlist creation failed:", error.message);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
   // Apple Music
   try {
     const token = generateDeveloperToken('2m');
@@ -389,6 +497,38 @@ router.post('/playlists/:id/tracks', async (req, res) => {
     }
   }
 
+  if (service === 'youtube' || service === 'youtube_music') {
+    try {
+      for (const track of tracks) {
+        const insertResponse = await fetch('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${userToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            snippet: {
+              playlistId: id,
+              resourceId: {
+                kind: 'youtube#video',
+                videoId: track.id
+              }
+            }
+          })
+        });
+
+        if (!insertResponse.ok) {
+          const data = await insertResponse.json();
+          throw new Error(data.error?.message || `Failed to add track ${track.id} to YouTube playlist.`);
+        }
+      }
+      return res.json({ success: true });
+    } catch (error) {
+      console.error(`YouTube add tracks failed for playlist "${id}":`, error.message);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
   // Apple Music
   try {
     const token = generateDeveloperToken('2m');
@@ -450,6 +590,35 @@ router.patch('/playlists/:id', async (req, res) => {
       return res.json({ success: true });
     } catch (error) {
       console.error("Spotify playlist update failed:", error.message);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  if (service === 'youtube' || service === 'youtube_music') {
+    try {
+      const response = await fetch('https://www.googleapis.com/youtube/v3/playlists?part=snippet', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${userToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: id,
+          snippet: {
+            title: name,
+            description: description || ''
+          }
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'YouTube Playlist Update failed');
+      }
+
+      return res.json({ success: true });
+    } catch (error) {
+      console.error("YouTube playlist update failed:", error.message);
       return res.status(500).json({ error: error.message });
     }
   }
@@ -523,6 +692,25 @@ router.get('/library/playlists', async (req, res) => {
     }
   }
 
+  if (service === 'youtube' || service === 'youtube_music') {
+    try {
+      const response = await fetch('https://www.googleapis.com/youtube/v3/playlists?part=snippet&mine=true&maxResults=50', {
+        headers: { 'Authorization': `Bearer ${userToken}` }
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'YouTube library playlists fetch failed');
+      }
+      const mapped = {
+        data: (data.items || []).map(mapYoutubePlaylistToStandard).filter(t => t !== null)
+      };
+      return res.json(mapped);
+    } catch (error) {
+      console.error("YouTube fetch library playlists failed:", error.message);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
   // Apple Music
   try {
     const token = generateDeveloperToken('2m');
@@ -585,6 +773,31 @@ router.get('/library/playlists/:id/tracks', async (req, res) => {
     }
   }
 
+  if (service === 'youtube' || service === 'youtube_music') {
+    try {
+      const response = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${id}&maxResults=100`, {
+        headers: { 'Authorization': `Bearer ${userToken}` }
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'YouTube playlist tracks fetch failed');
+      }
+      const mapped = {
+        data: (data.items || []).map(item => {
+          const trackItem = mapYoutubePlaylistItemToStandard(item);
+          if (trackItem) {
+            trackItem.type = 'library-songs';
+          }
+          return trackItem;
+        }).filter(t => t !== null)
+      };
+      return res.json(mapped);
+    } catch (error) {
+      console.error(`YouTube fetch tracks failed for playlist "${id}":`, error.message);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
   // Apple Music
   try {
     const token = generateDeveloperToken('2m');
@@ -616,5 +829,10 @@ router.post('/parse-prompt', handleParsePrompt);
 router.get('/spotify/login', handleSpotifyLogin);
 router.get('/spotify/callback', handleSpotifyCallback);
 router.get('/spotify/refresh', handleSpotifyRefresh);
+
+// YouTube OAuth routes
+router.get('/youtube/login', handleYoutubeLogin);
+router.get('/youtube/callback', handleYoutubeCallback);
+router.get('/youtube/refresh', handleYoutubeRefresh);
 
 export default router;
