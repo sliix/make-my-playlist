@@ -27,3 +27,7 @@ dist/
 *.njsproj
 *.sln
 *.sw?
+
+#AI
+.antigravitycli
+
