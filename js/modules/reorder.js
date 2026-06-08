@@ -151,8 +151,11 @@ export function bindDragAndDropListeners(card) {
   let startX = 0;
   let startY = 0;
   let hasMoved = false;
+  let touchTarget = null; // capture which element was touched
 
   card.addEventListener('touchstart', (e) => {
+    touchTarget = e.target; // always record the original touch target
+
     // Exclude interactive elements to let buttons, select dropdowns work
     if (e.target.closest('button, select, input, label, .btn-play-preview')) {
       return;
@@ -273,8 +276,10 @@ export function bindDragAndDropListeners(card) {
         reorderStateFromDOM();
       }
     } else if (!hasMoved && e.type === 'touchend') {
+      // Skip tap-to-toggle if the touch originated on an interactive element
+      const isTouchOnInteractive = touchTarget && touchTarget.closest('button, select, input, label, .btn-play-preview');
       const isMobile = window.innerWidth <= 640;
-      if (isMobile) {
+      if (isMobile && !isTouchOnInteractive) {
         const trackId = parseInt(card.id.replace('track-card-', ''));
         const track = state.tracks.find(t => t.id === trackId);
         if (track && track.status !== 'no-match') {
@@ -295,6 +300,7 @@ export function bindDragAndDropListeners(card) {
       }
     }
     isDraggingStarted = false;
+    touchTarget = null;
   };
 
   card.addEventListener('touchend', touchEndCancelHandler);

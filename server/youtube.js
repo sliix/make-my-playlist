@@ -8,12 +8,16 @@ export function mapYoutubeVideoToStandard(item) {
   const artworkUrl = snippet.thumbnails && snippet.thumbnails.high ? snippet.thumbnails.high.url : 
                      (snippet.thumbnails && snippet.thumbnails.default ? snippet.thumbnails.default.url : '');
 
+  // Strip the ' - Topic' suffix YouTube appends to auto-generated artist Topic channels
+  const rawChannel = snippet.channelTitle || 'Unknown Creator';
+  const artistName = rawChannel.endsWith(' - Topic') ? rawChannel.slice(0, -' - Topic'.length).trim() : rawChannel;
+
   return {
     id: videoId,
     type: 'songs',
     attributes: {
       name: snippet.title || 'Unknown Title',
-      artistName: snippet.channelTitle || 'Unknown Creator',
+      artistName,
       albumName: '', // YouTube Data API v3 doesn't return album names in search
       durationInMillis: 0, // Fallback, search does not include durations
       artwork: {

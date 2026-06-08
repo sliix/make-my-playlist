@@ -116,9 +116,22 @@ router.get('/search', async (req, res) => {
     }
     try {
       const isMusic = service === 'youtube_music';
-      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(term)}&maxResults=${parsedLimit}&type=video${isMusic ? '&videoCategoryId=10' : ''}`;
-      
-      const response = await fetch(url, {
+
+      // For YouTube Music, always fetch the maximum (50) to maximize Topic channel hits after post-filtering.
+      // For plain YouTube, fetch 2× requested to account for any filtered-out non-music items.
+      const fetchLimit = isMusic ? 50 : Math.min(parsedLimit * 2, 50);
+
+      // YouTube Music: topicId=/m/04rlf biases toward the Music topic on YouTube.
+      // YouTube (plain): videoCategoryId=10 + 'official audio' query bias.
+      let searchUrl;
+      if (isMusic) {
+        searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(term)}&maxResults=${fetchLimit}&type=video&topicId=/m/04rlf&order=relevance&safeSearch=none`;
+      } else {
+        const biasedTerm = `${term} official audio`;
+        searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(biasedTerm)}&maxResults=${fetchLimit}&type=video&videoCategoryId=10&order=relevance&safeSearch=none`;
+      }
+
+      const response = await fetch(searchUrl, {
         headers: {
           'Authorization': `Bearer ${userToken}`
         }
@@ -128,19 +141,43 @@ router.get('/search', async (req, res) => {
       if (!response.ok) {
         throw new Error(data.error?.message || 'YouTube search failed');
       }
-      
-      const results = {
-        songs: {
-          data: (data.items || []).map(mapYoutubeVideoToStandard).filter(t => t !== null)
+
+      const allMapped = (data.items || []).map(mapYoutubeVideoToStandard).filter(t => t !== null);
+
+      let finalItems;
+      if (isMusic) {
+        // --- YouTube Music: strict Topic-channel filtering ---
+        // Auto-generated Topic channels (e.g. "Daft Punk - Topic") are YouTube's
+        // equivalent of Spotify/Apple Music catalog entries — official audio only,
+        // no covers, karaoke, tutorials, fan uploads, or podcast clips.
+        // We detect them by the raw channelTitle before the ' - Topic' suffix is stripped.
+        const topicItems = (data.items || []).filter(item => {
+          const channelTitle = item?.snippet?.channelTitle || '';
+          return channelTitle.endsWith(' - Topic');
+        }).map(mapYoutubeVideoToStandard).filter(t => t !== null);
+
+        if (topicItems.length >= parsedLimit) {
+          // Enough Topic-channel results — use only those (best quality)
+          finalItems = topicItems.slice(0, parsedLimit);
+        } else {
+          // Not enough Topic-channel results; fill remaining slots with the best
+          // non-Topic results that weren't already included
+          const topicIds = new Set(topicItems.map(t => t.id));
+          const fallbackItems = allMapped.filter(t => !topicIds.has(t.id));
+          finalItems = [...topicItems, ...fallbackItems].slice(0, parsedLimit);
         }
-      };
-      
-      return res.json({ results });
+      } else {
+        // Plain YouTube: just trim to the requested limit
+        finalItems = allMapped.slice(0, parsedLimit);
+      }
+
+      return res.json({ results: { songs: { data: finalItems } } });
     } catch (error) {
       console.error(`${service === 'youtube' ? 'YouTube' : 'YouTube Music'} catalog search failed for term "${term}":`, error.message);
       return res.status(500).json({ error: error.message });
     }
   }
+
 
   try {
     const token = generateDeveloperToken('2m'); // Short-lived single-transaction token
