@@ -2,6 +2,7 @@ import { state, el, saveAppState } from './state.js';
 import { searchCatalogProxy, fetchCatalogPlaylistTracks, fetchCatalogAlbumTracks } from './api.js';
 import { renderTracksList, updateCreatePlaylistButtonState } from './renderer.js';
 import { t } from './i18n.js';
+import { showCustomAlert } from './utils.js';
 
 export function parseSongLine(line) {
   let cleaned = line.trim();
@@ -390,7 +391,7 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
   }
 
   if (queries.length === 0) {
-    alert("Invalid natural language prompt. Please write something descriptive.");
+    showCustomAlert("Invalid natural language prompt. Please write something descriptive.");
     el.searchProgressCard.classList.add('hidden');
     el.btnAnalyze.disabled = false;
     el.spinnerAnalyze.classList.add('hidden');
@@ -505,7 +506,7 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
   const slicedSongs = uniqueSongsPool.slice(0, parsedPrompt.size);
 
   if (slicedSongs.length === 0) {
-    alert(t("alert.noMatchesFound", { service: serviceLabel }));
+    showCustomAlert(t("alert.noMatchesFound", { service: serviceLabel }));
     el.searchProgressCard.classList.add('hidden');
     el.resultsEmptyState.classList.remove('hidden');
     el.btnAnalyze.disabled = false;

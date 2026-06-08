@@ -525,6 +525,28 @@ Stay - Justin Bieber & The Kid LAROI" aria-label="Song List Input"></textarea>
     </div>
   </dialog>
 
+  <!-- Custom Alert / Confirm Glass Modal Dialog -->
+  <dialog id="modal-custom-alert" class="glass-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="custom-alert-title" data-i18n="alert.defaultTitle">Notice</h3>
+        <button id="btn-close-alert-modal" class="btn-close" aria-label="Close Modal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id="custom-alert-message" style="margin-bottom: 20px; white-space: pre-wrap;"></p>
+        <div class="modal-footer mt-4" style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button id="btn-custom-alert-cancel" class="btn btn-secondary hidden" type="button" data-i18n="alert.btnCancel">Cancel</button>
+          <button id="btn-custom-alert-ok" class="btn btn-primary" type="button" data-i18n="alert.btnOk">OK</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
   <!-- Application Entry Point -->
   <script type="module" src="main.js"></script>
 </body>

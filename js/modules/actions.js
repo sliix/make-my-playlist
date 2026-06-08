@@ -23,14 +23,16 @@ import {
   getResponseError, 
   showSuccessToast, 
   showWarningToast, 
-  showErrorToast 
+  showErrorToast,
+  showCustomAlert,
+  showCustomConfirm
 } from './utils.js';
 import { t } from './i18n.js';
 
 // Parsing & Analyze Actions
 export function handleAnalyzeSongList() {
   if (state.activeService === 'apple' && !state.musicKit) {
-    alert(t("alert.musicKitUnavailable"));
+    showCustomAlert(t("alert.musicKitUnavailable"));
     return;
   }
 
@@ -43,7 +45,7 @@ export function handleAnalyzeSongList() {
 
   const rawText = el.inputSongList.value;
   if (!rawText.trim()) {
-    alert(state.detectedMode === 'natural' ? t("alert.emptyPrompt") : t("alert.emptyInput"));
+    showCustomAlert(state.detectedMode === 'natural' ? t("alert.emptyPrompt") : t("alert.emptyInput"));
     return;
   }
 
@@ -140,7 +142,7 @@ export function handleAnalyzeSongList() {
   }
 
   if (newTracks.length === 0) {
-    alert(t("alert.noNewSongs"));
+    showCustomAlert(t("alert.noNewSongs"));
     return;
   }
 
@@ -225,7 +227,7 @@ export async function handleCreatePlaylist() {
   }
   if (state.activeService === 'apple') {
     if (!state.musicKit) {
-      alert(t("alert.musicKitUnavailable"));
+      showCustomAlert(t("alert.musicKitUnavailable"));
       return;
     }
 
@@ -252,7 +254,7 @@ export async function handleCreatePlaylist() {
 
   const approvedTracks = state.tracks.filter(t => t.approved && t.status === 'matched');
   if (approvedTracks.length === 0) {
-    alert(t("alert.approveAtLeastOne"));
+    showCustomAlert(t("alert.approveAtLeastOne"));
     return;
   }
 
@@ -371,7 +373,7 @@ export async function executeCreatePlaylist() {
     showSuccessToast(t("alert.successPlaylistCreatedExtended", { name, count: trackPayload.length }));
   } catch (error) {
     console.error("Playlist export error:", error);
-    alert(t("alert.createFailed", { error: error.message }));
+    showCustomAlert(t("alert.createFailed", { error: error.message }));
   } finally {
     el.btnCreatePlaylist.disabled = false;
     el.spinnerCreate.classList.add('hidden');
@@ -475,7 +477,7 @@ export async function handleUpdatePlaylist() {
     }
   } catch (error) {
     console.error("Playlist update error:", error);
-    alert(t("alert.updateFailed", { error: error.message }));
+    showCustomAlert(t("alert.updateFailed", { error: error.message }));
   } finally {
     el.btnCreatePlaylist.disabled = false;
     el.spinnerCreate.classList.add('hidden');
@@ -483,8 +485,8 @@ export async function handleUpdatePlaylist() {
   }
 }
 
-export function handleResetApp() {
-  if (confirm(t("alert.resetConfirm"))) {
+export async function handleResetApp() {
+  if (await showCustomConfirm(t("alert.resetConfirm"))) {
     // 1. Stop any running audio preview
     if (state.playingAudio) {
       state.playingAudio.pause();
@@ -552,7 +554,7 @@ export async function handleFetchLibraryPlaylists() {
 
   if (state.activeService === 'apple') {
     if (!state.musicKit) {
-      alert(t("alert.musicKitUnavailable"));
+      showCustomAlert(t("alert.musicKitUnavailable"));
       return;
     }
 
@@ -591,7 +593,7 @@ export async function handleFetchLibraryPlaylists() {
 
     const data = await response.json();
     if (!data.data || data.data.length === 0) {
-      alert(t("alert.noPlaylistsFound", { service: state.activeService === 'apple' ? t("serviceName.apple") : t("serviceName.spotify") }));
+      showCustomAlert(t("alert.noPlaylistsFound", { service: state.activeService === 'apple' ? t("serviceName.apple") : t("serviceName.spotify") }));
       return;
     }
 
@@ -611,7 +613,7 @@ export async function handleFetchLibraryPlaylists() {
     showSuccessToast(t("alert.playlistsLoaded"));
   } catch (err) {
     console.error("Error fetching library playlists:", err);
-    alert(t("alert.loadPlaylistsFailed", { error: err.message }));
+    showCustomAlert(t("alert.loadPlaylistsFailed", { error: err.message }));
   } finally {
     el.btnFetchPlaylists.disabled = false;
     el.spinnerFetch.classList.add('hidden');
@@ -648,7 +650,7 @@ export async function handleLoadSelectedPlaylist() {
 
     const data = await response.json();
     if (!data.data || data.data.length === 0) {
-      alert(t("alert.noSongsInPlaylist"));
+      showCustomAlert(t("alert.noSongsInPlaylist"));
       return;
     }
 
@@ -722,7 +724,7 @@ export async function handleLoadSelectedPlaylist() {
     showSuccessToast(t("alert.loadSuccess", { count: tracksLines.length }));
   } catch (err) {
     console.error("Error loading playlist tracks:", err);
-    alert(t("alert.loadFailed", { error: err.message }));
+    showCustomAlert(t("alert.loadFailed", { error: err.message }));
   } finally {
     el.btnLoadPlaylist.disabled = false;
     el.spinnerLoad.classList.add('hidden');

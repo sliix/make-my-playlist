@@ -127,6 +127,9 @@ export const translations = {
     "alert.youtubeAuthFailed": "Could not authorize Google account: {error}",
     "alert.youtubeDisconnected": "Disconnected Google account.",
     "alert.serviceSwitched": "Switched active service to {service}.",
+    "alert.defaultTitle": "Notice",
+    "alert.btnOk": "OK",
+    "alert.btnCancel": "Cancel",
     "card.items.updatingText": "Updating...",
 
     // Badges
@@ -274,6 +277,9 @@ export const translations = {
     "alert.youtubeAuthFailed": "אימות חשבון גוגל נכשל: {error}",
     "alert.youtubeDisconnected": "נותקת מחשבון גוגל.",
     "alert.serviceSwitched": "השירות הפעיל שונה ל-{service}.",
+    "alert.defaultTitle": "הודעה",
+    "alert.btnOk": "אישור",
+    "alert.btnCancel": "ביטול",
     "card.items.updatingText": "מעדכן...",
 
     // Badges

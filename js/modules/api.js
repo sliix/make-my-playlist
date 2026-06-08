@@ -1,5 +1,5 @@
 import { state, el, saveAppState } from './state.js';
-import { getResponseError, showSuccessToast, showErrorToast } from './utils.js';
+import { getResponseError, showSuccessToast, showErrorToast, showCustomAlert } from './utils.js';
 import { updateCreatePlaylistButtonState } from './renderer.js';
 import { t } from './i18n.js';
 
@@ -17,7 +17,7 @@ export async function loadSessionConfigWithRetries(maxAttempts = 4, delayMs = 10
     }
   }
   // All attempts failed
-  alert(t('alert.serviceUnavailable'));
+  showCustomAlert(t('alert.serviceUnavailable'));
 }
 
 // Fetch session configurations dynamically from secure Express backend
@@ -314,7 +314,7 @@ export function updateConnectionUI() {
 
 export async function handleConnectAppleMusic() {
   if (!state.musicKit) {
-    alert(t('alert.musicKitUnavailable'));
+    showCustomAlert(t('alert.musicKitUnavailable'));
     return;
   }
   try {

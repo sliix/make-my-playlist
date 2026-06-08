@@ -30,6 +30,7 @@ import {
   initDragAndDrop
 } from './js/modules/reorder.js';
 import { updateMobileViewUI } from './js/modules/renderer.js';
+import { resolveActiveAlert, showCustomAlert } from './js/modules/utils.js';
 
 // Initialize Application
 window.addEventListener('DOMContentLoaded', async () => {
@@ -300,7 +301,7 @@ function initEventListeners() {
     el.btnSaveNameModal.addEventListener('click', () => {
       const newName = el.modalInputPlaylistName.value.trim();
       if (!newName || newName === "My Awesome Playlist") {
-        alert("Please enter a custom, unique playlist name.");
+        showCustomAlert("Please enter a custom, unique playlist name.");
         return;
       }
       el.playlistName.value = newName;
@@ -353,6 +354,36 @@ function initEventListeners() {
         if (el.iframeYoutubePreview) el.iframeYoutubePreview.src = '';
         el.modalYoutubePreview.close();
       }
+    });
+  }
+
+  // Custom Alert / Confirm modal listeners
+  if (el.modalCustomAlert) {
+    // OK button resolves true
+    el.btnCustomAlertOk?.addEventListener('click', () => {
+      resolveActiveAlert(true);
+      el.modalCustomAlert.close();
+    });
+    // Cancel button resolves false
+    el.btnCustomAlertCancel?.addEventListener('click', () => {
+      resolveActiveAlert(false);
+      el.modalCustomAlert.close();
+    });
+    // X close button resolves false
+    el.btnCloseAlertModal?.addEventListener('click', () => {
+      resolveActiveAlert(false);
+      el.modalCustomAlert.close();
+    });
+    // Backdrop click resolves false
+    el.modalCustomAlert.addEventListener('click', (e) => {
+      if (e.target === el.modalCustomAlert) {
+        resolveActiveAlert(false);
+        el.modalCustomAlert.close();
+      }
+    });
+    // Escape key resolves false (native 'cancel' event)
+    el.modalCustomAlert.addEventListener('cancel', () => {
+      resolveActiveAlert(false);
     });
   }
 

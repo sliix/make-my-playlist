@@ -1,4 +1,60 @@
-// Duration Formatter
+import { t } from './i18n.js';
+
+// Module-level resolver for the active alert/confirm promise
+let _alertResolve = null;
+
+// Internal helper: open the custom dialog in either alert or confirm mode
+function _openCustomDialog(message, title, isConfirm) {
+  const modal = document.getElementById('modal-custom-alert');
+  const titleEl = document.getElementById('custom-alert-title');
+  const msgEl = document.getElementById('custom-alert-message');
+  const cancelBtn = document.getElementById('btn-custom-alert-cancel');
+
+  // Fall back to browser native if dialog is not in DOM yet
+  if (!modal || !titleEl || !msgEl) {
+    if (isConfirm) return Promise.resolve(confirm(message));
+    alert(message);
+    return Promise.resolve(true);
+  }
+
+  titleEl.textContent = title || t('alert.defaultTitle');
+  msgEl.textContent = message;
+
+  // Show or hide the Cancel button depending on alert vs confirm mode
+  if (isConfirm) {
+    cancelBtn?.classList.remove('hidden');
+  } else {
+    cancelBtn?.classList.add('hidden');
+  }
+
+  return new Promise((resolve) => {
+    // If a previous dialog was open, resolve it false first
+    if (_alertResolve) _alertResolve(false);
+    _alertResolve = resolve;
+    modal.showModal();
+  });
+}
+
+// Resolve the active alert/confirm promise (called from event listeners in main.js)
+export function resolveActiveAlert(result) {
+  if (_alertResolve) {
+    const fn = _alertResolve;
+    _alertResolve = null;
+    fn(result);
+  }
+}
+
+// Show a non-blocking custom alert dialog (returns Promise<true> on dismiss)
+export function showCustomAlert(message, title = null) {
+  return _openCustomDialog(message, title, false);
+}
+
+// Show a custom confirm dialog (returns Promise<true> on OK, Promise<false> on Cancel/close)
+export function showCustomConfirm(message, title = null) {
+  return _openCustomDialog(message, title, true);
+}
+
+
 export function formatDuration(ms) {
   if (!ms) return '0:00';
   const totalSeconds = Math.floor(ms / 1000);

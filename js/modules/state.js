@@ -124,6 +124,9 @@ export const el = {
   modalCustomAlert: document.getElementById('modal-custom-alert'),
   btnCloseAlertModal: document.getElementById('btn-close-alert-modal'),
   btnCustomAlertOk: document.getElementById('btn-custom-alert-ok'),
+  btnCustomAlertCancel: document.getElementById('btn-custom-alert-cancel'),
+  customAlertTitle: document.getElementById('custom-alert-title'),
+  customAlertMessage: document.getElementById('custom-alert-message'),
 
   // Language switcher elements
   btnLangToggle: document.getElementById('btn-lang-toggle'),
