@@ -473,8 +473,15 @@ export async function handleSelectActive(service) {
     try {
       for (let i = 0; i < oldTracks.length; i++) {
         const track = oldTracks[i];
-        const artist = track.attributes?.artistName || 'Unknown Artist';
-        const name = track.attributes?.name || 'Unknown Track';
+        const selectedResult = track.results && track.results[track.selectedIndex];
+        let queryTerm = '';
+        if (selectedResult && selectedResult.attributes) {
+          const artist = selectedResult.attributes.artistName || 'Unknown Artist';
+          const name = selectedResult.attributes.name || 'Unknown Track';
+          queryTerm = `${artist} - ${name}`;
+        } else {
+          queryTerm = track.originalQuery || track.searchQuery || 'Unknown Track';
+        }
 
         // Update progress status message
         el.progressStatusText.textContent = t('alert.resolvingTracksProgress', {
@@ -488,11 +495,35 @@ export async function handleSelectActive(service) {
         el.progressBarFill.style.width = `${pct}%`;
 
         // Search for track on the new service catalog
-        const queryTerm = `${artist} - ${name}`;
-        const searchResults = await searchCatalogProxy(queryTerm, 1, 'songs');
+        let searchResults = [];
+        try {
+          searchResults = await searchCatalogProxy(queryTerm, 5, 'songs'); // Fetch up to 5 so alternates can be chosen
+        } catch (searchErr) {
+          console.warn(`Search failed for term "${queryTerm}":`, searchErr);
+        }
 
         if (searchResults && searchResults.length > 0) {
-          newTracks.push(searchResults[0]);
+          newTracks.push({
+            id: i + 1,
+            originalQuery: queryTerm,
+            searchQuery: queryTerm,
+            status: 'matched',
+            results: searchResults,
+            selectedIndex: 0,
+            approved: true,
+            errorMessage: ''
+          });
+        } else {
+          newTracks.push({
+            id: i + 1,
+            originalQuery: queryTerm,
+            searchQuery: queryTerm,
+            status: 'no-match',
+            results: [],
+            selectedIndex: 0,
+            approved: false,
+            errorMessage: ''
+          });
         }
       }
 
