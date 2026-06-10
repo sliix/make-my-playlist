@@ -90,7 +90,7 @@ export function handleYoutubeLogin(req, res) {
 export async function handleYoutubeCallback(req, res) {
   const code = req.query.code || null;
 
-  const frontendUrl = process.env.NODE_ENV === 'production' 
+  const frontendUrl = (process.env.NODE_ENV === 'production' || process.env.NETLIFY)
     ? '/' 
     : 'http://localhost:5173/';
 
