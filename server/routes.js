@@ -73,34 +73,84 @@ router.get('/search', async (req, res) => {
       const spotifyType = types.split(',').map(t => typeMapping[t] || t).join(',');
       const market = storefront === 'us' ? 'US' : storefront.toUpperCase();
 
-      const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(term)}&type=${spotifyType}&limit=${parsedLimit}&market=${market}`, {
-        headers: {
-          'Authorization': `Bearer ${userToken}`
+      // Spotify search allows a maximum of 10 results per request.
+      // We paginate using the 'next' URL in the response until we have
+      // enough results or there are no more pages.
+      const PAGE_SIZE = 10;
+      const MAX_LIMIT = 50; // safety ceiling to avoid runaway quota usage
+      const targetLimit = Math.min(parsedLimit, MAX_LIMIT);
+
+      const authHeaders = { 'Authorization': `Bearer ${userToken}` };
+
+      // Collect results per type across pages
+      const collected = { songs: [], playlists: [], albums: [] };
+
+      // Build next-page URLs per type (Spotify returns separate pagination per type)
+      const nextUrls = {};
+      const typeList = spotifyType.split(',');
+      for (const sType of typeList) {
+        const pageLimit = Math.min(PAGE_SIZE, targetLimit);
+        nextUrls[sType] = `https://api.spotify.com/v1/search?q=${encodeURIComponent(term)}&type=${sType}&limit=${pageLimit}&market=${market}&additional_types=track`;
+      }
+
+      // Page through each type independently until we hit targetLimit
+      while (Object.keys(nextUrls).length > 0) {
+        // Fire all pending next-page requests in parallel
+        const pageEntries = Object.entries(nextUrls);
+        const pageResults = await Promise.all(
+          pageEntries.map(([sType, url]) =>
+            fetch(url, { headers: authHeaders })
+              .then(async r => {
+                if (!r.ok) {
+                  const errMsg = await getSpotifyErrorMessage(r, "Spotify Search failed");
+                  throw new Error(errMsg);
+                }
+                return { sType, data: await r.json() };
+              })
+          )
+        );
+
+        // Clear nextUrls — we'll re-add only types that still need more pages
+        for (const key of Object.keys(nextUrls)) delete nextUrls[key];
+
+        for (const { sType, data } of pageResults) {
+          // songs type
+          if (sType === 'track' && data.tracks) {
+            const items = (data.tracks.items || []).map(mapSpotifyTrackToStandard).filter(t => t !== null);
+            collected.songs.push(...items);
+            if (collected.songs.length < targetLimit && data.tracks.next) {
+              nextUrls['track'] = data.tracks.next;
+            }
+          }
+          // playlists type
+          if (sType === 'playlist' && data.playlists) {
+            const items = (data.playlists.items || []).map(mapSpotifyPlaylistToStandard).filter(t => t !== null);
+            collected.playlists.push(...items);
+            if (collected.playlists.length < targetLimit && data.playlists.next) {
+              nextUrls['playlist'] = data.playlists.next;
+            }
+          }
+          // albums type
+          if (sType === 'album' && data.albums) {
+            const items = (data.albums.items || []).map(mapSpotifyAlbumToStandard).filter(t => t !== null);
+            collected.albums.push(...items);
+            if (collected.albums.length < targetLimit && data.albums.next) {
+              nextUrls['album'] = data.albums.next;
+            }
+          }
         }
-      });
-
-      if (!response.ok) {
-        const errMsg = await getSpotifyErrorMessage(response, "Spotify Search failed");
-        throw new Error(errMsg);
       }
 
-      const data = await response.json();
+      // Trim each collection to the requested limit and build the standard response
       const results = {};
-
-      if (data.tracks) {
-        results.songs = {
-          data: data.tracks.items.map(mapSpotifyTrackToStandard).filter(t => t !== null)
-        };
+      if (collected.songs.length > 0) {
+        results.songs = { data: collected.songs.slice(0, targetLimit) };
       }
-      if (data.playlists) {
-        results.playlists = {
-          data: data.playlists.items.map(mapSpotifyPlaylistToStandard).filter(t => t !== null)
-        };
+      if (collected.playlists.length > 0) {
+        results.playlists = { data: collected.playlists.slice(0, targetLimit) };
       }
-      if (data.albums) {
-        results.albums = {
-          data: data.albums.items.map(mapSpotifyAlbumToStandard).filter(t => t !== null)
-        };
+      if (collected.albums.length > 0) {
+        results.albums = { data: collected.albums.slice(0, targetLimit) };
       }
 
       return res.json({ results });
@@ -109,6 +159,7 @@ router.get('/search', async (req, res) => {
       return res.status(500).json({ error: error.message });
     }
   }
+
 
   if (service === 'youtube' || service === 'youtube_music') {
     if (!userToken) {
@@ -136,7 +187,7 @@ router.get('/search', async (req, res) => {
           'Authorization': `Bearer ${userToken}`
         }
       });
-      
+
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error?.message || 'YouTube search failed');
@@ -181,22 +232,22 @@ router.get('/search', async (req, res) => {
 
   try {
     const token = generateDeveloperToken('2m'); // Short-lived single-transaction token
-    
+
     // If limit is > 25, we make two parallel paginated requests due to Apple Music's max limit of 25
     if (parsedLimit > 25) {
       const limit1 = 25;
       const limit2 = parsedLimit - 25;
-      
+
       const url1 = `https://api.music.apple.com/v1/catalog/${storefront}/search?term=${encodeURIComponent(term)}&types=${encodeURIComponent(types)}&limit=${limit1}`;
       const url2 = `https://api.music.apple.com/v1/catalog/${storefront}/search?term=${encodeURIComponent(term)}&types=${encodeURIComponent(types)}&limit=${limit2}&offset=25`;
-      
+
       const [resp1, resp2] = await Promise.all([
         fetch(url1, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(url2, { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
 
       let mergedResults = {};
-      
+
       const mergeData = (data) => {
         if (!data || !data.results) return;
         for (const type of Object.keys(data.results)) {
@@ -399,7 +450,7 @@ router.post('/playlists', async (req, res) => {
       }
 
       const playlistData = await createResponse.json();
-      
+
       // Standardized format:
       return res.json({
         data: [
@@ -465,7 +516,7 @@ router.post('/playlists', async (req, res) => {
   try {
     const token = generateDeveloperToken('2m');
     const url = 'https://api.music.apple.com/v1/me/library/playlists';
-    
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -507,7 +558,7 @@ router.post('/playlists/:id/tracks', async (req, res) => {
   if (service === 'spotify') {
     try {
       const uris = tracks.map(track => `spotify:track:${track.id}`);
-      
+
       // Spotify allows up to 100 tracks per request.
       const chunkSize = 100;
       for (let i = 0; i < uris.length; i += chunkSize) {
@@ -570,7 +621,7 @@ router.post('/playlists/:id/tracks', async (req, res) => {
   try {
     const token = generateDeveloperToken('2m');
     const url = `https://api.music.apple.com/v1/me/library/playlists/${id}/tracks`;
-    
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -664,7 +715,7 @@ router.patch('/playlists/:id', async (req, res) => {
   try {
     const token = generateDeveloperToken('2m');
     const url = `https://api.music.apple.com/v1/me/library/playlists/${id}`;
-    
+
     const response = await fetch(url, {
       method: 'PATCH',
       headers: {
@@ -752,7 +803,7 @@ router.get('/library/playlists', async (req, res) => {
   try {
     const token = generateDeveloperToken('2m');
     const url = 'https://api.music.apple.com/v1/me/library/playlists?limit=100';
-    
+
     const response = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -839,7 +890,7 @@ router.get('/library/playlists/:id/tracks', async (req, res) => {
   try {
     const token = generateDeveloperToken('2m');
     const url = `https://api.music.apple.com/v1/me/library/playlists/${id}/tracks?limit=100&include=catalog`;
-    
+
     const response = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${token}`,
