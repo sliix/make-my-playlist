@@ -1,5 +1,5 @@
 import { state, el, saveAppState, restoreAppState } from './js/modules/state.js';
-import { applyTranslations, setLocale } from './js/modules/i18n.js';
+import { applyTranslations, setLocale, t } from './js/modules/i18n.js';
 import { 
   loadSessionConfigWithRetries, 
   handleSpotifyCallback, 
@@ -30,7 +30,7 @@ import {
   initDragAndDrop
 } from './js/modules/reorder.js';
 import { updateMobileViewUI } from './js/modules/renderer.js';
-import { resolveActiveAlert, showCustomAlert } from './js/modules/utils.js';
+import { resolveActiveAlert, showCustomAlert, showCustomConfirm } from './js/modules/utils.js';
 
 // Initialize Application
 window.addEventListener('DOMContentLoaded', async () => {
@@ -134,56 +134,44 @@ function initEventListeners() {
   });
 
   // Services Dropdown Actions
-  el.btnConnectAppleMenu.addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleConnectAppleMusic();
-  });
-  el.btnDisconnectAppleAction.addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleDisconnectAppleMusic();
-  });
-  el.btnActivateApple.addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleSelectActive('apple');
-  });
+  const serviceItems = document.querySelectorAll('.service-menu-item');
+  serviceItems.forEach(item => {
+    item.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const service = item.getAttribute('data-service');
+      const isConnected = !item.classList.contains('offline');
+      const isActive = item.classList.contains('active');
 
-  el.btnConnectSpotifyMenu.addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleConnectSpotify();
-  });
-  el.btnDisconnectSpotifyAction.addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleDisconnectSpotify();
-  });
-  el.btnActivateSpotify.addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleSelectActive('spotify');
-  });
-
-  el.btnConnectYoutubeMenu.addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleConnectYoutube();
-  });
-  el.btnDisconnectYoutubeAction.addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleDisconnectYoutube();
-  });
-  el.btnActivateYoutube.addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleSelectActive('youtube');
-  });
-
-  el.btnConnectYoutubeMusicMenu.addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleConnectYoutube();
-  });
-  el.btnDisconnectYoutubeMusicAction.addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleDisconnectYoutube();
-  });
-  el.btnActivateYoutubeMusic.addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleSelectActive('youtube_music');
+      if (!isConnected) {
+        // Trigger connection
+        if (service === 'apple') {
+          handleConnectAppleMusic();
+        } else if (service === 'spotify') {
+          handleConnectSpotify();
+        } else if (service === 'youtube' || service === 'youtube_music') {
+          handleConnectYoutube();
+        }
+      } else {
+        if (!isActive) {
+          // Select service
+          handleSelectActive(service);
+        } else {
+          // Connected and Active: Trigger disconnect with confirmation modal
+          const confirmDisconnect = await showCustomConfirm(
+            t('alert.confirmDisconnectService', { service: t(`serviceName.${service}`) })
+          );
+          if (confirmDisconnect) {
+            if (service === 'apple') {
+              handleDisconnectAppleMusic();
+            } else if (service === 'spotify') {
+              handleDisconnectSpotify();
+            } else if (service === 'youtube' || service === 'youtube_music') {
+              handleDisconnectYoutube();
+            }
+          }
+        }
+      }
+    });
   });
 
   // Library Playlist Import listeners

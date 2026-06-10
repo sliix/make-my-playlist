@@ -161,28 +161,17 @@ export function updateConnectionUI() {
   if (appleItem) {
     if (isAppleAuthorized) {
       appleItem.classList.remove('offline');
-      el.badgeStatusApple.textContent = t('service.status.connected');
-      el.badgeStatusApple.setAttribute('data-i18n', 'service.status.connected');
-      el.badgeStatusApple.className = "service-status-badge online";
-      el.btnConnectAppleMenu.classList.add('hidden');
-      el.btnDisconnectAppleAction.classList.remove('hidden');
+      el.badgeStatusApple.className = "service-status-dot online";
       
       if (state.activeService === 'apple') {
-        el.btnActivateApple.classList.add('hidden');
         appleItem.classList.add('active');
       } else {
-        el.btnActivateApple.classList.remove('hidden');
         appleItem.classList.remove('active');
       }
     } else {
       appleItem.classList.add('offline');
       appleItem.classList.remove('active');
-      el.badgeStatusApple.textContent = t('service.status.disconnected');
-      el.badgeStatusApple.setAttribute('data-i18n', 'service.status.disconnected');
-      el.badgeStatusApple.className = "service-status-badge offline";
-      el.btnConnectAppleMenu.classList.remove('hidden');
-      el.btnDisconnectAppleAction.classList.add('hidden');
-      el.btnActivateApple.classList.add('hidden');
+      el.badgeStatusApple.className = "service-status-dot offline";
     }
   }
 
@@ -193,28 +182,17 @@ export function updateConnectionUI() {
   if (spotifyItem) {
     if (isSpotifyAuthorized) {
       spotifyItem.classList.remove('offline');
-      el.badgeStatusSpotify.textContent = t('service.status.connected');
-      el.badgeStatusSpotify.setAttribute('data-i18n', 'service.status.connected');
-      el.badgeStatusSpotify.className = "service-status-badge online";
-      el.btnConnectSpotifyMenu.classList.add('hidden');
-      el.btnDisconnectSpotifyAction.classList.remove('hidden');
+      el.badgeStatusSpotify.className = "service-status-dot online";
       
       if (state.activeService === 'spotify') {
-        el.btnActivateSpotify.classList.add('hidden');
         spotifyItem.classList.add('active');
       } else {
-        el.btnActivateSpotify.classList.remove('hidden');
         spotifyItem.classList.remove('active');
       }
     } else {
       spotifyItem.classList.add('offline');
       spotifyItem.classList.remove('active');
-      el.badgeStatusSpotify.textContent = t('service.status.disconnected');
-      el.badgeStatusSpotify.setAttribute('data-i18n', 'service.status.disconnected');
-      el.badgeStatusSpotify.className = "service-status-badge offline";
-      el.btnConnectSpotifyMenu.classList.remove('hidden');
-      el.btnDisconnectSpotifyAction.classList.add('hidden');
-      el.btnActivateSpotify.classList.add('hidden');
+      el.badgeStatusSpotify.className = "service-status-dot offline";
     }
   }
 
@@ -226,56 +204,34 @@ export function updateConnectionUI() {
   if (youtubeItem) {
     if (isYoutubeAuthorized) {
       youtubeItem.classList.remove('offline');
-      el.badgeStatusYoutube.textContent = t('service.status.connected');
-      el.badgeStatusYoutube.setAttribute('data-i18n', 'service.status.connected');
-      el.badgeStatusYoutube.className = "service-status-badge online";
-      el.btnConnectYoutubeMenu.classList.add('hidden');
-      el.btnDisconnectYoutubeAction.classList.remove('hidden');
+      el.badgeStatusYoutube.className = "service-status-dot online";
       
       if (state.activeService === 'youtube') {
-        el.btnActivateYoutube.classList.add('hidden');
         youtubeItem.classList.add('active');
       } else {
-        el.btnActivateYoutube.classList.remove('hidden');
         youtubeItem.classList.remove('active');
       }
     } else {
       youtubeItem.classList.add('offline');
       youtubeItem.classList.remove('active');
-      el.badgeStatusYoutube.textContent = t('service.status.disconnected');
-      el.badgeStatusYoutube.setAttribute('data-i18n', 'service.status.disconnected');
-      el.badgeStatusYoutube.className = "service-status-badge offline";
-      el.btnConnectYoutubeMenu.classList.remove('hidden');
-      el.btnDisconnectYoutubeAction.classList.add('hidden');
-      el.btnActivateYoutube.classList.add('hidden');
+      el.badgeStatusYoutube.className = "service-status-dot offline";
     }
   }
 
   if (youtubeMusicItem) {
     if (isYoutubeAuthorized) {
       youtubeMusicItem.classList.remove('offline');
-      el.badgeStatusYoutubeMusic.textContent = t('service.status.connected');
-      el.badgeStatusYoutubeMusic.setAttribute('data-i18n', 'service.status.connected');
-      el.badgeStatusYoutubeMusic.className = "service-status-badge online";
-      el.btnConnectYoutubeMusicMenu.classList.add('hidden');
-      el.btnDisconnectYoutubeMusicAction.classList.remove('hidden');
+      el.badgeStatusYoutubeMusic.className = "service-status-dot online";
       
       if (state.activeService === 'youtube_music') {
-        el.btnActivateYoutubeMusic.classList.add('hidden');
         youtubeMusicItem.classList.add('active');
       } else {
-        el.btnActivateYoutubeMusic.classList.remove('hidden');
         youtubeMusicItem.classList.remove('active');
       }
     } else {
       youtubeMusicItem.classList.add('offline');
       youtubeMusicItem.classList.remove('active');
-      el.badgeStatusYoutubeMusic.textContent = t('service.status.disconnected');
-      el.badgeStatusYoutubeMusic.setAttribute('data-i18n', 'service.status.disconnected');
-      el.badgeStatusYoutubeMusic.className = "service-status-badge offline";
-      el.btnConnectYoutubeMusicMenu.classList.remove('hidden');
-      el.btnDisconnectYoutubeMusicAction.classList.add('hidden');
-      el.btnActivateYoutubeMusic.classList.add('hidden');
+      el.badgeStatusYoutubeMusic.className = "service-status-dot offline";
     }
   }
 

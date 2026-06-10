@@ -74,18 +74,7 @@ export const el = {
   badgeStatusSpotify: document.getElementById('badge-status-spotify'),
   badgeStatusYoutube: document.getElementById('badge-status-youtube'),
   badgeStatusYoutubeMusic: document.getElementById('badge-status-youtube-music'),
-  btnActivateApple: document.getElementById('btn-activate-apple'),
-  btnActivateSpotify: document.getElementById('btn-activate-spotify'),
-  btnActivateYoutube: document.getElementById('btn-activate-youtube'),
-  btnActivateYoutubeMusic: document.getElementById('btn-activate-youtube-music'),
-  btnConnectAppleMenu: document.getElementById('btn-connect-apple-menu'),
-  btnConnectSpotifyMenu: document.getElementById('btn-connect-spotify-menu'),
-  btnConnectYoutubeMenu: document.getElementById('btn-connect-youtube-menu'),
-  btnConnectYoutubeMusicMenu: document.getElementById('btn-connect-youtube-music-menu'),
-  btnDisconnectAppleAction: document.getElementById('btn-disconnect-apple-action'),
-  btnDisconnectSpotifyAction: document.getElementById('btn-disconnect-spotify-action'),
-  btnDisconnectYoutubeAction: document.getElementById('btn-disconnect-youtube-action'),
-  btnDisconnectYoutubeMusicAction: document.getElementById('btn-disconnect-youtube-music-action'),
+
 
   // Library Playlist Import Elements
   btnFetchPlaylists: document.getElementById('btn-fetch-playlists'),
