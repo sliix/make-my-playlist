@@ -474,11 +474,11 @@ export async function handleSelectActive(service) {
       for (let i = 0; i < oldTracks.length; i++) {
         const track = oldTracks[i];
         const selectedResult = track.results && track.results[track.selectedIndex];
-        let queryTerm = '';
         if (selectedResult && selectedResult.attributes) {
-          const artist = selectedResult.attributes.artistName || 'Unknown Artist';
-          const name = selectedResult.attributes.name || 'Unknown Track';
-          queryTerm = `${artist} - ${name}`;
+          const artist = selectedResult.attributes.artistName || '';
+          const name = selectedResult.attributes.name || '';
+          const album = selectedResult.attributes.albumName || '';
+          queryTerm = cleanSearchQuery(artist, name, album);
         } else {
           queryTerm = track.originalQuery || track.searchQuery || 'Unknown Track';
         }
@@ -647,4 +647,55 @@ export async function fetchCatalogAlbumTracks(albumId) {
   }
   const data = await response.json();
   return data.data || [];
+}
+
+export function cleanSearchQuery(artist, title, album = '') {
+  if (!title) return artist || '';
+  if (!artist) return title;
+
+  let cleanTitle = title;
+
+  // 1. Remove everything after a pipe character '|' (very common in YouTube titles)
+  if (cleanTitle.includes('|')) {
+    cleanTitle = cleanTitle.split('|')[0];
+  }
+
+  // 2. Remove common YouTube suffixes in parentheses or brackets
+  cleanTitle = cleanTitle.replace(/\((official|video|audio|lyrics|hd|hq|live|remix|clip|ft|feat\.?|with|music video|official video|official audio|official music video|visualizer)[^)]*\)/gi, '');
+  cleanTitle = cleanTitle.replace(/\[(official|video|audio|lyrics|hd|hq|live|remix|clip|ft|feat\.?|with|music video|official video|official audio|official music video|visualizer)[^\]]*\]/gi, '');
+
+  // 3. Remove common raw suffixes
+  cleanTitle = cleanTitle.replace(/\b(official video|official audio|official music video|music video|official lyric video|lyric video|official visualizer|visualizer)\b/gi, '');
+
+  // 4. Remove the artist's name from the title to avoid redundancy (case-insensitive)
+  const escapedArtist = artist.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  cleanTitle = cleanTitle.replace(new RegExp(escapedArtist, 'gi'), '');
+
+  // 5. Clean up duplicate dashes, spaces, and punctuation
+  cleanTitle = cleanTitle
+    .replace(/[-_:/\\]+/g, ' ')  // Replace dashes/slashes/colons with space
+    .replace(/\s+/g, ' ')        // Normalize multiple spaces
+    .trim();
+
+  // 6. Return combined query, possibly with album
+  let query = `${artist} ${cleanTitle}`.trim();
+  
+  if (album) {
+    let cleanAlbum = album;
+    // Clean up album suffixes similarly if they have stuff like (Remastered) or (Deluxe)
+    cleanAlbum = cleanAlbum.replace(/\((deluxe|remastered|expanded|special|anniversary|super deluxe|edition|version)[^)]*\)/gi, '');
+    cleanAlbum = cleanAlbum.replace(/\[(deluxe|remastered|expanded|special|anniversary|super deluxe|edition|version)[^\]]*\]/gi, '');
+    cleanAlbum = cleanAlbum.replace(/\b(deluxe edition|remastered|special edition|anniversary edition)\b/gi, '');
+    
+    // Check if album name is similar to track name (so we don't repeat it)
+    const normAlbum = cleanAlbum.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const normTitle = cleanTitle.toLowerCase().replace(/[^a-z0-9]/g, '');
+    
+    const isGenericAlbum = /^(single|ep|album)$/i.test(cleanAlbum.trim());
+    if (normAlbum && normAlbum !== normTitle && !isGenericAlbum) {
+      query += ` ${cleanAlbum.trim()}`;
+    }
+  }
+
+  return query;
 }
