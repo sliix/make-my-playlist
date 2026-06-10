@@ -44,7 +44,7 @@ export function detectInputType(text) {
   for (const line of lines) {
     const hasSeparator = line.includes('-') || /\bby\b/i.test(line);
     const hasKeywords = hasPromptKeyword(line);
-    
+
     if (hasSeparator && !hasKeywords) {
       songLinesCount++;
     }
@@ -79,15 +79,15 @@ export function updateInputAutoDetection() {
   if (state.detectedMode === 'list') {
     el.detectionBadge.className = 'badge badge-info';
     el.detectionBadge.textContent = '📄 ' + t("badge.listMode");
-    el.detectionExplanation.textContent = state.isModeOverridden 
-      ? t("badge.listExplanationManual") 
+    el.detectionExplanation.textContent = state.isModeOverridden
+      ? t("badge.listExplanationManual")
       : t("badge.listExplanation");
     el.btnOverrideMode.textContent = t("badge.switchToAI");
   } else {
     el.detectionBadge.className = 'badge badge-purple';
     el.detectionBadge.textContent = '✨ ' + t("badge.naturalMode");
-    el.detectionExplanation.textContent = state.isModeOverridden 
-      ? t("badge.aiExplanationManual") 
+    el.detectionExplanation.textContent = state.isModeOverridden
+      ? t("badge.aiExplanationManual")
       : t("badge.aiExplanation");
     el.btnOverrideMode.textContent = t("badge.switchToList");
   }
@@ -111,7 +111,7 @@ export function updateInputAutoDetection() {
 
 export function parseNaturalLanguagePrompt(text) {
   const lowercaseText = text.toLowerCase();
-  
+
   // 1. Extract Playlist Size (look for numbers)
   let size = 20;
   const numbers = text.match(/\b\d+\b/g);
@@ -201,7 +201,7 @@ export function parseNaturalLanguagePrompt(text) {
 }
 
 export async function executeNaturalLanguageGeneration(parsedPrompt) {
-  console.log("[Just Say It] Starting generation with parsed parameters:", parsedPrompt);
+  console.log("[AI Mode] Starting generation with parsed parameters:", parsedPrompt);
 
   // Show progress card
   el.resultsEmptyState.classList.add('hidden');
@@ -212,7 +212,7 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
   el.btnAnalyze.disabled = true;
   el.spinnerAnalyze.classList.remove('hidden');
   el.btnAnalyzeText.textContent = t("card.input.btnSearchAnalyzing");
-  
+
   const serviceLabel = state.activeService === 'apple' ? t("serviceName.apple") : t("serviceName.spotify");
   el.progressStatusText.textContent = t("card.items.progressLLM");
   el.progressPercentage.textContent = "0%";
@@ -220,7 +220,7 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
 
   // 1. Generate search and fetch tasks
   const queries = [];
-  
+
   // Count standard song queries to calculate limitPerQuery
   let songsSearchCount = 0;
   if (parsedPrompt.artists) {
@@ -244,6 +244,28 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
   // Add artist tasks: essentials playlist, best playlist, plain artist songs
   if (parsedPrompt.artists) {
     parsedPrompt.artists.forEach(artist => {
+      queries.push({
+        type: 'playlist_search',
+        term: artist,
+        run: async () => {
+          const playlists = await searchCatalogProxy(artist, 1, 'playlists');
+          if (playlists && playlists.length > 0) {
+            return await fetchCatalogPlaylistTracks(playlists[0].id);
+          }
+          return [];
+        }
+      });
+      queries.push({
+        type: 'playlist_search',
+        term: `This is ${artist}`,
+        run: async () => {
+          const playlists = await searchCatalogProxy(`This is ${artist}`, 1, 'playlists');
+          if (playlists && playlists.length > 0) {
+            return await fetchCatalogPlaylistTracks(playlists[0].id);
+          }
+          return [];
+        }
+      });
       queries.push({
         type: 'playlist_search',
         term: `${artist} essentials`,
@@ -279,6 +301,17 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
   // Add genre tasks: essentials playlist, best playlist, plain genre songs
   if (parsedPrompt.genres) {
     parsedPrompt.genres.forEach(genre => {
+      queries.push({
+        type: 'playlist_search',
+        term: genre,
+        run: async () => {
+          const playlists = await searchCatalogProxy(genre, 1, 'playlists');
+          if (playlists && playlists.length > 0) {
+            return await fetchCatalogPlaylistTracks(playlists[0].id);
+          }
+          return [];
+        }
+      });
       queries.push({
         type: 'playlist_search',
         term: `${genre} essentials`,
@@ -350,12 +383,12 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
       .replace(/[^a-z0-9\s]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
-    
+
     if (!cleanPrompt) {
       cleanPrompt = rawText.slice(0, 100).replace(/[^a-zA-Z0-9\s]/g, ' ').trim();
     }
 
-    console.log("[Just Say It] Fallback active. Cleaned prompt:", cleanPrompt);
+    console.log("[AI Mode] Fallback active. Cleaned prompt:", cleanPrompt);
 
     if (cleanPrompt) {
       queries.push({
@@ -399,12 +432,12 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
     return;
   }
 
-  console.log("[Just Say It] Generated search queries queue:", queries.map(q => ({ type: q.type, term: q.term })));
+  console.log("[AI Mode] Generated search queries queue:", queries.map(q => ({ type: q.type, term: q.term })));
 
   // 2. Execute searches in parallel
   const totalQueries = queries.length;
   let completedQueries = 0;
-  
+
   const updateProgress = () => {
     const pct = Math.floor((completedQueries / totalQueries) * 100);
     el.progressStatusText.textContent = t("card.input.btnSearchSearching");
@@ -423,7 +456,7 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
       const queryItem = queries[index];
       try {
         const results = await queryItem.run();
-        console.log(`[Just Say It] Sub-query "${queryItem.term}" (${queryItem.type}) returned ${results ? results.length : 0} results.`);
+        console.log(`[AI Mode] Sub-query "${queryItem.term}" (${queryItem.type}) returned ${results ? results.length : 0} results.`);
         if (results && results.length > 0) {
           if (queryItem.type === 'album_search') {
             albumResults.push(results);
@@ -432,7 +465,7 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
           }
         }
       } catch (err) {
-        console.warn(`[Just Say It] Search failed for sub-query "${queryItem.term}":`, err);
+        console.warn(`[AI Mode] Search failed for sub-query "${queryItem.term}":`, err);
       }
       completedQueries++;
       updateProgress();
@@ -442,12 +475,12 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
 
   await Promise.all(pool);
 
-  console.log(`[Just Say It] Sub-queries complete. queryResults batches: ${queryResults.length}, albumResults batches: ${albumResults.length}`);
+  console.log(`[AI Mode] Sub-queries complete. queryResults batches: ${queryResults.length}, albumResults batches: ${albumResults.length}`);
 
   // Assemble final results: albums contiguous and in-order first, then mixed songs
   const finalSongs = [];
   const seenIds = new Set();
-  
+
   // 1. Add album tracks first to keep them in order
   for (const albumTracks of albumResults) {
     for (const song of albumTracks) {
@@ -492,8 +525,8 @@ export async function executeNaturalLanguageGeneration(parsedPrompt) {
     const qLower = qName.toLowerCase();
 
     const isDup = (songId && (existingSongIds.has(songId) || seenMappedIds.has(songId))) ||
-                  existingSearchQueries.has(qLower) ||
-                  seenQueries.has(qLower);
+      existingSearchQueries.has(qLower) ||
+      seenQueries.has(qLower);
 
     if (!isDup) {
       if (songId) seenMappedIds.add(songId);

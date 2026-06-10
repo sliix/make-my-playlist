@@ -110,6 +110,16 @@ export async function checkAndRefreshSpotifyToken() {
 }
 
 export function handleSpotifyCallback() {
+  // Check for error in hash first
+  const hash = window.location.hash || '';
+  if (hash.startsWith('#spotify_error=')) {
+    const params = new URLSearchParams(hash.substring(1));
+    const error = params.get('spotify_error');
+    showErrorToast(t('alert.spotifyAuthFailed', { error }));
+    window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+    return;
+  }
+
   const urlParams = new URLSearchParams(window.location.search);
   const accessToken = urlParams.get('spotify_access_token');
   const refreshToken = urlParams.get('spotify_refresh_token');

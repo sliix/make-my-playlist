@@ -74,12 +74,15 @@ export function handleSpotifyLogin(req, res) {
   res.redirect(`https://accounts.spotify.com/authorize?${params.toString()}`);
 }
 
-// Spotify OAuth: Callback
 export async function handleSpotifyCallback(req, res) {
   const code = req.query.code || null;
 
+  const host = req.headers.host || '';
+  const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
+  const frontendUrl = isLocal ? 'http://localhost:5173/' : '/';
+
   if (code === null) {
-    return res.redirect('/#spotify_error=state_mismatch');
+    return res.redirect(`${frontendUrl}#spotify_error=state_mismatch`);
   }
 
   try {
@@ -108,14 +111,10 @@ export async function handleSpotifyCallback(req, res) {
     const refreshToken = data.refresh_token;
     const expiresIn = data.expires_in;
 
-    const frontendUrl = (process.env.NODE_ENV === 'production' || process.env.NETLIFY)
-      ? '/'
-      : 'http://localhost:5173/';
-      
     res.redirect(`${frontendUrl}?spotify_access_token=${accessToken}&spotify_refresh_token=${refreshToken}&spotify_expires_in=${expiresIn}`);
   } catch (error) {
     console.error("Spotify token exchange failed:", error.message);
-    res.redirect(`/#spotify_error=${encodeURIComponent(error.message)}`);
+    res.redirect(`${frontendUrl}#spotify_error=${encodeURIComponent(error.message)}`);
   }
 }
 

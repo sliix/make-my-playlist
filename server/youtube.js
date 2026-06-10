@@ -90,9 +90,9 @@ export function handleYoutubeLogin(req, res) {
 export async function handleYoutubeCallback(req, res) {
   const code = req.query.code || null;
 
-  const frontendUrl = (process.env.NODE_ENV === 'production' || process.env.NETLIFY)
-    ? '/' 
-    : 'http://localhost:5173/';
+  const host = req.headers.host || '';
+  const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
+  const frontendUrl = isLocal ? 'http://localhost:5173/' : '/';
 
   if (code === null) {
     return res.redirect(`${frontendUrl}#youtube_error=auth_failed`);
