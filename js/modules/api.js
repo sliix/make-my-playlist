@@ -1,6 +1,6 @@
 import { state, el, saveAppState } from './state.js';
 import { getResponseError, showSuccessToast, showErrorToast, showCustomAlert } from './utils.js';
-import { updateCreatePlaylistButtonState } from './renderer.js';
+import { updateCreatePlaylistButtonState, renderTracksList, updateTracksCounter } from './renderer.js';
 import { t } from './i18n.js';
 
 // Helper to fetch session configuration with up to 3 retries (1 second apart)
@@ -313,7 +313,7 @@ export function handleConnectSpotify() {
   window.location.href = '/api/spotify/login';
 }
 
-export function handleDisconnectSpotify() {
+export async function handleDisconnectSpotify() {
   state.spotifyAccessToken = null;
   state.spotifyRefreshToken = null;
   state.spotifyExpiresAt = null;
@@ -324,7 +324,7 @@ export function handleDisconnectSpotify() {
 
   showSuccessToast(t('alert.spotifyDisconnected'));
   if (state.activeService === 'spotify') {
-    handleSelectActive('apple');
+    await handleSelectActive('apple');
   } else {
     updateConnectionUI();
   }
@@ -402,7 +402,7 @@ export function handleConnectYoutube() {
   window.location.href = '/api/youtube/login';
 }
 
-export function handleDisconnectYoutube() {
+export async function handleDisconnectYoutube() {
   state.youtubeAccessToken = null;
   state.youtubeRefreshToken = null;
   state.youtubeExpiresAt = null;
@@ -413,16 +413,26 @@ export function handleDisconnectYoutube() {
 
   showSuccessToast(t('alert.youtubeDisconnected'));
   if (state.activeService === 'youtube' || state.activeService === 'youtube_music') {
-    handleSelectActive('apple');
+    await handleSelectActive('apple');
   } else {
     updateConnectionUI();
   }
 }
 
-export function handleSelectActive(service) {
+export async function handleSelectActive(service) {
+  const oldService = state.activeService;
+
+  // Save current tracks to old service cache
+  if (!state.serviceTracks) {
+    state.serviceTracks = { apple: [], spotify: [], youtube: [], youtube_music: [] };
+  }
+  state.serviceTracks[oldService] = [...state.tracks];
+  localStorage.setItem('makemyplaylist_service_tracks', JSON.stringify(state.serviceTracks));
+
+  // Change active service
   state.activeService = service;
   localStorage.setItem('activeService', service);
-  
+
   // Clear fetched/loaded playlist selection options
   el.playlistSelectGroup.classList.add('hidden');
   el.selectLibraryPlaylists.innerHTML = '<option value="" disabled selected>Choose a playlist...</option>';
@@ -431,16 +441,96 @@ export function handleSelectActive(service) {
   state.loadedPlaylistName = null;
   state.loadedPlaylistDesc = null;
   state.loadedPlaylistOriginalTrackIds = [];
-  saveAppState();
 
-  updateConnectionUI();
-  updateCreatePlaylistButtonState();
-  
   const targetServiceLabel = service === 'apple' ? t('service.apple') : 
                              service === 'spotify' ? t('service.spotify') : 
                              service === 'youtube' ? t('service.youtube') : 
                              t('service.youtube_music');
-  showSuccessToast(t('alert.serviceSwitched', { service: targetServiceLabel }));
+
+  const cachedTracks = state.serviceTracks[service] || [];
+  const oldTracks = state.serviceTracks[oldService] || [];
+
+  if (cachedTracks.length > 0) {
+    state.tracks = [...cachedTracks];
+    renderTracksList();
+    updateTracksCounter();
+    saveAppState();
+    updateConnectionUI();
+    updateCreatePlaylistButtonState();
+    showSuccessToast(t('alert.serviceSwitched', { service: targetServiceLabel }));
+  } else if (oldTracks.length > 0) {
+    // Regenerate track list by searching on the new service
+    el.resultsEmptyState.classList.add('hidden');
+    el.tracksList.classList.add('hidden');
+    el.searchProgressCard.classList.remove('hidden');
+    el.btnApproveAll.disabled = true;
+
+    el.progressStatusText.textContent = t("card.input.btnSearchSearching");
+    el.progressPercentage.textContent = "0%";
+    el.progressBarFill.style.width = "0%";
+
+    const newTracks = [];
+    try {
+      for (let i = 0; i < oldTracks.length; i++) {
+        const track = oldTracks[i];
+        const artist = track.attributes?.artistName || 'Unknown Artist';
+        const name = track.attributes?.name || 'Unknown Track';
+
+        // Update progress status message
+        el.progressStatusText.textContent = t('alert.resolvingTracksProgress', {
+          current: i + 1,
+          total: oldTracks.length,
+          service: targetServiceLabel
+        });
+
+        const pct = Math.floor(((i + 1) / oldTracks.length) * 100);
+        el.progressPercentage.textContent = `${pct}%`;
+        el.progressBarFill.style.width = `${pct}%`;
+
+        // Search for track on the new service catalog
+        const queryTerm = `${artist} - ${name}`;
+        const searchResults = await searchCatalogProxy(queryTerm, 1, 'songs');
+
+        if (searchResults && searchResults.length > 0) {
+          newTracks.push(searchResults[0]);
+        }
+      }
+
+      state.tracks = newTracks;
+      state.serviceTracks[service] = [...newTracks];
+      localStorage.setItem('makemyplaylist_service_tracks', JSON.stringify(state.serviceTracks));
+
+      renderTracksList();
+      updateTracksCounter();
+      saveAppState();
+      updateConnectionUI();
+      updateCreatePlaylistButtonState();
+
+      showSuccessToast(t('alert.serviceSwitched', { service: targetServiceLabel }));
+    } catch (err) {
+      console.error("Failed to resolve tracks on new service:", err);
+      showErrorToast(t('alert.resolvingTracksFailed'));
+      state.tracks = [];
+      renderTracksList();
+      updateTracksCounter();
+      saveAppState();
+      updateConnectionUI();
+      updateCreatePlaylistButtonState();
+    } finally {
+      el.searchProgressCard.classList.add('hidden');
+      el.tracksList.classList.remove('hidden');
+      el.btnApproveAll.disabled = false;
+    }
+  } else {
+    // Both caches empty, clear current track list
+    state.tracks = [];
+    renderTracksList();
+    updateTracksCounter();
+    saveAppState();
+    updateConnectionUI();
+    updateCreatePlaylistButtonState();
+    showSuccessToast(t('alert.serviceSwitched', { service: targetServiceLabel }));
+  }
 }
 
 // Re-configure/refresh configuration dynamically to prevent JWT expirations

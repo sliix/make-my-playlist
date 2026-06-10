@@ -154,7 +154,7 @@ function initEventListeners() {
       } else {
         if (!isActive) {
           // Select service
-          handleSelectActive(service);
+          await handleSelectActive(service);
         } else {
           // Connected and Active: Trigger disconnect with confirmation modal
           const confirmDisconnect = await showCustomConfirm(

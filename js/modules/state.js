@@ -18,6 +18,7 @@ export const state = {
   isModeOverridden: false,            // whether the user manually locked the mode
 
   activeService: localStorage.getItem('activeService') || 'apple',
+  serviceTracks: { apple: [], spotify: [], youtube: [], youtube_music: [] },
   spotifyAccessToken: localStorage.getItem('spotifyAccessToken') || null,
   spotifyRefreshToken: localStorage.getItem('spotifyRefreshToken') || null,
   spotifyExpiresAt: localStorage.getItem('spotifyExpiresAt') || null,
@@ -136,6 +137,12 @@ export function saveAppState() {
     isPublic: el.playlistPublic.checked,
   };
   localStorage.setItem('makemyplaylist_details', JSON.stringify(details));
+  
+  if (state.serviceTracks && state.activeService) {
+    state.serviceTracks[state.activeService] = [...state.tracks];
+  }
+  localStorage.setItem('makemyplaylist_service_tracks', JSON.stringify(state.serviceTracks || {}));
+  
   localStorage.setItem('makemyplaylist_tracks', JSON.stringify(state.tracks));
   localStorage.setItem('makemyplaylist_loaded_playlist_id', state.loadedPlaylistId || '');
   localStorage.setItem('makemyplaylist_loaded_playlist_name', state.loadedPlaylistName || '');
@@ -170,6 +177,13 @@ export function restoreAppState() {
     const appendMode = localStorage.getItem('makemyplaylist_append_mode');
     if (appendMode !== null) {
       el.chkAppendMode.checked = appendMode === 'true';
+    }
+
+    const serviceTracksStr = localStorage.getItem('makemyplaylist_service_tracks');
+    if (serviceTracksStr) {
+      state.serviceTracks = JSON.parse(serviceTracksStr);
+    } else {
+      state.serviceTracks = { apple: [], spotify: [], youtube: [], youtube_music: [] };
     }
 
     state.loadedPlaylistId = localStorage.getItem('makemyplaylist_loaded_playlist_id') || null;

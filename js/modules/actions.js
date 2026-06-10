@@ -36,6 +36,10 @@ export function handleAnalyzeSongList() {
     return;
   }
 
+  // Clear all tracks local states per service when initiating a new search
+  state.serviceTracks = { apple: [], spotify: [], youtube: [], youtube_music: [] };
+  localStorage.removeItem('makemyplaylist_service_tracks');
+
   // Stop active playing audio before re-analyzing
   if (state.playingAudio) {
     state.playingAudio.pause();
@@ -496,6 +500,7 @@ export async function handleResetApp() {
 
     // 2. Clear state variables
     state.tracks = [];
+    state.serviceTracks = { apple: [], spotify: [], youtube: [], youtube_music: [] };
     state.loadedPlaylistId = null;
     state.loadedPlaylistName = null;
     state.loadedPlaylistDesc = null;
@@ -535,6 +540,7 @@ export async function handleResetApp() {
     localStorage.removeItem('makemyplaylist_is_mode_overridden');
     localStorage.removeItem('makemyplaylist_append_mode');
     localStorage.removeItem('makemyplaylist_details');
+    localStorage.removeItem('makemyplaylist_service_tracks');
     localStorage.removeItem('makemyplaylist_tracks');
     localStorage.removeItem('makemyplaylist_loaded_playlist_id');
     localStorage.removeItem('makemyplaylist_loaded_playlist_name');
